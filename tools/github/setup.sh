@@ -45,7 +45,7 @@ sudo sed -i -e 's!/usr/bin/dockerd -H fd://!/usr/bin/dockerd -H tcp://0.0.0.0:42
 sudo systemctl daemon-reload
 sudo systemctl start docker
 
-# installing right version of eclipse temurin jdk 17
+# compiles with eclipse temurin jdk 17
 JDK=https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.9%2B9/OpenJDK17U-jdk_x64_linux_hotspot_17.0.9_9.tar.gz
 curl -sL $JDK | sudo tar xzvf - -C /usr/local
 JAVA="$(which java)"
