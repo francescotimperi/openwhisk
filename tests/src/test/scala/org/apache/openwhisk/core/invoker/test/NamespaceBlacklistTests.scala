@@ -90,9 +90,12 @@ class NamespaceBlacklistTests
   it should "mark a namespace as blocked if limit is 0 in database or if one of its subjects is blocked" in {
     val blacklist = new NamespaceBlacklist(authStore)
 
-    testRetry({
-      blacklist.refreshBlacklist().futureValue should have size blockedNamespacesCount
-    }, 60, Some(1.second))
+    testRetry(
+      {
+        blacklist.refreshBlacklist().futureValue should have size blockedNamespacesCount
+      },
+      60,
+      Some(1.second))
 
     limitsAndAuths.map(limitToIdentity).map(blacklist.isBlacklisted) shouldBe Seq(true, true, false)
     authToIdentities(blockedSubject).toSeq.map(blacklist.isBlacklisted) shouldBe Seq(true, true)

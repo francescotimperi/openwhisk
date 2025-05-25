@@ -28,7 +28,6 @@ plugins {
 
 compileTestScala.options.encoding = 'UTF-8'
 
-//install.dependsOn ':tools:admin:install'
 
 project.archivesBaseName = "openwhisk-tests"
 

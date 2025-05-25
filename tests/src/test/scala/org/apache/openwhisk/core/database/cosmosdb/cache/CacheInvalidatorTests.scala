@@ -163,7 +163,8 @@ class CacheInvalidatorTests
   private def randomString() = Random.alphanumeric.take(5).mkString
 
   private def startCacheInvalidator(): CacheInvalidator = {
-    val tsconfig = ConfigFactory.parseString(s"""
+    val tsconfig = ConfigFactory
+      .parseString(s"""
       |akka.kafka.producer {
       |  kafka-clients {
       |    bootstrap.servers = "$server"
@@ -177,11 +178,13 @@ class CacheInvalidatorTests
       |    }
       |  }
       |}
-      """.stripMargin).withFallback(ConfigFactory.load())
+      """.stripMargin)
+      .withFallback(ConfigFactory.load())
     new CacheInvalidator(tsconfig)
   }
   private def startCacheInvalidatorWithoutKafka(): CacheInvalidator = {
-    val tsconfig = ConfigFactory.parseString(s"""
+    val tsconfig = ConfigFactory
+      .parseString(s"""
       |akka.kafka.producer {
       |  kafka-clients {
       |    #this config is missing
@@ -195,11 +198,13 @@ class CacheInvalidatorTests
       |    }
       |  }
       |}
-      """.stripMargin).withFallback(ConfigFactory.load())
+      """.stripMargin)
+      .withFallback(ConfigFactory.load())
     new CacheInvalidator(tsconfig)
   }
   private def startCacheInvalidatorWithInvalidKafka(): CacheInvalidator = {
-    val tsconfig = ConfigFactory.parseString(s"""
+    val tsconfig = ConfigFactory
+      .parseString(s"""
       |akka.kafka.producer {
       |  kafka-clients {
       |    bootstrap.servers = "localhost:9092"
@@ -213,11 +218,13 @@ class CacheInvalidatorTests
       |    }
       |  }
       |}
-      """.stripMargin).withFallback(ConfigFactory.load())
+      """.stripMargin)
+      .withFallback(ConfigFactory.load())
     new CacheInvalidator(tsconfig)
   }
   private def startCacheInvalidatorWithoutCosmos(): CacheInvalidator = {
-    val tsconfig = ConfigFactory.parseString(s"""
+    val tsconfig = ConfigFactory
+      .parseString(s"""
       |akka.kafka.producer {
       |  kafka-clients {
       |    bootstrap.servers = "$server"
@@ -232,7 +239,8 @@ class CacheInvalidatorTests
       |    }
       |  }
       |}
-      """.stripMargin).withFallback(ConfigFactory.load())
+      """.stripMargin)
+      .withFallback(ConfigFactory.load())
     new CacheInvalidator(tsconfig)
   }
 }

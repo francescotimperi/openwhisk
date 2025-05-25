@@ -109,9 +109,8 @@ class ShootInvokerTests extends TestHelpers with WskTestHelpers with JsHelpers w
     withActivation(wsk.activation, run) { activation =>
       val logs = activation.logs.get.mkString(" ")
 
-      (params ++ invokeParams).foreach {
-        case (key, value) =>
-          logs should include(s"params.$key: $value")
+      (params ++ invokeParams).foreach { case (key, value) =>
+        logs should include(s"params.$key: $value")
       }
     }
   }
@@ -128,8 +127,7 @@ class ShootInvokerTests extends TestHelpers with WskTestHelpers with JsHelpers w
 
     assetHelper.withCleaner(wsk.action, fullQualifiedName) {
       val file = Some(TestUtils.getTestActionFilename("wc.js"))
-      (action, _) =>
-        action.create(fullQualifiedName, file)
+      (action, _) => action.create(fullQualifiedName, file)
     }
 
     assetHelper.withCleaner(wsk.action, name) { (action, _) =>
@@ -153,8 +151,7 @@ class ShootInvokerTests extends TestHelpers with WskTestHelpers with JsHelpers w
 
       assetHelper.withCleaner(wsk.action, origActionName) {
         val file = Some(TestUtils.getTestActionFilename("wc.js"))
-        (action, _) =>
-          action.create(origActionName, file, parameters = params, annotations = annots)
+        (action, _) => action.create(origActionName, file, parameters = params, annotations = annots)
       }
 
       assetHelper.withCleaner(wsk.action, copiedActionName) { (action, _) =>
@@ -322,7 +319,7 @@ class ShootInvokerTests extends TestHelpers with WskTestHelpers with JsHelpers w
       action.create(name, Some(TestUtils.getTestActionFilename("hello.js")))
     }
 
-    val utf8 = "«ταБЬℓσö»: 1<2 & 4+1>³, now 20%€§$ off!"
+    val utf8 = "???????????????????: 1<2 & 4+1>??, now 20%?????$ off!"
     val run = wsk.action.invoke(name, Map("payload" -> utf8.toJson))
     withActivation(wsk.activation, run) { activation =>
       activation.response.status shouldBe "success"

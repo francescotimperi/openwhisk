@@ -61,7 +61,8 @@ class CosmosDBSupportTests
 
   it should "set ttl" in {
     implicit val docReader: DocumentReader = WhiskDocumentReader
-    val config = ConfigFactory.parseString(s"""
+    val config = ConfigFactory
+      .parseString(s"""
       | whisk.cosmosdb {
       |  collections {
       |     WhiskActivation = {
@@ -69,7 +70,8 @@ class CosmosDBSupportTests
       |     }
       |  }
       | }
-         """.stripMargin).withFallback(ConfigFactory.load())
+         """.stripMargin)
+      .withFallback(ConfigFactory.load())
 
     val cosmosDBConfig = CosmosDBConfig(config, "WhiskActivation")
     cosmosDBConfig.timeToLive shouldBe Some(60.seconds)
@@ -83,7 +85,8 @@ class CosmosDBSupportTests
   it should "not set ttl for WhiskEntity" in {
     implicit val docReader: DocumentReader = WhiskDocumentReader
     implicit val format = WhiskEntityJsonFormat
-    val config = ConfigFactory.parseString(s"""
+    val config = ConfigFactory
+      .parseString(s"""
       | whisk.cosmosdb {
       |  collections {
       |     WhiskEntity = {
@@ -91,7 +94,8 @@ class CosmosDBSupportTests
       |     }
       |  }
       | }
-         """.stripMargin).withFallback(ConfigFactory.load())
+         """.stripMargin)
+      .withFallback(ConfigFactory.load())
 
     val cosmosDBConfig = CosmosDBConfig(config, "WhiskEntity")
     cosmosDBConfig.timeToLive shouldBe Some(60.seconds)
@@ -115,9 +119,10 @@ class CosmosDBSupportTests
   protected def newTestIndexingPolicy(paths: Set[String]): IndexingPolicy =
     IndexingPolicy(includedPaths = paths.map(p => IncludedPath(p, Index(Range, String, -1))))
 
-  private class CosmosTest(override val config: CosmosDBConfig,
-                           override val client: AsyncDocumentClient,
-                           mapper: CosmosDBViewMapper)
+  private class CosmosTest(
+    override val config: CosmosDBConfig,
+    override val client: AsyncDocumentClient,
+    mapper: CosmosDBViewMapper)
       extends CosmosDBSupport {
     override protected def collName = "test"
     override protected def viewMapper = mapper

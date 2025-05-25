@@ -89,11 +89,12 @@ class ActionLimitsTests extends TestHelpers with WskTestHelpers with WskActorSys
    * @param concurrency the action concurrency limit to be set in test
    * @param ec the expected exit code when creating the action
    */
-  sealed case class PermutationTestParameter(timeout: Option[Duration] = None,
-                                             memory: Option[ByteSize] = None,
-                                             logs: Option[ByteSize] = None,
-                                             concurrency: Option[Int] = None,
-                                             ec: Int = SUCCESS_EXIT) {
+  sealed case class PermutationTestParameter(
+    timeout: Option[Duration] = None,
+    memory: Option[ByteSize] = None,
+    logs: Option[ByteSize] = None,
+    concurrency: Option[Int] = None,
+    ec: Int = SUCCESS_EXIT) {
     override def toString: String =
       s"timeout: ${toTimeoutString}, memory: ${toMemoryString}, logsize: ${toLogsString}, concurrency: ${toConcurrencyString}"
 
@@ -145,24 +146,62 @@ class ActionLimitsTests extends TestHelpers with WskTestHelpers with WskActorSys
       time <- Seq(None, Some(TimeLimit.MIN_DURATION), Some(TimeLimit.MAX_DURATION))
       mem <- Seq(None, Some(MemoryLimit.MIN_MEMORY), Some(MemoryLimit.MAX_MEMORY))
       log <- Seq(None, Some(LogLimit.MIN_LOGSIZE), Some(LogLimit.MAX_LOGSIZE))
-      concurrency <- if (!concurrencyEnabled || (IntraConcurrencyLimit.MIN_CONCURRENT == IntraConcurrencyLimit.MAX_CONCURRENT)) {
-        Seq(None, Some(IntraConcurrencyLimit.MIN_CONCURRENT))
-      } else {
-        Seq(None, Some(IntraConcurrencyLimit.MIN_CONCURRENT), Some(IntraConcurrencyLimit.MAX_CONCURRENT))
-      }
+      concurrency <-
+        if (!concurrencyEnabled || (IntraConcurrencyLimit.MIN_CONCURRENT == IntraConcurrencyLimit.MAX_CONCURRENT)) {
+          Seq(None, Some(IntraConcurrencyLimit.MIN_CONCURRENT))
+        } else {
+          Seq(None, Some(IntraConcurrencyLimit.MIN_CONCURRENT), Some(IntraConcurrencyLimit.MAX_CONCURRENT))
+        }
     } yield PermutationTestParameter(time, mem, log, concurrency)
   } ++
     // Add variations for negative tests
     Seq(
-      PermutationTestParameter(Some(0.milliseconds), None, None, None, BAD_REQUEST), // timeout that is lower than allowed
-      PermutationTestParameter(Some(TimeLimit.MAX_DURATION.plus(1 second)), None, None, None, BAD_REQUEST), // timeout that is slightly higher than allowed
-      PermutationTestParameter(Some(TimeLimit.MAX_DURATION * 10), None, None, None, BAD_REQUEST), // timeout that is much higher than allowed
+      PermutationTestParameter(
+        Some(0.milliseconds),
+        None,
+        None,
+        None,
+        BAD_REQUEST
+      ), // timeout that is lower than allowed
+      PermutationTestParameter(
+        Some(TimeLimit.MAX_DURATION.plus(1 second)),
+        None,
+        None,
+        None,
+        BAD_REQUEST
+      ), // timeout that is slightly higher than allowed
+      PermutationTestParameter(
+        Some(TimeLimit.MAX_DURATION * 10),
+        None,
+        None,
+        None,
+        BAD_REQUEST
+      ), // timeout that is much higher than allowed
       PermutationTestParameter(None, Some(0.MB), None, None, BAD_REQUEST), // memory limit that is lower than allowed
       PermutationTestParameter(None, None, None, Some(0), BAD_REQUEST), // concurrency limit that is lower than allowed
-      PermutationTestParameter(None, Some(MemoryLimit.MAX_MEMORY + 1.MB), None, None, BAD_REQUEST), // memory limit that is slightly higher than allowed
-      PermutationTestParameter(None, Some((MemoryLimit.MAX_MEMORY.toMB * 5).MB), None, None, BAD_REQUEST), // memory limit that is much higher than allowed
-      PermutationTestParameter(None, None, Some((LogLimit.MAX_LOGSIZE.toMB * 5).MB), None, BAD_REQUEST), // log size limit that is much higher than allowed
-      PermutationTestParameter(None, None, None, Some(Int.MaxValue), BAD_REQUEST)) // concurrency limit that is much higher than allowed
+      PermutationTestParameter(
+        None,
+        Some(MemoryLimit.MAX_MEMORY + 1.MB),
+        None,
+        None,
+        BAD_REQUEST
+      ), // memory limit that is slightly higher than allowed
+      PermutationTestParameter(
+        None,
+        Some((MemoryLimit.MAX_MEMORY.toMB * 5).MB),
+        None,
+        None,
+        BAD_REQUEST
+      ), // memory limit that is much higher than allowed
+      PermutationTestParameter(
+        None,
+        None,
+        Some((LogLimit.MAX_LOGSIZE.toMB * 5).MB),
+        None,
+        BAD_REQUEST
+      ), // log size limit that is much higher than allowed
+      PermutationTestParameter(None, None, None, Some(Int.MaxValue), BAD_REQUEST)
+    ) // concurrency limit that is much higher than allowed
 
   /**
    * Integration test to verify that valid timeout, memory, log size, and concurrency limits are accepted
@@ -262,8 +301,7 @@ class ActionLimitsTests extends TestHelpers with WskTestHelpers with WskActorSys
       val name = "TestActionCausingExceededLogs"
       assetHelper.withCleaner(wsk.action, name, confirmDelete = true) {
         val actionName = TestUtils.getTestActionFilename("dosLogs.js")
-        (action, _) =>
-          action.create(name, Some(actionName), logsize = Some(allowedSize))
+        (action, _) => action.create(name, Some(actionName), logsize = Some(allowedSize))
       }
 
       // Add 10% to allowed size to exceed limit
@@ -281,8 +319,7 @@ class ActionLimitsTests extends TestHelpers with WskTestHelpers with WskActorSys
     val name = "TestActionCausingJustInBoundaryResult"
     assetHelper.withCleaner(wsk.action, name) {
       val actionName = TestUtils.getTestActionFilename("echo.js")
-      (action, _) =>
-        action.create(name, Some(actionName), timeout = Some(15.seconds))
+      (action, _) => action.create(name, Some(actionName), timeout = Some(15.seconds))
     }
 
     val allowedSize = ActivationEntityLimit.MAX_ACTIVATION_ENTITY_LIMIT.toBytes
@@ -306,8 +343,7 @@ class ActionLimitsTests extends TestHelpers with WskTestHelpers with WskActorSys
       val name = "TestActionCausingExcessiveResult"
       assetHelper.withCleaner(wsk.action, name) {
         val actionName = TestUtils.getTestActionFilename("sizedResult.js")
-        (action, _) =>
-          action.create(name, Some(actionName), timeout = Some(15.seconds))
+        (action, _) => action.create(name, Some(actionName), timeout = Some(15.seconds))
       }
 
       val allowedSize = ActivationEntityLimit.MAX_ACTIVATION_ENTITY_LIMIT.toBytes
@@ -343,8 +379,7 @@ class ActionLimitsTests extends TestHelpers with WskTestHelpers with WskActorSys
     val name = "TestActionWithLogs"
     assetHelper.withCleaner(wsk.action, name, confirmDelete = true) {
       val actionName = TestUtils.getTestActionFilename("dosLogs.js")
-      (action, _) =>
-        action.create(name, Some(actionName))
+      (action, _) => action.create(name, Some(actionName))
     }
 
     val run = wsk.action.invoke(name)
@@ -432,8 +467,7 @@ class ActionLimitsTests extends TestHelpers with WskTestHelpers with WskActorSys
     assetHelper.withCleaner(wsk.action, name, confirmDelete = true) {
       val allowedMemory = 512 megabytes
       val actionName = TestUtils.getTestActionFilename("memoryWithGC.js")
-      (action, _) =>
-        action.create(name, Some(actionName), memory = Some(allowedMemory))
+      (action, _) => action.create(name, Some(actionName), memory = Some(allowedMemory))
     }
 
     for (a <- 1 to 10) {
@@ -450,8 +484,7 @@ class ActionLimitsTests extends TestHelpers with WskTestHelpers with WskActorSys
     val allowedMemory = MemoryLimit.MAX_MEMORY
     assetHelper.withCleaner(wsk.action, name, confirmDelete = true) {
       val actionName = TestUtils.getTestActionFilename("memoryWithGC.js")
-      (action, _) =>
-        action.create(name, Some(actionName), memory = Some(allowedMemory))
+      (action, _) => action.create(name, Some(actionName), memory = Some(allowedMemory))
     }
     // Don't try to allocate all the memory on invoking the action, as the maximum memory is set for the whole container
     // and not only for the user action.
@@ -466,8 +499,7 @@ class ActionLimitsTests extends TestHelpers with WskTestHelpers with WskActorSys
     assetHelper.withCleaner(wsk.action, name, confirmDelete = true) {
       val allowedMemory = MemoryLimit.MIN_MEMORY
       val actionName = TestUtils.getTestActionFilename("memoryWithGC.js")
-      (action, _) =>
-        action.create(name, Some(actionName), memory = Some(allowedMemory))
+      (action, _) => action.create(name, Some(actionName), memory = Some(allowedMemory))
     }
 
     val payload = MemoryLimit.MIN_MEMORY.toMB * 2

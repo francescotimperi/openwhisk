@@ -46,10 +46,11 @@ class DockerToActivationFileLogStoreTests
 
   override def createStore() = new TestLogStoreTo(Sink.ignore)
 
-  def toLoggedEvent(line: LogLine,
-                    namespace: Namespace,
-                    activationId: ActivationId,
-                    actionName: FullyQualifiedEntityName): String = {
+  def toLoggedEvent(
+    line: LogLine,
+    namespace: Namespace,
+    activationId: ActivationId,
+    actionName: FullyQualifiedEntityName): String = {
     val event = line.toJson.compactPrint
     val concatenated =
       s""","activationId":"${activationId.asString}","action":"${actionName.asString}","namespace":"${namespace.name.asString}","namespaceId":"${namespace.uuid.asString}""""

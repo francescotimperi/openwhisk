@@ -111,10 +111,12 @@ trait DatabaseScriptTestUtils extends ScalaFutures with Matchers with WaitFor wi
 
   /** wait until all documents are processed by the view */
   def waitForView(db: CouchDbRestClient, designDoc: String, viewName: String, numDocuments: Int) = {
-    waitfor(() => {
-      val view = db.executeView(designDoc, viewName)().futureValue
-      view shouldBe 'right
-      view.right.get.fields("rows").convertTo[List[JsObject]].length == numDocuments
-    }, totalWait = 2.minutes)
+    waitfor(
+      () => {
+        val view = db.executeView(designDoc, viewName)().futureValue
+        view shouldBe 'right
+        view.right.get.fields("rows").convertTo[List[JsObject]].length == numDocuments
+      },
+      totalWait = 2.minutes)
   }
 }

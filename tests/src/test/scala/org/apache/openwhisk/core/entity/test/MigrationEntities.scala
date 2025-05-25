@@ -29,14 +29,15 @@ import org.apache.openwhisk.core.entity._
  * Old schema of rules, containing the rules' status in the rule record
  * itself
  */
-case class OldWhiskRule(namespace: EntityPath,
-                        override val name: EntityName,
-                        trigger: EntityName,
-                        action: EntityName,
-                        status: Status,
-                        version: SemVer = SemVer(),
-                        publish: Boolean = false,
-                        annotations: Parameters = Parameters())
+case class OldWhiskRule(
+  namespace: EntityPath,
+  override val name: EntityName,
+  trigger: EntityName,
+  action: EntityName,
+  status: Status,
+  version: SemVer = SemVer(),
+  publish: Boolean = false,
+  annotations: Parameters = Parameters())
     extends WhiskEntity(name, "rule") {
 
   def toJson = OldWhiskRule.serdes.write(this).asJsObject
@@ -65,13 +66,14 @@ object OldWhiskRule
 /**
  * Old schema of triggers, not containing a map of ReducedRules
  */
-case class OldWhiskTrigger(namespace: EntityPath,
-                           override val name: EntityName,
-                           parameters: Parameters = Parameters(),
-                           limits: TriggerLimits = TriggerLimits(),
-                           version: SemVer = SemVer(),
-                           publish: Boolean = false,
-                           annotations: Parameters = Parameters())
+case class OldWhiskTrigger(
+  namespace: EntityPath,
+  override val name: EntityName,
+  parameters: Parameters = Parameters(),
+  limits: TriggerLimits = TriggerLimits(),
+  version: SemVer = SemVer(),
+  publish: Boolean = false,
+  annotations: Parameters = Parameters())
     extends WhiskEntity(name, "trigger") {
 
   def toJson = OldWhiskTrigger.serdes.write(this).asJsObject

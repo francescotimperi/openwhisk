@@ -70,8 +70,8 @@ trait ActivationStoreBehaviorBase
   protected def storeAvailableCheck: Try[Any] = Try(true)
   //~----------------------------------------< utility methods >
 
-  protected def store(activation: WhiskActivation, context: UserContext)(
-    implicit transid: TransactionId,
+  protected def store(activation: WhiskActivation, context: UserContext)(implicit
+    transid: TransactionId,
     notifier: Option[CacheChangeNotification]): DocInfo = {
     val doc = activationStore.store(activation, context).futureValue
     docsToDelete.append((context, ActivationId(activation.docid.asString)))

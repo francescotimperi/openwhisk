@@ -70,11 +70,12 @@ trait ActionProxyContainerTestUtils extends FlatSpec with Matchers with StreamLo
   def runPayload(args: JsValue, other: Option[JsObject] = None): JsObject =
     JsObject(Map("value" -> args) ++ (other map { _.fields } getOrElse Map.empty))
 
-  def checkStreams(out: String,
-                   err: String,
-                   additionalCheck: (String, String) => Unit,
-                   sentinelCount: Int = 1,
-                   concurrent: Boolean = false): Unit = {
+  def checkStreams(
+    out: String,
+    err: String,
+    additionalCheck: (String, String) => Unit,
+    sentinelCount: Int = 1,
+    concurrent: Boolean = false): Unit = {
     withClue("expected number of stdout sentinels") {
       sentinelCount shouldBe StringUtils.countMatches(out, sentinel)
     }
@@ -138,8 +139,8 @@ object ActionContainer {
             // Check if we are running on docker-machine env.
             Option(WhiskProperties.getProperty("environment.type"))
               .filter(_.toLowerCase.contains("docker-machine"))
-              .map {
-                case _ => s"tcp://${WhiskProperties.getMainDockerEndpoint}"
+              .map { case _ =>
+                s"tcp://${WhiskProperties.getMainDockerEndpoint}"
               }
           }.toOption.flatten
         }
@@ -193,8 +194,8 @@ object ActionContainer {
     val rand = { val r = Random.nextInt; if (r < 0) -r else r }
     val name = imageName.toLowerCase.replaceAll("""[^a-z]""", "") + rand
     val envArgs = environment.toSeq
-      .map {
-        case (k, v) => s"-e $k=$v"
+      .map { case (k, v) =>
+        s"-e $k=$v"
       }
       .mkString(" ")
 
@@ -209,8 +210,8 @@ object ActionContainer {
     // ...find out its IP address...
     val (ip, port) =
       if (System.getProperty("os.name").toLowerCase().contains("mac") && !sys.env
-            .get("DOCKER_HOST")
-            .exists(_.trim.nonEmpty)) {
+          .get("DOCKER_HOST")
+          .exists(_.trim.nonEmpty)) {
         // on MacOSX, where docker for mac does not permit communicating with container directly
         val p = 8988 // port must be available or docker run will fail
         createContainer(Some(p))
@@ -246,8 +247,8 @@ object ActionContainer {
     }
   }
 
-  private def syncPost(host: String, port: Int, endPoint: String, content: JsValue)(
-    implicit logging: Logging,
+  private def syncPost(host: String, port: Int, endPoint: String, content: JsValue)(implicit
+    logging: Logging,
     as: ActorSystem): (Int, Option[JsObject]) = {
 
     implicit val transid = TransactionId.testing
@@ -255,8 +256,8 @@ object ActionContainer {
     org.apache.openwhisk.core.containerpool.AkkaContainerClient.post(host, port, endPoint, content, 30.seconds)
   }
 
-  private def syncPostForJsArray(host: String, port: Int, endPoint: String, content: JsValue)(
-    implicit logging: Logging,
+  private def syncPostForJsArray(host: String, port: Int, endPoint: String, content: JsValue)(implicit
+    logging: Logging,
     as: ActorSystem): (Int, Option[JsArray]) = {
 
     implicit val transid = TransactionId.testing
@@ -265,8 +266,8 @@ object ActionContainer {
       .postForJsArray(host, port, endPoint, content, 30.seconds)
   }
 
-  private def concurrentSyncPost(host: String, port: Int, endPoint: String, contents: Seq[JsValue])(
-    implicit logging: Logging,
+  private def concurrentSyncPost(host: String, port: Int, endPoint: String, contents: Seq[JsValue])(implicit
+    logging: Logging,
     as: ActorSystem): Seq[(Int, Option[JsObject])] = {
 
     implicit val transid = TransactionId.testing

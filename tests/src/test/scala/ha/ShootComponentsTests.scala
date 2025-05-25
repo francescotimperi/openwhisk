@@ -157,9 +157,12 @@ class ShootComponentsTests
       // Kill the controller
       restartComponent(controller0DockerHost, "controller0")
       // Wait until down
-      retry({
-        isControllerAlive(0) shouldBe false
-      }, 100, Some(100.milliseconds))
+      retry(
+        {
+          isControllerAlive(0) shouldBe false
+        },
+        100,
+        Some(100.milliseconds))
       // Check that second controller is still up
       isControllerAlive(1) shouldBe true
 
@@ -232,9 +235,12 @@ class ShootComponentsTests
 
         stopComponent(couchDB0DockerHost, "couchdb")
 
-        retry({
-          isDBAlive(0) shouldBe false
-        }, 100, Some(100.milliseconds))
+        retry(
+          {
+            isDBAlive(0) shouldBe false
+          },
+          100,
+          Some(100.milliseconds))
 
         retry({
           val result = Await.result(db2.getDoc(docId), 15.seconds)
@@ -259,9 +265,12 @@ class ShootComponentsTests
 
         startComponent(couchDB0DockerHost, "couchdb")
 
-        retry({
-          isDBAlive(0) shouldBe true
-        }, 100, Some(100.milliseconds))
+        retry(
+          {
+            isDBAlive(0) shouldBe true
+          },
+          100,
+          Some(100.milliseconds))
 
         retry({
           val result = Await.result(db1.getDoc(docId2), 15.seconds)

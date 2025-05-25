@@ -45,8 +45,8 @@ class GoCLINginxTests extends FlatSpec with Matchers with RestUtil {
     val cli = responseJSON.body.asString.parseJson.asJsObject
       .fields("cli")
       .convertTo[Map[String, Map[String, Map[String, String]]]]
-    cli.foreach {
-      case (os, arch) => responseString should include(s"""<a href="$os/">$os/</a>""")
+    cli.foreach { case (os, arch) =>
+      responseString should include(s"""<a href="$os/">$os/</a>""")
     }
   }
 
@@ -56,17 +56,15 @@ class GoCLINginxTests extends FlatSpec with Matchers with RestUtil {
     val cli = responseJSON.body.asString.parseJson.asJsObject
       .fields("cli")
       .convertTo[Map[String, Map[String, Map[String, String]]]]
-    cli.foreach {
-      case (os, arch) =>
-        val response = RestAssured.given().config(sslconfig).get(s"$ServiceURL/$DownloadLinkGoCli/$os")
-        response.statusCode should be(200)
-        val responseString = response.body.asString
-        arch.foreach {
-          case (arch, path) =>
-            if (arch != "default") {
-              responseString should include(s"""<a href="$arch/">$arch/</a>""")
-            }
+    cli.foreach { case (os, arch) =>
+      val response = RestAssured.given().config(sslconfig).get(s"$ServiceURL/$DownloadLinkGoCli/$os")
+      response.statusCode should be(200)
+      val responseString = response.body.asString
+      arch.foreach { case (arch, path) =>
+        if (arch != "default") {
+          responseString should include(s"""<a href="$arch/">$arch/</a>""")
         }
+      }
     }
   }
 

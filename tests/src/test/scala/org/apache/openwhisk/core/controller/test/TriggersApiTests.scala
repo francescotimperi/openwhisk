@@ -49,7 +49,6 @@ import org.apache.openwhisk.core.database.UserContext
  * These tests exercise a fresh instance of the service object in memory -- these
  * tests do NOT communication with a whisk deployment.
  *
- *
  * @Idioglossia
  * "using Specification DSL to write unit tests, as in should, must, not, be"
  * "using Specs2RouteTest DSL to chain HTTP requests for unit testing, as in ~>"
@@ -376,9 +375,12 @@ class TriggersApiTests extends ControllerTestCommon with WhiskTriggersApi {
   it should "fire a trigger" in {
     implicit val tid = transid()
     val rule = WhiskRule(namespace, aname(), afullname(namespace, aname().name), afullname(namespace, "bogus action"))
-    val trigger = WhiskTrigger(namespace, rule.trigger.name, rules = Some {
-      Map(rule.fullyQualifiedName(false) -> ReducedRule(rule.action, Status.ACTIVE))
-    })
+    val trigger = WhiskTrigger(
+      namespace,
+      rule.trigger.name,
+      rules = Some {
+        Map(rule.fullyQualifiedName(false) -> ReducedRule(rule.action, Status.ACTIVE))
+      })
     val content = JsObject("xxx" -> "yyy".toJson)
     put(entityStore, trigger)
     put(entityStore, rule)
@@ -391,23 +393,30 @@ class TriggersApiTests extends ControllerTestCommon with WhiskTriggersApi {
       headers should contain(RawHeader(ActivationIdHeader, response.fields("activationId").convertTo[String]))
 
       val activationDoc = DocId(WhiskEntity.qualifiedName(namespace, activationId))
-      org.apache.openwhisk.utils.retry({
-        println(s"trying to obtain async activation doc: '${activationDoc}'")
+      org.apache.openwhisk.utils.retry(
+        {
+          println(s"trying to obtain async activation doc: '${activationDoc}'")
 
-        val activation = getActivation(ActivationId(activationDoc.asString), context)
-        deleteActivation(ActivationId(activationDoc.asString), context)
-        activation.end should be(Instant.EPOCH)
-        activation.response.result should be(Some(content))
-      }, 30, Some(1.second))
+          val activation = getActivation(ActivationId(activationDoc.asString), context)
+          deleteActivation(ActivationId(activationDoc.asString), context)
+          activation.end should be(Instant.EPOCH)
+          activation.response.result should be(Some(content))
+        },
+        30,
+        Some(1.second))
     }
   }
 
   it should "fire a trigger without args" in {
     implicit val tid = transid()
     val rule = WhiskRule(namespace, aname(), afullname(namespace, aname().name), afullname(namespace, "bogus action"))
-    val trigger = WhiskTrigger(namespace, rule.trigger.name, Parameters("x", "b"), rules = Some {
-      Map(rule.fullyQualifiedName(false) -> ReducedRule(rule.action, Status.ACTIVE))
-    })
+    val trigger = WhiskTrigger(
+      namespace,
+      rule.trigger.name,
+      Parameters("x", "b"),
+      rules = Some {
+        Map(rule.fullyQualifiedName(false) -> ReducedRule(rule.action, Status.ACTIVE))
+      })
     put(entityStore, trigger)
     put(entityStore, rule)
     Post(s"$collectionPath/${trigger.name}") ~> Route.seal(routes(creds)) ~> check {
@@ -415,12 +424,15 @@ class TriggersApiTests extends ControllerTestCommon with WhiskTriggersApi {
       val JsString(id) = response.fields("activationId")
       val activationId = ActivationId.parse(id).get
       val activationDoc = DocId(WhiskEntity.qualifiedName(namespace, activationId))
-      org.apache.openwhisk.utils.retry({
-        println(s"trying to delete async activation doc: '${activationDoc}'")
-        deleteActivation(ActivationId(activationDoc.asString), context)
-        response.fields("activationId") should not be None
-        headers should contain(RawHeader(ActivationIdHeader, response.fields("activationId").convertTo[String]))
-      }, 30, Some(1.second))
+      org.apache.openwhisk.utils.retry(
+        {
+          println(s"trying to delete async activation doc: '${activationDoc}'")
+          deleteActivation(ActivationId(activationDoc.asString), context)
+          response.fields("activationId") should not be None
+          headers should contain(RawHeader(ActivationIdHeader, response.fields("activationId").convertTo[String]))
+        },
+        30,
+        Some(1.second))
     }
   }
 

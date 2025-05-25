@@ -45,11 +45,12 @@ trait RunCliCmd extends Matchers {
    * @param params parameters to pass on the command line
    * @return an instance of RunResult
    */
-  def runCmd(expectedExitCode: Int,
-             dir: File,
-             env: Map[String, String],
-             fileStdin: Option[File],
-             params: Seq[String]): RunResult = {
+  def runCmd(
+    expectedExitCode: Int,
+    dir: File,
+    env: Map[String, String],
+    fileStdin: Option[File],
+    params: Seq[String]): RunResult = {
     TestUtils.runCmd(expectedExitCode, dir, TestUtils.logger, env.asJava, fileStdin.getOrElse(null), params: _*)
   }
 
@@ -58,20 +59,22 @@ trait RunCliCmd extends Matchers {
    *
    * @return RunResult which contains stdout, stderr, exit code
    */
-  def cli(params: Seq[String],
-          expectedExitCode: Int = SUCCESS_EXIT,
-          verbose: Boolean = false,
-          env: Map[String, String] = Map("WSK_CONFIG_FILE" -> ""),
-          workingDir: File = new File("."),
-          stdinFile: Option[File] = None,
-          showCmd: Boolean = false,
-          hideFromOutput: Seq[String] = Seq.empty,
-          retriesOnError: Int = 3): RunResult = {
+  def cli(
+    params: Seq[String],
+    expectedExitCode: Int = SUCCESS_EXIT,
+    verbose: Boolean = false,
+    env: Map[String, String] = Map("WSK_CONFIG_FILE" -> ""),
+    workingDir: File = new File("."),
+    stdinFile: Option[File] = None,
+    showCmd: Boolean = false,
+    hideFromOutput: Seq[String] = Seq.empty,
+    retriesOnError: Int = 3): RunResult = {
     require(retriesOnError >= 0, "retry count on network error must not be negative")
 
     val args = baseCommand
     if (verbose) args += "--verbose"
-    val finalParams = if (!prohibitAuthOverride) { params } else {
+    val finalParams = if (!prohibitAuthOverride) { params }
+    else {
       params.filter(s =>
         !s.equals("--auth") && !(params.indexOf(s) > 0 && params(params.indexOf(s) - 1).equals("--auth")))
     }

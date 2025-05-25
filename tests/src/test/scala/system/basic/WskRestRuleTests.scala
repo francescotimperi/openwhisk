@@ -36,9 +36,10 @@ import spray.json.DefaultJsonProtocol._
 class WskRestRuleTests extends WskRuleTests with WskActorSystem {
   override val wsk = new WskRestOperations
 
-  override def verifyRuleList(ruleListResult: RunResult,
-                              ruleNameEnable: String,
-                              ruleName: String): org.scalatest.Assertion = {
+  override def verifyRuleList(
+    ruleListResult: RunResult,
+    ruleNameEnable: String,
+    ruleName: String): org.scalatest.Assertion = {
     val ruleListResultRest = ruleListResult.asInstanceOf[RestResult]
     val rules = ruleListResultRest.getBodyListJsObject
     val ruleEnable = wsk.rule.get(ruleNameEnable)
@@ -65,16 +66,18 @@ class WskRestRuleTests extends WskRuleTests with WskActorSystem {
       trigger.create(name)
     }
 
-    statusPermutations.foreach {
-      case (trigger, status) =>
-        // Needs to be retried since the enable/disable causes a cache invalidation which needs to propagate first
-        retry({
+    statusPermutations.foreach { case (trigger, status) =>
+      // Needs to be retried since the enable/disable causes a cache invalidation which needs to propagate first
+      retry(
+        {
           if (status == active) wsk.rule.enable(ruleName) else wsk.rule.disable(ruleName)
           val createStdout = wsk.rule.create(ruleName, trigger, actionName, update = true).stdout
           val getStdout = wsk.rule.get(ruleName).stdout
           wsk.parseJsonString(createStdout).fields.get("status") shouldBe status
           wsk.parseJsonString(getStdout).fields.get("status") shouldBe status
-        }, 10, Some(1.second))
+        },
+        10,
+        Some(1.second))
     }
   }
 }

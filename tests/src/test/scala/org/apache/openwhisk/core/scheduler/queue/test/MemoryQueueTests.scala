@@ -1013,20 +1013,20 @@ class MemoryQueueTests
     fsm ! Start
     containerManger.expectMsgPF(10 seconds) {
       case ContainerCreation(
-          List(
-            ContainerCreationMessage(
-              _,
-              `testInvocationNamespace`,
-              `fqn`,
-              _,
-              `actionMetadata`,
-              `schedulerId`,
-              `schedulerHost`,
-              `rpcPort`,
-              _,
-              _)),
-          `memory`,
-          `testInvocationNamespace`) =>
+            List(
+              ContainerCreationMessage(
+                _,
+                `testInvocationNamespace`,
+                `fqn`,
+                _,
+                `actionMetadata`,
+                `schedulerId`,
+                `schedulerHost`,
+                `rpcPort`,
+                _,
+                _)),
+            `memory`,
+            `testInvocationNamespace`) =>
         true
     }
 
@@ -1043,12 +1043,13 @@ class MemoryQueueTests
     val probe = TestProbe()
 
     val newAck = new ActiveAck {
-      override def apply(tid: TransactionId,
-                         activationResult: WhiskActivation,
-                         blockingInvoke: Boolean,
-                         controllerInstance: ControllerInstanceId,
-                         userId: UUID,
-                         acknowledgement: AcknowledgementMessage): Future[Any] = {
+      override def apply(
+        tid: TransactionId,
+        activationResult: WhiskActivation,
+        blockingInvoke: Boolean,
+        controllerInstance: ControllerInstanceId,
+        userId: UUID,
+        acknowledgement: AcknowledgementMessage): Future[Any] = {
         probe.ref ! activationResult.response
         Future.successful({})
       }
@@ -1181,12 +1182,14 @@ class MemoryQueueTests
     clock.plusSeconds(5)
     fsm ! DropOld
 
-    awaitAssert({
-      ackedMessageCount shouldBe 3
-      lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString("no available invokers")))
-      storedMessageCount shouldBe 3
-      lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString("no available invokers")))
-    }, 5.seconds)
+    awaitAssert(
+      {
+        ackedMessageCount shouldBe 3
+        lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString("no available invokers")))
+        storedMessageCount shouldBe 3
+        lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString("no available invokers")))
+      },
+      5.seconds)
 
     // should goto Running
     fsm ! SuccessfulCreationJob(testCreationId, message.user.namespace.name.asString, message.action, message.revision)
@@ -1208,12 +1211,14 @@ class MemoryQueueTests
     fsm ! DropOld
 
     // The error message is updated from the recent error message of the FailedCreationJob.
-    awaitAssert({
-      ackedMessageCount shouldBe 6
-      lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString("resource not enough")))
-      storedMessageCount shouldBe 6
-      lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString("resource not enough")))
-    }, 5.seconds)
+    awaitAssert(
+      {
+        ackedMessageCount shouldBe 6
+        lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString("resource not enough")))
+        storedMessageCount shouldBe 6
+        lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString("resource not enough")))
+      },
+      5.seconds)
 
     // should goto Removed
     parent.expectMsgAnyOf(queueRemovedMsg, Transition(fsm, Flushing, Removed))
@@ -1323,12 +1328,13 @@ class MemoryQueueTests
 
     val probe = TestProbe()
     val newAck = new ActiveAck {
-      override def apply(tid: TransactionId,
-                         activationResult: WhiskActivation,
-                         blockingInvoke: Boolean,
-                         controllerInstance: ControllerInstanceId,
-                         userId: UUID,
-                         acknowledgement: AcknowledgementMessage): Future[Any] = {
+      override def apply(
+        tid: TransactionId,
+        activationResult: WhiskActivation,
+        blockingInvoke: Boolean,
+        controllerInstance: ControllerInstanceId,
+        userId: UUID,
+        acknowledgement: AcknowledgementMessage): Future[Any] = {
         probe.ref ! activationResult.response
         Future.successful({})
       }
@@ -1771,12 +1777,14 @@ class MemoryQueueTests
         Some(ContainerId("test-containerId2"))),
       "test-value")
 
-    awaitAssert({
-      memoryQueue.containers.size shouldBe 1 // ['test-containerId1']
-      memoryQueue.creationIds.count(_.startsWith("testId")) shouldBe 1 // ['testId1']
-      memoryQueue.namespaceContainerCount.existingContainerNumByNamespace shouldBe 2
-      memoryQueue.namespaceContainerCount.inProgressContainerNumByNamespace shouldBe 2
-    }, 5.seconds)
+    awaitAssert(
+      {
+        memoryQueue.containers.size shouldBe 1 // ['test-containerId1']
+        memoryQueue.creationIds.count(_.startsWith("testId")) shouldBe 1 // ['testId1']
+        memoryQueue.namespaceContainerCount.existingContainerNumByNamespace shouldBe 2
+        memoryQueue.namespaceContainerCount.inProgressContainerNumByNamespace shouldBe 2
+      },
+      5.seconds)
 
     mockEtcdClient.publishEvents(
       EventType.PUT,
@@ -1809,12 +1817,14 @@ class MemoryQueueTests
         Some(ContainerId("test-containerId4"))),
       "test-value")
 
-    awaitAssert({
-      memoryQueue.containers.size shouldBe 2 // ['test-containerId1', 'test-containerId3']
-      memoryQueue.creationIds.count(_.startsWith("testId")) shouldBe 2 // ['testId1', 'testId3']
-      memoryQueue.namespaceContainerCount.existingContainerNumByNamespace shouldBe 4
-      memoryQueue.namespaceContainerCount.inProgressContainerNumByNamespace shouldBe 4
-    }, 5.seconds)
+    awaitAssert(
+      {
+        memoryQueue.containers.size shouldBe 2 // ['test-containerId1', 'test-containerId3']
+        memoryQueue.creationIds.count(_.startsWith("testId")) shouldBe 2 // ['testId1', 'testId3']
+        memoryQueue.namespaceContainerCount.existingContainerNumByNamespace shouldBe 4
+        memoryQueue.namespaceContainerCount.inProgressContainerNumByNamespace shouldBe 4
+      },
+      5.seconds)
 
     mockEtcdClient.publishEvents(
       EventType.DELETE,
@@ -1837,12 +1847,14 @@ class MemoryQueueTests
       inProgressContainer(testInvocationNamespace, newFqn, newRevision, schedulerId, CreationId("testId4")),
       "test-value")
 
-    awaitAssert({
-      memoryQueue.containers.size shouldBe 2 // ['test-containerId1', 'test-containerId3']
-      memoryQueue.creationIds.count(_.startsWith("testId")) shouldBe 0
-      memoryQueue.namespaceContainerCount.inProgressContainerNumByNamespace shouldBe 0
-      memoryQueue.namespaceContainerCount.existingContainerNumByNamespace shouldBe 4
-    }, 5.seconds)
+    awaitAssert(
+      {
+        memoryQueue.containers.size shouldBe 2 // ['test-containerId1', 'test-containerId3']
+        memoryQueue.creationIds.count(_.startsWith("testId")) shouldBe 0
+        memoryQueue.namespaceContainerCount.inProgressContainerNumByNamespace shouldBe 0
+        memoryQueue.namespaceContainerCount.existingContainerNumByNamespace shouldBe 4
+      },
+      5.seconds)
 
     mockEtcdClient.publishEvents(
       EventType.DELETE,
@@ -1885,12 +1897,14 @@ class MemoryQueueTests
         Some(ContainerId("test-containerId4"))),
       "test-value")
 
-    awaitAssert({
-      memoryQueue.containers.size shouldBe 0
-      memoryQueue.creationIds.count(_.startsWith("testId")) shouldBe 0
-      memoryQueue.namespaceContainerCount.inProgressContainerNumByNamespace shouldBe 0
-      memoryQueue.namespaceContainerCount.existingContainerNumByNamespace shouldBe 0
-    }, 5.seconds)
+    awaitAssert(
+      {
+        memoryQueue.containers.size shouldBe 0
+        memoryQueue.creationIds.count(_.startsWith("testId")) shouldBe 0
+        memoryQueue.namespaceContainerCount.inProgressContainerNumByNamespace shouldBe 0
+        memoryQueue.namespaceContainerCount.existingContainerNumByNamespace shouldBe 0
+      },
+      5.seconds)
   }
 
   private def getData(states: List[MemoryQueueState]) = {
@@ -1898,9 +1912,8 @@ class MemoryQueueTests
     val droppingActors = List.fill(states.size)(TestProbe())
     val data =
       (schedulingActors zip droppingActors)
-        .map {
-          case (schedulingActor, droppingActor) =>
-            RunningData(schedulingActor.ref, droppingActor.ref)
+        .map { case (schedulingActor, droppingActor) =>
+          RunningData(schedulingActor.ref, droppingActor.ref)
         }
     (schedulingActors, droppingActors, data)
   }
@@ -1944,20 +1957,18 @@ class MemoryQueueTests
     schedulingActors foreach (actorProbe watch _.ref)
     droppingActors foreach (actorProbe watch _.ref)
 
-    fsmList zip states zip data foreach {
-      case ((fsm, state), datum) =>
-        fsm.setState(state, datum)
+    fsmList zip states zip data foreach { case ((fsm, state), datum) =>
+      fsm.setState(state, datum)
     }
 
-    fsmList zip data foreach {
-      case (fsm, RunningData(schedulingActor, droppingActor)) =>
-        fsm ! GracefulShutdown
+    fsmList zip data foreach { case (fsm, RunningData(schedulingActor, droppingActor)) =>
+      fsm ! GracefulShutdown
 
-        inAnyOrder {
-          dataManagementService.expectMsg(UnregisterData(leaderKey))
-          dataManagementService.expectMsg(UnregisterData(namespaceThrottlingKey))
-          dataManagementService.expectMsg(UnregisterData(actionThrottlingKey))
-        }
+      inAnyOrder {
+        dataManagementService.expectMsg(UnregisterData(leaderKey))
+        dataManagementService.expectMsg(UnregisterData(namespaceThrottlingKey))
+        dataManagementService.expectMsg(UnregisterData(actionThrottlingKey))
+      }
     }
 
     fsmList foreach { _.stop() }
@@ -1980,8 +1991,7 @@ class MemoryQueueTests
       TimeSeriesActivationEntry(Instant.ofEpochMilli(now.toEpochMilli + 3000), message),
       TimeSeriesActivationEntry(Instant.ofEpochMilli(now.toEpochMilli + 10000), message),
       TimeSeriesActivationEntry(Instant.ofEpochMilli(now.toEpochMilli + 20000), message),
-      TimeSeriesActivationEntry(Instant.ofEpochMilli(now.toEpochMilli + 30000), message),
-    )
+      TimeSeriesActivationEntry(Instant.ofEpochMilli(now.toEpochMilli + 30000), message))
 
     records.foreach(record => queue = queue.enqueue(record))
     clock.plusSeconds(5)

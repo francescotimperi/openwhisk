@@ -99,7 +99,7 @@ class CouchDbRestClientTests
 
   it should "successfully read and write documents containing unicode" in {
     val docId = someId("unicode_doc_")
-    val doc = JsObject("winter" -> JsString("❄ ☃ ❄"))
+    val doc = JsObject("winter" -> JsString("? ? ?"))
     val f1 = client.putDoc(docId, doc)
 
     whenReady(f1) { e1 =>
@@ -122,8 +122,8 @@ class CouchDbRestClientTests
         () =>
           client
             .getDoc(doc.fields("_id").convertTo[String])
-            .collect({
-              case Right(doc) => doc
+            .collect({ case Right(doc) =>
+              doc
             }),
         dbOpTimeout).get
 
@@ -148,8 +148,8 @@ class CouchDbRestClientTests
       () =>
         client
           .getDoc(secondId)
-          .collect({
-            case Right(doc) => doc
+          .collect({ case Right(doc) =>
+            doc
           }),
       dbOpTimeout).get
 
@@ -222,28 +222,19 @@ class CouchDbRestClientTests
 
     val retrievalSink = Sink.fold[String, ByteString]("")((s, bs) => s + bs.decodeString("UTF-8"))
 
-    val insertAndRetrieveResult: Future[(ContentType, String)] = for (docResponse <- client.putDoc(docId, doc);
-                                                                      Right(d) = docResponse;
-                                                                      rev1 = d.fields("rev").convertTo[String];
-                                                                      attResponse <- client.putAttachment(
-                                                                        docId,
-                                                                        rev1,
-                                                                        attachmentName,
-                                                                        attachmentType,
-                                                                        attachmentSource);
-                                                                      Right(a) = attResponse;
-                                                                      rev2 = a.fields("rev").convertTo[String];
-                                                                      retResponse <- client.getAttachment[String](
-                                                                        docId,
-                                                                        rev2,
-                                                                        attachmentName,
-                                                                        retrievalSink);
-                                                                      Right(pair) = retResponse) yield pair
+    val insertAndRetrieveResult: Future[(ContentType, String)] =
+      for (docResponse <- client.putDoc(docId, doc);
+        Right(d) = docResponse;
+        rev1 = d.fields("rev").convertTo[String];
+        attResponse <- client.putAttachment(docId, rev1, attachmentName, attachmentType, attachmentSource);
+        Right(a) = attResponse;
+        rev2 = a.fields("rev").convertTo[String];
+        retResponse <- client.getAttachment[String](docId, rev2, attachmentName, retrievalSink);
+        Right(pair) = retResponse) yield pair
 
-    whenReady(insertAndRetrieveResult) {
-      case (t, r) =>
-        assert(t === ContentTypes.`text/plain(UTF-8)`)
-        assert(r === attachment)
+    whenReady(insertAndRetrieveResult) { case (t, r) =>
+      assert(t === ContentTypes.`text/plain(UTF-8)`)
+      assert(r === attachment)
     }
   }
 
@@ -272,9 +263,8 @@ class CouchDbRestClientTests
       "language" -> JsString("javascript"))
 
     Await.result(client.putDoc(s"_design/$designDocName", designDoc), 15.seconds)
-    docs.map {
-      case (id, doc) =>
-        Await.result(client.putDoc(id, doc), 15.seconds)
+    docs.map { case (id, doc) =>
+      Await.result(client.putDoc(id, doc), 15.seconds)
     }
 
     waitOnView(client, designDocName, viewName, docs.size)

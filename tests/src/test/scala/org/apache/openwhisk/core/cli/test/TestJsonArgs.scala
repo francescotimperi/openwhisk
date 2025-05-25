@@ -47,14 +47,14 @@ object TestJsonArgs {
 
   def getEscapedJSONTestArgInput() =
     Map(
-      "key1" -> JsObject("nonascii" -> JsString("日本語")),
+      "key1" -> JsObject("nonascii" -> JsString("???")),
       "key2" -> JsObject("valid" -> JsString("J\\SO\"N")),
       "\"key\"with\\escapes" -> JsObject("valid" -> JsString("JSON")),
       "another\"escape\"" -> JsObject("valid" -> JsString("\\nJ\\rO\\tS\\bN\\f")))
 
   def getEscapedJSONTestArgOutput() =
     JsArray(
-      JsObject("key" -> JsString("key1"), "value" -> JsObject("nonascii" -> JsString("日本語"))),
+      JsObject("key" -> JsString("key1"), "value" -> JsObject("nonascii" -> JsString("???"))),
       JsObject("key" -> JsString("key2"), "value" -> JsObject("valid" -> JsString("J\\SO\"N"))),
       JsObject("key" -> JsString("\"key\"with\\escapes"), "value" -> JsObject("valid" -> JsString("JSON"))),
       JsObject("key" -> JsString("another\"escape\""), "value" -> JsObject("valid" -> JsString("\\nJ\\rO\\tS\\bN\\f"))))

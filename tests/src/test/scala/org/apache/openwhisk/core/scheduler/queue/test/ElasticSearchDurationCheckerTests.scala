@@ -170,29 +170,29 @@ class ElasticSearchDurationCheckerTests
 
     /**
      * Expected sample data
-      {
-          "_shards": {
-              "failed": 0,
-              "skipped": 0,
-              "successful": 5,
-              "total": 5
-          },
-          "aggregations": {
-              "filterAggregation": {
-                  "averageAggregation": {
-                      "value": 14
-                  },
-                  "doc_count": 3
-              }
-          },
-          "hits": {
-              "hits": [],
-              "max_score": 0,
-              "total": 3
-          },
-          "timed_out": false,
-          "took": 2
-      }
+     *      {
+     *          "_shards": {
+     *              "failed": 0,
+     *              "skipped": 0,
+     *              "successful": 5,
+     *              "total": 5
+     *          },
+     *          "aggregations": {
+     *              "filterAggregation": {
+     *                  "averageAggregation": {
+     *                      "value": 14
+     *                  },
+     *                  "doc_count": 3
+     *              }
+     *          },
+     *          "hits": {
+     *              "hits": [],
+     *              "max_score": 0,
+     *              "total": 3
+     *          },
+     *          "timed_out": false,
+     *          "took": 2
+     *      }
      */
     truncateDouble(durationCheckResult.averageDuration.getOrElse(0.0)) shouldBe truncateDouble(
       totalDuration.toDouble / count.toDouble)
@@ -247,29 +247,29 @@ class ElasticSearchDurationCheckerTests
 
     /**
      * Expected sample data
-      {
-          "_shards": {
-              "failed": 0,
-              "skipped": 0,
-              "successful": 5,
-              "total": 5
-          },
-          "aggregations": {
-              "filterAggregation": {
-                  "averageAggregation": {
-                      "value": 13
-                  },
-                  "doc_count": 3
-              }
-          },
-          "hits": {
-              "hits": [],
-              "max_score": 0,
-              "total": 6
-          },
-          "timed_out": false,
-          "took": 0
-      }
+     *      {
+     *          "_shards": {
+     *              "failed": 0,
+     *              "skipped": 0,
+     *              "successful": 5,
+     *              "total": 5
+     *          },
+     *          "aggregations": {
+     *              "filterAggregation": {
+     *                  "averageAggregation": {
+     *                      "value": 13
+     *                  },
+     *                  "doc_count": 3
+     *              }
+     *          },
+     *          "hits": {
+     *              "hits": [],
+     *              "max_score": 0,
+     *              "total": 6
+     *          },
+     *          "timed_out": false,
+     *          "took": 0
+     *      }
      */
     truncateDouble(durationCheckResult.averageDuration.getOrElse(0.0)) shouldBe truncateDouble(
       totalDuration.toDouble / count.toDouble)
@@ -330,26 +330,26 @@ class ElasticSearchDurationCheckerTests
 
     /**
      * Expected sample data
-      {
-          "_shards": {
-              "failed": 0,
-              "skipped": 0,
-              "successful": 5,
-              "total": 5
-          },
-          "aggregations": {
-              "averageAggregation": {
-                  "value": 14
-              }
-          },
-          "hits": {
-              "hits": [],
-              "max_score": 0,
-              "total": 3
-          },
-          "timed_out": false,
-          "took": 0
-      }
+     *      {
+     *          "_shards": {
+     *              "failed": 0,
+     *              "skipped": 0,
+     *              "successful": 5,
+     *              "total": 5
+     *          },
+     *          "aggregations": {
+     *              "averageAggregation": {
+     *                  "value": 14
+     *              }
+     *          },
+     *          "hits": {
+     *              "hits": [],
+     *              "max_score": 0,
+     *              "total": 3
+     *          },
+     *          "timed_out": false,
+     *          "took": 0
+     *      }
      */
     truncateDouble(durationCheckResult.averageDuration.getOrElse(0.0)) shouldBe truncateDouble(
       totalDuration.toDouble / count.toDouble)

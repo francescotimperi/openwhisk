@@ -46,6 +46,7 @@ trait S3AttachmentStoreBehaviorBase
   override def getAttachmentStore[D <: DocumentSerializer: ClassTag](): AttachmentStore =
     makeS3Store[D]()
 
-  def makeS3Store[D <: DocumentSerializer: ClassTag]()(implicit actorSystem: ActorSystem,
-                                                       logging: Logging): AttachmentStore
+  def makeS3Store[D <: DocumentSerializer: ClassTag]()(implicit
+    actorSystem: ActorSystem,
+    logging: Logging): AttachmentStore
 }

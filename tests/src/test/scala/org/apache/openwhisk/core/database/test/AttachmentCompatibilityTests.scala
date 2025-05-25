@@ -219,10 +219,11 @@ class AttachmentCompatibilityTests
     }
   }
 
-  private def attach(doc: DocInfo,
-                     name: String,
-                     contentType: ContentType,
-                     docStream: Source[ByteString, _]): Future[DocInfo] = {
+  private def attach(
+    doc: DocInfo,
+    name: String,
+    contentType: ContentType,
+    docStream: Source[ByteString, _]): Future[DocInfo] = {
     client.putAttachment(doc.id.id, doc.rev.rev, name, contentType, docStream).map {
       case Right(response) =>
         val id = response.fields("id").convertTo[String]

@@ -263,7 +263,8 @@ class WskConductorTests extends TestHelpers with WskTestHelpers with JsHelpers w
         "params" -> JsObject(
           "action" -> conductor.toJson, // invoked nested nested conductor
           "state" -> JsObject("action" -> step.toJson), // invoke step on return (level 1)
-          "params" -> JsObject("action" -> step.toJson)), // invoke step (level 2)
+          "params" -> JsObject("action" -> step.toJson)
+        ), // invoke step (level 2)
         "n" -> 1.toJson))
     withActivation(wsk.activation, thirdrun) { activation =>
       activation.response.status shouldBe "success"

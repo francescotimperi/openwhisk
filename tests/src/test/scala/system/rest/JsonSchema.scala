@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 
 /**
  * Utilities for dealing with JSON schema
- *
  */
 trait JsonSchema {
 

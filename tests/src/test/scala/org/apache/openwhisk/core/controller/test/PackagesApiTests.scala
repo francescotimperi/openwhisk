@@ -640,7 +640,8 @@ class PackagesApiTests extends ControllerTestCommon with WhiskPackagesApi {
 
     // it should "reject update package owned by different user" in {
     val auser = WhiskAuthHelpers.newIdentity()
-    Put(s"/$namespace/${collection.path}/${provider.name}?overwrite=true", content) ~> Route.seal(routes(auser)) ~> check {
+    Put(s"/$namespace/${collection.path}/${provider.name}?overwrite=true", content) ~> Route.seal(
+      routes(auser)) ~> check {
       status should be(Forbidden)
     }
 
@@ -665,7 +666,8 @@ class PackagesApiTests extends ControllerTestCommon with WhiskPackagesApi {
 
     // it should "reject update package reference owned by different user"
     val auser = WhiskAuthHelpers.newIdentity()
-    Put(s"/$namespace/${collection.path}/${reference.name}?overwrite=true", content) ~> Route.seal(routes(auser)) ~> check {
+    Put(s"/$namespace/${collection.path}/${reference.name}?overwrite=true", content) ~> Route.seal(
+      routes(auser)) ~> check {
       status should be(Forbidden)
     }
 

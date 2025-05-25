@@ -157,15 +157,14 @@ class ContainerProxyTests
   }
 
   /** Expect a NeedWork message with prewarmed data */
-  def expectPreWarmed(kind: String) = expectMsgPF() {
-    case NeedWork(PreWarmedData(_, kind, memoryLimit, _, _)) => true
+  def expectPreWarmed(kind: String) = expectMsgPF() { case NeedWork(PreWarmedData(_, kind, memoryLimit, _, _)) =>
+    true
   }
 
   /** Expect a NeedWork message with warmed data */
   def expectWarmed(namespace: String, action: ExecutableWhiskAction) = {
     val test = EntityName(namespace)
-    expectMsgPF() {
-      case a @ NeedWork(WarmedData(_, `test`, `action`, _, _, _)) => //matched, otherwise will fail
+    expectMsgPF() { case a @ NeedWork(WarmedData(_, `test`, `action`, _, _, _)) => //matched, otherwise will fail
     }
   }
 
@@ -189,23 +188,25 @@ class ContainerProxyTests
   /** Creates an inspectable version of the ack method, which records all calls in a buffer */
   def createAcker(a: ExecutableWhiskAction = action) = new LoggedAcker {
     val acker = LoggedFunction {
-      (_: TransactionId,
-       activation: WhiskActivation,
-       _: Boolean,
-       _: ControllerInstanceId,
-       _: UUID,
-       _: AcknowledgementMessage) =>
+      (
+        _: TransactionId,
+        activation: WhiskActivation,
+        _: Boolean,
+        _: ControllerInstanceId,
+        _: UUID,
+        _: AcknowledgementMessage) =>
         Future.successful(())
     }
 
     override def calls = acker.calls
 
-    override def apply(tid: TransactionId,
-                       activation: WhiskActivation,
-                       blockingInvoke: Boolean,
-                       controllerInstance: ControllerInstanceId,
-                       userId: UUID,
-                       acknowledgement: AcknowledgementMessage): Future[Any] = {
+    override def apply(
+      tid: TransactionId,
+      activation: WhiskActivation,
+      blockingInvoke: Boolean,
+      controllerInstance: ControllerInstanceId,
+      userId: UUID,
+      acknowledgement: AcknowledgementMessage): Future[Any] = {
       verifyAnnotations(activation, a)
       acker(tid, activation, blockingInvoke, controllerInstance, userId, acknowledgement)
     }
@@ -214,23 +215,25 @@ class ContainerProxyTests
   /** Creates an synchronized inspectable version of the ack method, which records all calls in a buffer */
   def createSyncAcker(a: ExecutableWhiskAction = action) = new LoggedAcker {
     val acker = SynchronizedLoggedFunction {
-      (_: TransactionId,
-       activation: WhiskActivation,
-       _: Boolean,
-       _: ControllerInstanceId,
-       _: UUID,
-       _: AcknowledgementMessage) =>
+      (
+        _: TransactionId,
+        activation: WhiskActivation,
+        _: Boolean,
+        _: ControllerInstanceId,
+        _: UUID,
+        _: AcknowledgementMessage) =>
         Future.successful(())
     }
 
     override def calls = acker.calls
 
-    override def apply(tid: TransactionId,
-                       activation: WhiskActivation,
-                       blockingInvoke: Boolean,
-                       controllerInstance: ControllerInstanceId,
-                       userId: UUID,
-                       acknowledgement: AcknowledgementMessage): Future[Any] = {
+    override def apply(
+      tid: TransactionId,
+      activation: WhiskActivation,
+      blockingInvoke: Boolean,
+      controllerInstance: ControllerInstanceId,
+      userId: UUID,
+      acknowledgement: AcknowledgementMessage): Future[Any] = {
       verifyAnnotations(activation, a)
       acker(tid, activation, blockingInvoke, controllerInstance, userId, acknowledgement)
     }
@@ -238,41 +241,45 @@ class ContainerProxyTests
 
   /** Creates an inspectable factory */
   def createFactory(response: Future[Container]) = LoggedFunction {
-    (_: TransactionId,
-     _: String,
-     _: ImageName,
-     _: Boolean,
-     _: ByteSize,
-     _: Int,
-     _: Option[Double],
-     _: Option[ExecutableWhiskAction]) =>
+    (
+      _: TransactionId,
+      _: String,
+      _: ImageName,
+      _: Boolean,
+      _: ByteSize,
+      _: Int,
+      _: Option[Double],
+      _: Option[ExecutableWhiskAction]) =>
       response
   }
 
   class LoggedCollector(response: Future[ActivationLogs], invokeCallback: () => Unit) extends Invoker.LogsCollector {
     val collector = LoggedFunction {
-      (transid: TransactionId,
-       user: Identity,
-       activation: WhiskActivation,
-       container: Container,
-       action: ExecutableWhiskAction) =>
+      (
+        transid: TransactionId,
+        user: Identity,
+        activation: WhiskActivation,
+        container: Container,
+        action: ExecutableWhiskAction) =>
         response
     }
 
     def calls = collector.calls
 
-    override def apply(transid: TransactionId,
-                       user: Identity,
-                       activation: WhiskActivation,
-                       container: Container,
-                       action: ExecutableWhiskAction) = {
+    override def apply(
+      transid: TransactionId,
+      user: Identity,
+      activation: WhiskActivation,
+      container: Container,
+      action: ExecutableWhiskAction) = {
       invokeCallback()
       collector(transid, user, activation, container, action)
     }
   }
 
-  def createCollector(response: Future[ActivationLogs] = Future.successful(ActivationLogs()),
-                      invokeCallback: () => Unit = () => ()) =
+  def createCollector(
+    response: Future[ActivationLogs] = Future.successful(ActivationLogs()),
+    invokeCallback: () => Unit = () => ()) =
     new LoggedCollector(response, invokeCallback)
 
   def createStore = LoggedFunction {
@@ -1476,10 +1483,11 @@ class ContainerProxyTests
 
   it should "complete the transaction and destroy the container on a failed init" in within(timeout) {
     val container = new TestContainer {
-      override def initialize(initializer: JsObject,
-                              timeout: FiniteDuration,
-                              concurrent: Int,
-                              entity: Option[WhiskAction] = None)(implicit transid: TransactionId): Future[Interval] = {
+      override def initialize(
+        initializer: JsObject,
+        timeout: FiniteDuration,
+        concurrent: Int,
+        entity: Option[WhiskAction] = None)(implicit transid: TransactionId): Future[Interval] = {
         initializeCount += 1
         Future.failed(InitializationError(initInterval, ActivationResponse.developerError("boom")))
       }
@@ -1884,10 +1892,11 @@ class ContainerProxyTests
   it should "delay a deletion message until the transaction is completed successfully" in within(timeout) {
     val initPromise = Promise[Interval]
     val container = new TestContainer {
-      override def initialize(initializer: JsObject,
-                              timeout: FiniteDuration,
-                              concurrent: Int,
-                              entity: Option[WhiskAction] = None)(implicit transid: TransactionId): Future[Interval] = {
+      override def initialize(
+        initializer: JsObject,
+        timeout: FiniteDuration,
+        concurrent: Int,
+        entity: Option[WhiskAction] = None)(implicit transid: TransactionId): Future[Interval] = {
         initializeCount += 1
         initPromise.future
       }
@@ -2077,8 +2086,7 @@ class ContainerProxyTests
     val warmingColdData =
       WarmingColdData(message.user.namespace.name, action, Instant.now.minusSeconds(timeDiffSeconds), initialCount)
     val nextWarmingColdData = warmingColdData.nextRun(Run(action, message))
-    nextWarmingColdData should matchPattern {
-      case WarmingColdData(message.user.namespace.name, action, _, newCount) =>
+    nextWarmingColdData should matchPattern { case WarmingColdData(message.user.namespace.name, action, _, newCount) =>
     }
     warmingColdData.lastUsed.until(nextWarmingColdData.lastUsed, ChronoUnit.SECONDS) should be >= timeDiffSeconds.toLong
 
@@ -2099,9 +2107,10 @@ class ContainerProxyTests
   /**
    * Implements all the good cases of a perfect run to facilitate error case overriding.
    */
-  class TestContainer(initPromise: Option[Promise[Interval]] = None,
-                      runPromises: Seq[Promise[(Interval, ActivationResponse)]] = Seq.empty,
-                      apiKeyMustBePresent: Boolean = true)
+  class TestContainer(
+    initPromise: Option[Promise[Interval]] = None,
+    runPromises: Seq[Promise[(Interval, ActivationResponse)]] = Seq.empty,
+    apiKeyMustBePresent: Boolean = true)
       extends Container {
     protected[core] val id = ContainerId("testcontainer")
     protected[core] val addr = ContainerAddress("0.0.0.0")
@@ -2136,10 +2145,11 @@ class ContainerProxyTests
       destroyCount += 1
       super.destroy()
     }
-    override def initialize(initializer: JsObject,
-                            timeout: FiniteDuration,
-                            concurrent: Int,
-                            entity: Option[WhiskAction] = None)(implicit transid: TransactionId): Future[Interval] = {
+    override def initialize(
+      initializer: JsObject,
+      timeout: FiniteDuration,
+      concurrent: Int,
+      entity: Option[WhiskAction] = None)(implicit transid: TransactionId): Future[Interval] = {
       initializeCount += 1
 
       val envField = "env"

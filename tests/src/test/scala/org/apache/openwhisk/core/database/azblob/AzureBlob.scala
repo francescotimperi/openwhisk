@@ -28,9 +28,11 @@ import scala.reflect.ClassTag
 trait AzureBlob extends FlatSpec {
   def azureCdnConfig: String = ""
 
-  def makeAzureStore[D <: DocumentSerializer: ClassTag]()(implicit actorSystem: ActorSystem,
-                                                          logging: Logging): AttachmentStore = {
-    val config = ConfigFactory.parseString(s"""
+  def makeAzureStore[D <: DocumentSerializer: ClassTag]()(implicit
+    actorSystem: ActorSystem,
+    logging: Logging): AttachmentStore = {
+    val config = ConfigFactory
+      .parseString(s"""
         |whisk {
         |  azure-blob {
         |    endpoint = "$endpoint"
@@ -40,7 +42,9 @@ trait AzureBlob extends FlatSpec {
         |    prefix = $prefix
         |    $azureCdnConfig
         |  }
-        |}""".stripMargin).withFallback(ConfigFactory.load()).resolve()
+        |}""".stripMargin)
+      .withFallback(ConfigFactory.load())
+      .resolve()
     AzureBlobAttachmentStoreProvider.makeStore[D](config)
   }
 

@@ -77,8 +77,8 @@ class ViewTests
 
   behavior of "Datastore View"
 
-  def getAllActivationsInNamespace[Au <: WhiskEntity](store: ArtifactStore[Au], ns: EntityPath)(
-    implicit entities: Seq[WhiskEntity]) = {
+  def getAllActivationsInNamespace[Au <: WhiskEntity](store: ArtifactStore[Au], ns: EntityPath)(implicit
+    entities: Seq[WhiskEntity]) = {
     implicit val tid = transid()
     val result =
       Await
@@ -99,10 +99,11 @@ class ViewTests
     case "activations" => WhiskActivation
   }
 
-  def getKindInNamespace[Au <: WhiskEntity](store: ArtifactStore[Au],
-                                            ns: EntityPath,
-                                            kind: String,
-                                            f: (WhiskEntity) => Boolean)(implicit entities: Seq[WhiskEntity]) = {
+  def getKindInNamespace[Au <: WhiskEntity](
+    store: ArtifactStore[Au],
+    ns: EntityPath,
+    kind: String,
+    f: (WhiskEntity) => Boolean)(implicit entities: Seq[WhiskEntity]) = {
     implicit val tid = transid()
     val q = resolveListMethodForKind(kind)
     val result =
@@ -114,8 +115,8 @@ class ViewTests
     result should contain theSameElementsAs expected.map(_.summaryAsJson)
   }
 
-  def getKindInNamespaceWithDoc[T](ns: EntityPath, kind: String, f: (WhiskEntity) => Boolean)(
-    implicit entities: Seq[WhiskEntity]) = {
+  def getKindInNamespaceWithDoc[T](ns: EntityPath, kind: String, f: (WhiskEntity) => Boolean)(implicit
+    entities: Seq[WhiskEntity]) = {
     implicit val tid = transid()
     val q = resolveListMethodForKind(kind)
     val result =
@@ -130,11 +131,12 @@ class ViewTests
     result should contain theSameElementsAs expected
   }
 
-  def getKindInNamespaceByName[Au <: WhiskEntity](store: ArtifactStore[Au],
-                                                  ns: EntityPath,
-                                                  kind: String,
-                                                  name: EntityName,
-                                                  f: (WhiskEntity) => Boolean)(implicit entities: Seq[WhiskEntity]) = {
+  def getKindInNamespaceByName[Au <: WhiskEntity](
+    store: ArtifactStore[Au],
+    ns: EntityPath,
+    kind: String,
+    name: EntityName,
+    f: (WhiskEntity) => Boolean)(implicit entities: Seq[WhiskEntity]) = {
     require(kind == "actions") // currently only actions are permitted in packages
     implicit val tid = transid()
     val q = resolveListMethodForKind(kind)
@@ -149,10 +151,11 @@ class ViewTests
     result should contain theSameElementsAs expected.map(_.summaryAsJson)
   }
 
-  def getActivationsInNamespaceByName(store: ArtifactStore[WhiskActivation],
-                                      ns: EntityPath,
-                                      name: EntityName,
-                                      f: (WhiskEntity) => Boolean)(implicit entities: Seq[WhiskEntity]) = {
+  def getActivationsInNamespaceByName(
+    store: ArtifactStore[WhiskActivation],
+    ns: EntityPath,
+    name: EntityName,
+    f: (WhiskEntity) => Boolean)(implicit entities: Seq[WhiskEntity]) = {
     implicit val tid = transid()
     val result =
       Await.result(
@@ -167,8 +170,8 @@ class ViewTests
     result should contain theSameElementsAs expected.map(_.summaryAsJson)
   }
 
-  def getKindInPackage(ns: EntityPath, kind: String, f: (WhiskEntity) => Boolean)(
-    implicit entities: Seq[WhiskEntity]) = {
+  def getKindInPackage(ns: EntityPath, kind: String, f: (WhiskEntity) => Boolean)(implicit
+    entities: Seq[WhiskEntity]) = {
     implicit val tid = transid()
     val q = resolveListMethodForKind(kind)
     val result = Await.result(
@@ -181,15 +184,16 @@ class ViewTests
     result should contain theSameElementsAs expected.map(_.summaryAsJson)
   }
 
-  def getActivationsInNamespaceByNameSortedByDate(store: ArtifactStore[WhiskActivation],
-                                                  ns: EntityPath,
-                                                  kind: String,
-                                                  name: EntityName,
-                                                  skip: Int,
-                                                  count: Int,
-                                                  start: Option[Instant],
-                                                  end: Option[Instant],
-                                                  f: (WhiskEntity) => Boolean)(implicit entities: Seq[WhiskEntity]) = {
+  def getActivationsInNamespaceByNameSortedByDate(
+    store: ArtifactStore[WhiskActivation],
+    ns: EntityPath,
+    kind: String,
+    name: EntityName,
+    skip: Int,
+    count: Int,
+    start: Option[Instant],
+    end: Option[Instant],
+    f: (WhiskEntity) => Boolean)(implicit entities: Seq[WhiskEntity]) = {
     implicit val tid = transid()
     val result = Await.result(
       WhiskActivation
@@ -252,51 +256,92 @@ class ViewTests
     waitOnView(entityStore, namespace2.root, 2, WhiskRule.view)
     waitOnView(entityStore, namespace2.root, 4, WhiskPackage.view)
 
-    getKindInNamespace(entityStore, namespace1, "actions", {
-      case (e: WhiskAction) => true
-      case (_)              => false
-    })
-    getKindInNamespace(entityStore, namespace1, "triggers", {
-      case (e: WhiskTrigger) => true
-      case (_)               => false
-    })
-    getKindInNamespaceWithDoc[WhiskRule](namespace1, "rules", {
-      case (e: WhiskRule) => true
-      case (_)            => false
-    })
-    getKindInNamespace(entityStore, namespace1, "packages", {
-      case (e: WhiskPackage) => true
-      case (_)               => false
-    })
-    getKindInPackage(pkgname1, "actions", {
-      case (e: WhiskAction) => true
-      case (_)              => false
-    })
-    getKindInNamespaceByName(entityStore, pkgname1, "actions", actionName, {
-      case (e: WhiskAction) => (e.name == actionName)
-      case (_)              => false
-    })
+    getKindInNamespace(
+      entityStore,
+      namespace1,
+      "actions",
+      {
+        case (e: WhiskAction) => true
+        case (_)              => false
+      })
+    getKindInNamespace(
+      entityStore,
+      namespace1,
+      "triggers",
+      {
+        case (e: WhiskTrigger) => true
+        case (_)               => false
+      })
+    getKindInNamespaceWithDoc[WhiskRule](
+      namespace1,
+      "rules",
+      {
+        case (e: WhiskRule) => true
+        case (_)            => false
+      })
+    getKindInNamespace(
+      entityStore,
+      namespace1,
+      "packages",
+      {
+        case (e: WhiskPackage) => true
+        case (_)               => false
+      })
+    getKindInPackage(
+      pkgname1,
+      "actions",
+      {
+        case (e: WhiskAction) => true
+        case (_)              => false
+      })
+    getKindInNamespaceByName(
+      entityStore,
+      pkgname1,
+      "actions",
+      actionName,
+      {
+        case (e: WhiskAction) => (e.name == actionName)
+        case (_)              => false
+      })
 
-    getKindInNamespace(entityStore, namespace2, "actions", {
-      case (e: WhiskAction) => true
-      case (_)              => false
-    })
-    getKindInNamespace(entityStore, namespace2, "triggers", {
-      case (e: WhiskTrigger) => true
-      case (_)               => false
-    })
-    getKindInNamespaceWithDoc[WhiskRule](namespace2, "rules", {
-      case (e: WhiskRule) => true
-      case (_)            => false
-    })
-    getKindInNamespace(entityStore, namespace2, "packages", {
-      case (e: WhiskPackage) => true
-      case (_)               => false
-    })
-    getKindInPackage(pkgname2, "actions", {
-      case (e: WhiskAction) => true
-      case (_)              => false
-    })
+    getKindInNamespace(
+      entityStore,
+      namespace2,
+      "actions",
+      {
+        case (e: WhiskAction) => true
+        case (_)              => false
+      })
+    getKindInNamespace(
+      entityStore,
+      namespace2,
+      "triggers",
+      {
+        case (e: WhiskTrigger) => true
+        case (_)               => false
+      })
+    getKindInNamespaceWithDoc[WhiskRule](
+      namespace2,
+      "rules",
+      {
+        case (e: WhiskRule) => true
+        case (_)            => false
+      })
+    getKindInNamespace(
+      entityStore,
+      namespace2,
+      "packages",
+      {
+        case (e: WhiskPackage) => true
+        case (_)               => false
+      })
+    getKindInPackage(
+      pkgname2,
+      "actions",
+      {
+        case (e: WhiskAction) => true
+        case (_)              => false
+      })
   }
 
   it should "query whisk view by namespace, collection and entity name in whisk activations db" in {
@@ -318,20 +363,32 @@ class ViewTests
     waitOnView(activationStore, namespace2.root, 3, WhiskActivation.view)
 
     getAllActivationsInNamespace(activationStore, namespace1)
-    getKindInNamespace(activationStore, namespace1, "activations", {
-      case (e: WhiskActivation) => true
-      case (_)                  => false
-    })
+    getKindInNamespace(
+      activationStore,
+      namespace1,
+      "activations",
+      {
+        case (e: WhiskActivation) => true
+        case (_)                  => false
+      })
 
     getAllActivationsInNamespace(activationStore, namespace2)
-    getKindInNamespace(activationStore, namespace2, "activations", {
-      case (e: WhiskActivation) => true
-      case (_)                  => false
-    })
-    getActivationsInNamespaceByName(activationStore, namespace2, actionName, {
-      case (e: WhiskActivation) => (e.name == actionName)
-      case (_)                  => false
-    })
+    getKindInNamespace(
+      activationStore,
+      namespace2,
+      "activations",
+      {
+        case (e: WhiskActivation) => true
+        case (_)                  => false
+      })
+    getActivationsInNamespaceByName(
+      activationStore,
+      namespace2,
+      actionName,
+      {
+        case (e: WhiskActivation) => (e.name == actionName)
+        case (_)                  => false
+      })
   }
 
   it should "query whisk view for activations sorted by date" in {
@@ -380,7 +437,8 @@ class ViewTests
       0,
       5,
       None,
-      None, {
+      None,
+      {
         case (e: WhiskActivation) => e.name == actionName
         case (_)                  => false
       })
@@ -395,7 +453,8 @@ class ViewTests
       0,
       5,
       Some(since),
-      Some(upto), {
+      Some(upto),
+      {
         case (e: WhiskActivation) =>
           e.name == actionName && (e.start.equals(since) || e.start
             .equals(upto) || (e.start.isAfter(since) && e.start.isBefore(upto)))
@@ -413,9 +472,12 @@ class ViewTests
     entities foreach { put(entityStore, _) }
     waitOnView(entityStore, namespace1.root, 2, WhiskAction.view)
 
-    getKindInNamespaceWithDoc[WhiskAction](namespace1, "actions", {
-      case (e: WhiskAction) => true
-      case (_)              => false
-    })
+    getKindInNamespaceWithDoc[WhiskAction](
+      namespace1,
+      "actions",
+      {
+        case (e: WhiskAction) => true
+        case (_)              => false
+      })
   }
 }

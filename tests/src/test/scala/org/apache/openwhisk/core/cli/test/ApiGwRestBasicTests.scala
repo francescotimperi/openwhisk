@@ -75,13 +75,14 @@ abstract class ApiGwRestBasicTests extends BaseApiGwTests {
     rr.stdout should include("ok: created API")
   }
 
-  def verifyApiList(rr: RunResult,
-                    clinamespace: String,
-                    actionName: String,
-                    testurlop: String,
-                    testbasepath: String,
-                    testrelpath: String,
-                    testapiname: String): Unit = {
+  def verifyApiList(
+    rr: RunResult,
+    clinamespace: String,
+    actionName: String,
+    testurlop: String,
+    testbasepath: String,
+    testrelpath: String,
+    testapiname: String): Unit = {
     rr.stdout should include("ok: APIs")
     rr.stdout should include regex (s"Action:\\s+/${clinamespace}/${actionName}\n")
     rr.stdout should include regex (s"Verb:\\s+${testurlop}\n")
@@ -100,13 +101,14 @@ abstract class ApiGwRestBasicTests extends BaseApiGwTests {
     rr.stdout should include regex (s""""operationId":\\s*"getPathWithSub_pathsInIt"""")
   }
 
-  def verifyApiFullList(rr: RunResult,
-                        clinamespace: String,
-                        actionName: String,
-                        testurlop: String,
-                        testbasepath: String,
-                        testrelpath: String,
-                        testapiname: String): Unit = {
+  def verifyApiFullList(
+    rr: RunResult,
+    clinamespace: String,
+    actionName: String,
+    testurlop: String,
+    testbasepath: String,
+    testrelpath: String,
+    testapiname: String): Unit = {
 
     rr.stdout should include("ok: APIs")
     if (clinamespace == "") {
@@ -118,14 +120,15 @@ abstract class ApiGwRestBasicTests extends BaseApiGwTests {
 
   }
 
-  def verifyApiFullListDouble(rr: RunResult,
-                              clinamespace: String,
-                              actionName: String,
-                              testurlop: String,
-                              testbasepath: String,
-                              testrelpath: String,
-                              testapiname: String,
-                              newEndpoint: String): Unit = {
+  def verifyApiFullListDouble(
+    rr: RunResult,
+    clinamespace: String,
+    actionName: String,
+    testurlop: String,
+    testbasepath: String,
+    testrelpath: String,
+    testapiname: String,
+    newEndpoint: String): Unit = {
     verifyApiFullList(rr, clinamespace, actionName, testurlop, testbasepath, testrelpath, testapiname)
     rr.stdout should include(testbasepath + newEndpoint)
   }

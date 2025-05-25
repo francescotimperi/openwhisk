@@ -149,10 +149,9 @@ class FunctionPullingContainerProxyTests
 
   def keepAliveService: ActorRef =
     system.actorOf(Props(new Actor {
-      override def receive: Receive = {
-        case GetLease =>
-          Thread.sleep(1000)
-          sender() ! testLease
+      override def receive: Receive = { case GetLease =>
+        Thread.sleep(1000)
+        sender() ! testLease
       }
     }))
 
@@ -197,9 +196,9 @@ class FunctionPullingContainerProxyTests
   }
 
   /** Creates a client and a factory returning this ref of the client. */
-  def testClient
-    : (TestProbe,
-       (ActorRefFactory, String, FullyQualifiedEntityName, DocRevision, String, Int, ContainerId) => ActorRef) = {
+  def testClient: (
+    TestProbe,
+    (ActorRefFactory, String, FullyQualifiedEntityName, DocRevision, String, Int, ContainerId) => ActorRef) = {
     val client = TestProbe()
     val factory =
       (_: ActorRefFactory, _: String, _: FullyQualifiedEntityName, _: DocRevision, _: String, _: Int, _: ContainerId) =>
@@ -207,7 +206,7 @@ class FunctionPullingContainerProxyTests
     (client, factory)
   }
 
-  /** get WhiskAction*/
+  /** get WhiskAction */
   def getWhiskAction(response: Future[WhiskAction]) = LoggedFunction {
     (_: ArtifactStore[WhiskEntity], _: DocId, _: DocRevision, _: Boolean, _: Boolean) =>
       response
@@ -215,14 +214,15 @@ class FunctionPullingContainerProxyTests
 
   /** Creates an inspectable factory */
   def createFactory(response: Future[Container]) = LoggedFunction {
-    (_: TransactionId,
-     _: String,
-     _: ImageName,
-     _: Boolean,
-     _: ByteSize,
-     _: Int,
-     _: Option[Double],
-     _: Option[ExecutableWhiskAction]) =>
+    (
+      _: TransactionId,
+      _: String,
+      _: ImageName,
+      _: Boolean,
+      _: ByteSize,
+      _: Int,
+      _: Option[Double],
+      _: Option[ExecutableWhiskAction]) =>
       response
   }
 
@@ -246,20 +246,22 @@ class FunctionPullingContainerProxyTests
 
     override def calls = acker.calls
 
-    override def apply(tid: TransactionId,
-                       activation: WhiskActivation,
-                       blockingInvoke: Boolean,
-                       controllerInstance: ControllerInstanceId,
-                       userId: UUID,
-                       acknowledgement: AcknowledgementMessage): Future[Any] = {
+    override def apply(
+      tid: TransactionId,
+      activation: WhiskActivation,
+      blockingInvoke: Boolean,
+      controllerInstance: ControllerInstanceId,
+      userId: UUID,
+      acknowledgement: AcknowledgementMessage): Future[Any] = {
       verifyAnnotations(activation, a)
       acker(tid, activation, blockingInvoke, controllerInstance, userId, acknowledgement)
     }
   }
 
   /** Creates an synchronized inspectable version of the ack method, which records all calls in a buffer */
-  def createAckerForNamespaceBlacklist(a: ExecutableWhiskAction = action,
-                                       mockNamespaceBlacklist: MockNamespaceBlacklist) = new LoggedAcker {
+  def createAckerForNamespaceBlacklist(
+    a: ExecutableWhiskAction = action,
+    mockNamespaceBlacklist: MockNamespaceBlacklist) = new LoggedAcker {
     val acker = SynchronizedLoggedFunction {
       (_: TransactionId, _: WhiskActivation, _: Boolean, _: ControllerInstanceId, _: UUID, _: AcknowledgementMessage) =>
         Future.successful(())
@@ -271,12 +273,13 @@ class FunctionPullingContainerProxyTests
       activation.annotations.get("path") shouldBe Some(a.fullyQualifiedName(false).toString.toJson)
     }
 
-    override def apply(tid: TransactionId,
-                       activation: WhiskActivation,
-                       blockingInvoke: Boolean,
-                       controllerInstance: ControllerInstanceId,
-                       userId: UUID,
-                       acknowledgement: AcknowledgementMessage): Future[Any] = {
+    override def apply(
+      tid: TransactionId,
+      activation: WhiskActivation,
+      blockingInvoke: Boolean,
+      controllerInstance: ControllerInstanceId,
+      userId: UUID,
+      acknowledgement: AcknowledgementMessage): Future[Any] = {
       verifyAnnotations(activation, a)
       acker(tid, activation, blockingInvoke, controllerInstance, userId, acknowledgement)
     }
@@ -320,28 +323,31 @@ class FunctionPullingContainerProxyTests
 
   class LoggedCollector(response: Future[ActivationLogs], invokeCallback: () => Unit) extends Invoker.LogsCollector {
     val collector = LoggedFunction {
-      (transid: TransactionId,
-       user: Identity,
-       activation: WhiskActivation,
-       container: Container,
-       action: ExecutableWhiskAction) =>
+      (
+        transid: TransactionId,
+        user: Identity,
+        activation: WhiskActivation,
+        container: Container,
+        action: ExecutableWhiskAction) =>
         response
     }
 
     def calls = collector.calls
 
-    override def apply(transid: TransactionId,
-                       user: Identity,
-                       activation: WhiskActivation,
-                       container: Container,
-                       action: ExecutableWhiskAction) = {
+    override def apply(
+      transid: TransactionId,
+      user: Identity,
+      activation: WhiskActivation,
+      container: Container,
+      action: ExecutableWhiskAction) = {
       invokeCallback()
       collector(transid, user, activation, container, action)
     }
   }
 
-  def createCollector(response: Future[ActivationLogs] = Future.successful(ActivationLogs()),
-                      invokeCallback: () => Unit = () => ()) =
+  def createCollector(
+    response: Future[ActivationLogs] = Future.successful(ActivationLogs()),
+    invokeCallback: () => Unit = () => ()) =
     new LoggedCollector(response, invokeCallback)
 
   /** Expect a NeedWork message with prewarmed data */
@@ -350,8 +356,8 @@ class FunctionPullingContainerProxyTests
   }
 
   /** Expect a Initialized message with prewarmed data */
-  def expectInitialized(probe: TestProbe) = probe.expectMsgPF() {
-    case Initialized(InitializedData(_, _, _, _)) => true
+  def expectInitialized(probe: TestProbe) = probe.expectMsgPF() { case Initialized(InitializedData(_, _, _, _)) =>
+    true
   }
 
   /** Pre-warms the given state-machine, assumes good cases */
@@ -460,8 +466,8 @@ class FunctionPullingContainerProxyTests
 
     probe.expectMsg(Transition(machine, ClientCreated, Running))
     client.expectMsg(ContainerWarmed)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
 
     awaitAssert {
@@ -589,8 +595,8 @@ class FunctionPullingContainerProxyTests
 
     probe.expectMsg(Transition(machine, ClientCreated, Running))
     client.expectMsg(ContainerWarmed)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
 
     val (tid, name, _, _, memory, _, _, _) = factory.calls(0)
@@ -686,13 +692,14 @@ class FunctionPullingContainerProxyTests
     val counter = getLiveContainerCount(1)
     val limit = getWarmedContainerLimit(Future.successful((1, 10.seconds)))
 
-    def clientFactory(f: ActorRefFactory,
-                      invocationNamespace: String,
-                      fqn: FullyQualifiedEntityName,
-                      d: DocRevision,
-                      schedulerHost: String,
-                      rpcPort: Int,
-                      c: ContainerId): ActorRef = {
+    def clientFactory(
+      f: ActorRefFactory,
+      invocationNamespace: String,
+      fqn: FullyQualifiedEntityName,
+      d: DocRevision,
+      schedulerHost: String,
+      rpcPort: Int,
+      c: ContainerId): ActorRef = {
       throw new Exception("failed to create activation client")
     }
 
@@ -747,13 +754,14 @@ class FunctionPullingContainerProxyTests
     val counter = getLiveContainerCount(1)
     val limit = getWarmedContainerLimit(Future.successful((1, 10.seconds)))
 
-    def clientFactory(f: ActorRefFactory,
-                      invocationNamespace: String,
-                      fqn: FullyQualifiedEntityName,
-                      d: DocRevision,
-                      schedulerHost: String,
-                      rpcPort: Int,
-                      c: ContainerId): ActorRef = {
+    def clientFactory(
+      f: ActorRefFactory,
+      invocationNamespace: String,
+      fqn: FullyQualifiedEntityName,
+      d: DocRevision,
+      schedulerHost: String,
+      rpcPort: Int,
+      c: ContainerId): ActorRef = {
       throw new Exception("failed to create activation client")
     }
 
@@ -959,12 +967,12 @@ class FunctionPullingContainerProxyTests
 
     probe.expectMsg(Transition(machine, ClientCreated, Running))
     client.expectMsg(ContainerWarmed)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
     client.send(machine, message)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
     client.send(machine, ClientClosed)
 
@@ -1031,8 +1039,8 @@ class FunctionPullingContainerProxyTests
 
     probe.expectMsg(Transition(machine, ClientCreated, Running))
     client.expectMsg(ContainerWarmed)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
 
     machine ! StateTimeout
@@ -1059,7 +1067,8 @@ class FunctionPullingContainerProxyTests
     }
   }
 
-  it should "destroy container proxy when stopping due to timeout and getting live count fails once" in within(timeout) {
+  it should "destroy container proxy when stopping due to timeout and getting live count fails once" in within(
+    timeout) {
     val authStore = mock[ArtifactWhiskAuthStore]
     val namespaceBlacklist: NamespaceBlacklist = new NamespaceBlacklist(authStore)
     val get = getWhiskAction(Future(action.toWhiskAction))
@@ -1113,8 +1122,8 @@ class FunctionPullingContainerProxyTests
 
     probe.expectMsg(Transition(machine, ClientCreated, Running))
     client.expectMsg(ContainerWarmed)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
 
     machine ! StateTimeout
@@ -1199,8 +1208,8 @@ class FunctionPullingContainerProxyTests
 
     probe.expectMsg(Transition(machine, ClientCreated, Running))
     client.expectMsg(ContainerWarmed)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
 
     machine ! StateTimeout
@@ -1281,8 +1290,8 @@ class FunctionPullingContainerProxyTests
 
     probe.expectMsg(Transition(machine, ClientCreated, Running))
     client.expectMsg(ContainerWarmed)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
 
     machine ! StateTimeout
@@ -1358,8 +1367,8 @@ class FunctionPullingContainerProxyTests
 
     probe.expectMsg(Transition(machine, ClientCreated, Running))
     client.expectMsg(ContainerWarmed)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
 
     machine ! StateTimeout
@@ -1439,8 +1448,8 @@ class FunctionPullingContainerProxyTests
 
     probe.expectMsg(Transition(machine, ClientCreated, Running))
     client.expectMsg(ContainerWarmed)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
 
     machine ! StateTimeout
@@ -1516,8 +1525,8 @@ class FunctionPullingContainerProxyTests
 
     probe.expectMsg(Transition(machine, ClientCreated, Running))
     client.expectMsg(ContainerWarmed)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
 
     machine ! StateTimeout
@@ -1605,12 +1614,12 @@ class FunctionPullingContainerProxyTests
 
     probe.expectMsg(Transition(machine, ClientCreated, Running))
     client.expectMsg(ContainerWarmed)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
     client.send(machine, message)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
     machine ! GracefulShutdown
 
@@ -1695,8 +1704,8 @@ class FunctionPullingContainerProxyTests
 
     probe.expectMsg(Transition(machine, ClientCreated, Running))
     client.expectMsg(ContainerWarmed)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
 
     machine ! StateTimeout
@@ -1795,12 +1804,12 @@ class FunctionPullingContainerProxyTests
 
     probe.expectMsg(Transition(machine, ClientCreated, Running))
     client.expectMsg(ContainerWarmed)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
     client.send(machine, message)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
 
     awaitAssert {
@@ -1875,10 +1884,11 @@ class FunctionPullingContainerProxyTests
     val dataManagementService = TestProbe()
 
     val container = new TestContainer {
-      override def initialize(initializer: JsObject,
-                              timeout: FiniteDuration,
-                              maxConcurrent: Int,
-                              entity: Option[WhiskAction] = None)(implicit transid: TransactionId): Future[Interval] = {
+      override def initialize(
+        initializer: JsObject,
+        timeout: FiniteDuration,
+        maxConcurrent: Int,
+        entity: Option[WhiskAction] = None)(implicit transid: TransactionId): Future[Interval] = {
         initializeCount += 1
         Future.failed(InitializationError(initInterval, ActivationResponse.developerError("boom")))
       }
@@ -1950,10 +1960,11 @@ class FunctionPullingContainerProxyTests
     val dataManagementService = TestProbe()
 
     val container = new TestContainer {
-      override def initialize(initializer: JsObject,
-                              timeout: FiniteDuration,
-                              maxConcurrent: Int,
-                              entity: Option[WhiskAction] = None)(implicit transid: TransactionId): Future[Interval] = {
+      override def initialize(
+        initializer: JsObject,
+        timeout: FiniteDuration,
+        maxConcurrent: Int,
+        entity: Option[WhiskAction] = None)(implicit transid: TransactionId): Future[Interval] = {
         initializeCount += 1
         Future.failed(InitializationError(initInterval, ActivationResponse.developerError("boom")))
       }
@@ -2025,13 +2036,14 @@ class FunctionPullingContainerProxyTests
     val dataManagementService = TestProbe()
 
     val container = new TestContainer {
-      override def run(parameters: JsValue,
-                       environment: JsObject,
-                       timeout: FiniteDuration,
-                       concurrent: Int,
-                       maxResponse: ByteSize,
-                       truncation: ByteSize,
-                       reschedule: Boolean)(implicit transid: TransactionId): Future[(Interval, ActivationResponse)] = {
+      override def run(
+        parameters: JsValue,
+        environment: JsObject,
+        timeout: FiniteDuration,
+        concurrent: Int,
+        maxResponse: ByteSize,
+        truncation: ByteSize,
+        reschedule: Boolean)(implicit transid: TransactionId): Future[(Interval, ActivationResponse)] = {
         atomicRunCount.incrementAndGet()
         Future.successful((initInterval, ActivationResponse.developerError(("boom"))))
       }
@@ -2100,13 +2112,14 @@ class FunctionPullingContainerProxyTests
     val dataManagementService = TestProbe()
 
     val container = new TestContainer {
-      override def run(parameters: JsValue,
-                       environment: JsObject,
-                       timeout: FiniteDuration,
-                       concurrent: Int,
-                       maxResponse: ByteSize,
-                       truncation: ByteSize,
-                       reschedule: Boolean)(implicit transid: TransactionId): Future[(Interval, ActivationResponse)] = {
+      override def run(
+        parameters: JsValue,
+        environment: JsObject,
+        timeout: FiniteDuration,
+        concurrent: Int,
+        maxResponse: ByteSize,
+        truncation: ByteSize,
+        reschedule: Boolean)(implicit transid: TransactionId): Future[(Interval, ActivationResponse)] = {
         atomicRunCount.incrementAndGet()
         //every other run fails
         if (runCount % 2 == 0) {
@@ -2160,12 +2173,12 @@ class FunctionPullingContainerProxyTests
 
     probe.expectMsg(Transition(machine, ClientCreated, Running))
     client.expectMsg(ContainerWarmed)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
     client.send(machine, message)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
 
     awaitAssert {
@@ -2379,8 +2392,8 @@ class FunctionPullingContainerProxyTests
 
     probe.expectMsg(Transition(machine, ClientCreated, Running))
     client.expectMsg(ContainerWarmed)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
 
     awaitAssert {
@@ -2453,8 +2466,8 @@ class FunctionPullingContainerProxyTests
 
     probe.expectMsg(Transition(machine, ClientCreated, Running))
     client.expectMsg(ContainerWarmed)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
     client.send(machine, StateTimeout)
     client.send(machine, RetryRequestActivation)
@@ -2536,8 +2549,8 @@ class FunctionPullingContainerProxyTests
 
     probe.expectMsg(Transition(machine, ClientCreated, Running))
     client.expectMsg(ContainerWarmed)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
     client.send(machine, StateTimeout) // make container time out
     client.send(machine, message)
@@ -2682,8 +2695,8 @@ class FunctionPullingContainerProxyTests
     Thread.sleep(1000)
     mockNamespaceBlacklist.refreshBlacklist()
     client.expectMsg(ContainerWarmed)
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
     client.send(machine, message)
 
@@ -2710,13 +2723,14 @@ class FunctionPullingContainerProxyTests
     val dataManagementService = TestProbe()
 
     val container = new TestContainer {
-      override def run(parameters: JsValue,
-                       environment: JsObject,
-                       timeout: FiniteDuration,
-                       concurrent: Int,
-                       maxResponse: ByteSize,
-                       truncation: ByteSize,
-                       reschedule: Boolean)(implicit transid: TransactionId): Future[(Interval, ActivationResponse)] = {
+      override def run(
+        parameters: JsValue,
+        environment: JsObject,
+        timeout: FiniteDuration,
+        concurrent: Int,
+        maxResponse: ByteSize,
+        truncation: ByteSize,
+        reschedule: Boolean)(implicit transid: TransactionId): Future[(Interval, ActivationResponse)] = {
         Thread.sleep((timeoutConfig.pauseGrace + 1.second).toMillis) // 6 sec actions
         super.run(parameters, environment, timeout, concurrent, maxResponse, truncation)
       }
@@ -2843,9 +2857,8 @@ class FunctionPullingContainerProxyTests
     client.send(machine, message)
 
     // Receive any unhandled messages
-    tcpProbe.receiveWhile(3.seconds, 200.milliseconds, 10) {
-      case Connect(_, None, Nil, None, false) =>
-        true
+    tcpProbe.receiveWhile(3.seconds, 200.milliseconds, 10) { case Connect(_, None, Nil, None, false) =>
+      true
     }
 
     tcpProbe.expectNoMessage(healthchecks.checkPeriod + 100.milliseconds)
@@ -3044,8 +3057,8 @@ class FunctionPullingContainerProxyTests
     probe.expectMsg(Transition(machine, ClientCreated, Running))
     client.expectMsg(ContainerWarmed)
 
-    client.expectMsgPF() {
-      case RequestActivation(Some(_), None) => true
+    client.expectMsgPF() { case RequestActivation(Some(_), None) =>
+      true
     }
     client.send(machine, message)
 
@@ -3056,9 +3069,10 @@ class FunctionPullingContainerProxyTests
   /**
    * Implements all the good cases of a perfect run to facilitate error case overriding.
    */
-  class TestContainer(initPromise: Option[Promise[Interval]] = None,
-                      runPromises: Seq[Promise[(Interval, ActivationResponse)]] = Seq.empty,
-                      apiKeyMustBePresent: Boolean = true)
+  class TestContainer(
+    initPromise: Option[Promise[Interval]] = None,
+    runPromises: Seq[Promise[(Interval, ActivationResponse)]] = Seq.empty,
+    apiKeyMustBePresent: Boolean = true)
       extends Container {
     protected val id = testContainerId
     protected[core] val addr = ContainerAddress("0.0.0.0", 12345)
@@ -3076,10 +3090,11 @@ class FunctionPullingContainerProxyTests
       destroyCount += 1
       super.destroy()
     }
-    override def initialize(initializer: JsObject,
-                            timeout: FiniteDuration,
-                            maxConcurrent: Int,
-                            entity: Option[WhiskAction] = None)(implicit transid: TransactionId): Future[Interval] = {
+    override def initialize(
+      initializer: JsObject,
+      timeout: FiniteDuration,
+      maxConcurrent: Int,
+      entity: Option[WhiskAction] = None)(implicit transid: TransactionId): Future[Interval] = {
       initializeCount += 1
       val envField = "env"
 
@@ -3153,34 +3168,38 @@ class FunctionPullingContainerProxyTests
 
     override protected[core] def del(doc: DocInfo)(implicit transid: TransactionId): Future[Boolean] = ???
 
-    override protected[core] def get[A <: WhiskAuth](doc: DocInfo,
-                                                     attachmentHandler: Option[(A, Attachments.Attached) => A])(
-      implicit transid: TransactionId,
+    override protected[core] def get[A <: WhiskAuth](
+      doc: DocInfo,
+      attachmentHandler: Option[(A, Attachments.Attached) => A])(implicit
+      transid: TransactionId,
       ma: Manifest[A]): Future[A] = ???
 
-    override protected[core] def query(table: String,
-                                       startKey: List[Any],
-                                       endKey: List[Any],
-                                       skip: Int,
-                                       limit: Int,
-                                       includeDocs: Boolean,
-                                       descending: Boolean,
-                                       reduce: Boolean,
-                                       stale: StaleParameter)(implicit transid: TransactionId): Future[List[JsObject]] =
+    override protected[core] def query(
+      table: String,
+      startKey: List[Any],
+      endKey: List[Any],
+      skip: Int,
+      limit: Int,
+      includeDocs: Boolean,
+      descending: Boolean,
+      reduce: Boolean,
+      stale: StaleParameter)(implicit transid: TransactionId): Future[List[JsObject]] =
       ???
 
-    override protected[core] def count(table: String,
-                                       startKey: List[Any],
-                                       endKey: List[Any],
-                                       skip: Int,
-                                       stale: StaleParameter)(implicit transid: TransactionId): Future[Long] = ???
+    override protected[core] def count(
+      table: String,
+      startKey: List[Any],
+      endKey: List[Any],
+      skip: Int,
+      stale: StaleParameter)(implicit transid: TransactionId): Future[Long] = ???
 
-    override protected[core] def putAndAttach[A <: WhiskAuth](d: A,
-                                                              update: (A, Attachments.Attached) => A,
-                                                              contentType: model.ContentType,
-                                                              docStream: Source[ByteString, _],
-                                                              oldAttachment: Option[Attachments.Attached])(
-      implicit transid: TransactionId): Future[(DocInfo, Attachments.Attached)] = ???
+    override protected[core] def putAndAttach[A <: WhiskAuth](
+      d: A,
+      update: (A, Attachments.Attached) => A,
+      contentType: model.ContentType,
+      docStream: Source[ByteString, _],
+      oldAttachment: Option[Attachments.Attached])(implicit
+      transid: TransactionId): Future[(DocInfo, Attachments.Attached)] = ???
 
     override protected[core] def readAttachment[T](
       doc: DocInfo,

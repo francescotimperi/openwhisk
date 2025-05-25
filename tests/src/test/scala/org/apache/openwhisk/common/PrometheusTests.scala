@@ -39,12 +39,14 @@ class PrometheusTests extends FlatSpec with Matchers with ScalatestRouteTest wit
   override protected def beforeAll(): Unit = {
     super.beforeAll()
     //Modify Kamon to have a very small tick interval
-    val newConfig = ConfigFactory.parseString("""kamon {
+    val newConfig = ConfigFactory
+      .parseString("""kamon {
       |  metric {
       |    tick-interval = 50 ms
       |    optimistic-tick-alignment = no
       |  }
-      |}""".stripMargin).withFallback(ConfigFactory.load())
+      |}""".stripMargin)
+      .withFallback(ConfigFactory.load())
     Kamon.reconfigure(newConfig)
   }
 

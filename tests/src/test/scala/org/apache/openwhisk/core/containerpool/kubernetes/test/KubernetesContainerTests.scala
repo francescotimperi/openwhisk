@@ -322,8 +322,8 @@ class KubernetesContainerTests
     val logSrc = logSource(expectedLogEntry, appendSentinel = true)
 
     implicit val kubernetes = new TestKubernetesClient {
-      override def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean)(
-        implicit transid: TransactionId): Source[TypedLogLine, Any] = {
+      override def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean)(implicit
+        transid: TransactionId): Source[TypedLogLine, Any] = {
         logCalls += ((container.id, sinceTime))
         logSrc
       }
@@ -347,8 +347,8 @@ class KubernetesContainerTests
     val logSrc = logSource(expectedLogEntry, appendSentinel = false)
 
     implicit val kubernetes = new TestKubernetesClient {
-      override def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean)(
-        implicit transid: TransactionId): Source[TypedLogLine, Any] = {
+      override def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean)(implicit
+        transid: TransactionId): Source[TypedLogLine, Any] = {
         logCalls += ((container.id, sinceTime))
         logSrc
       }
@@ -369,8 +369,8 @@ class KubernetesContainerTests
 
   it should "fail log reading if error occurs during file reading" in {
     implicit val kubernetes = new TestKubernetesClient {
-      override def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean)(
-        implicit transid: TransactionId): Source[TypedLogLine, Any] = {
+      override def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean)(implicit
+        transid: TransactionId): Source[TypedLogLine, Any] = {
         logCalls += ((container.id, sinceTime))
         Source.failed(new IOException)
       }
@@ -387,12 +387,12 @@ class KubernetesContainerTests
 
   it should "read two consecutive logs with sentinel" in {
     val firstLog = TypedLogLine(Instant.EPOCH, "stdout", "This is the first log.")
-    val secondLog = TypedLogLine(Instant.EPOCH.plusSeconds(1l), "stderr", "This is the second log.")
+    val secondLog = TypedLogLine(Instant.EPOCH.plusSeconds(1L), "stderr", "This is the second log.")
     val logSources = mutable.Queue(logSource(firstLog, true), logSource(secondLog, true))
 
     implicit val kubernetes = new TestKubernetesClient {
-      override def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean)(
-        implicit transid: TransactionId): Source[TypedLogLine, Any] = {
+      override def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean)(implicit
+        transid: TransactionId): Source[TypedLogLine, Any] = {
         logCalls += ((container.id, sinceTime))
         logSources.dequeue()
       }
@@ -423,8 +423,8 @@ class KubernetesContainerTests
     rawLog should have size 1
 
     implicit val kubernetes = new TestKubernetesClient {
-      override def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean)(
-        implicit transid: TransactionId): Source[TypedLogLine, Any] = {
+      override def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean)(implicit
+        transid: TransactionId): Source[TypedLogLine, Any] = {
         logCalls += ((container.id, sinceTime))
         // "Fakes" an infinite source with only 1 entry
         Source.tick(0.milliseconds, 10.seconds, rawLog.head)
@@ -450,8 +450,8 @@ class KubernetesContainerTests
       TypedLogLine(currentTsp, "stdout", "This is a log entry.")
 
     implicit val kubernetes = new TestKubernetesClient {
-      override def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean)(
-        implicit transid: TransactionId): Source[TypedLogLine, Any] = {
+      override def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean)(implicit
+        transid: TransactionId): Source[TypedLogLine, Any] = {
         logCalls += ((container.id, sinceTime))
         logSource(Queue(expectedLogEntry, expectedLogEntry), appendSentinel = false)
       }
@@ -483,8 +483,8 @@ class KubernetesContainerTests
       TypedLogLine(currentTsp, "stdout", "This is a log entry.")
 
     implicit val kubernetes = new TestKubernetesClient {
-      override def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean)(
-        implicit transid: TransactionId): Source[TypedLogLine, Any] = {
+      override def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean)(implicit
+        transid: TransactionId): Source[TypedLogLine, Any] = {
         logCalls += ((container.id, sinceTime))
         logSource(expectedLogEntry, appendSentinel = true)
       }

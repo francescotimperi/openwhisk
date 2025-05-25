@@ -32,26 +32,28 @@ class ArtifactActivationStoreTests
     extends FlatSpec
     with ArtifactActivationStoreBehaviorBase
     with ActivationStoreBehavior {
-  override def checkQueryActivations(namespace: String,
-                                     name: Option[String] = None,
-                                     skip: Int = 0,
-                                     limit: Int = 1000,
-                                     includeDocs: Boolean = false,
-                                     since: Option[Instant] = None,
-                                     upto: Option[Instant] = None,
-                                     context: UserContext,
-                                     expected: IndexedSeq[WhiskActivation])(implicit transid: TransactionId): Unit = {
+  override def checkQueryActivations(
+    namespace: String,
+    name: Option[String] = None,
+    skip: Int = 0,
+    limit: Int = 1000,
+    includeDocs: Boolean = false,
+    since: Option[Instant] = None,
+    upto: Option[Instant] = None,
+    context: UserContext,
+    expected: IndexedSeq[WhiskActivation])(implicit transid: TransactionId): Unit = {
     // This is for compatible with CouchDB as it use option `StaleParameter.UpdateAfter`
     retry(super.checkQueryActivations(namespace, name, skip, limit, includeDocs, since, upto, context, expected), 100)
   }
 
-  override def checkCountActivations(namespace: String,
-                                     name: Option[EntityPath] = None,
-                                     skip: Int = 0,
-                                     since: Option[Instant] = None,
-                                     upto: Option[Instant] = None,
-                                     context: UserContext,
-                                     expected: Long)(implicit transid: TransactionId): Unit = {
+  override def checkCountActivations(
+    namespace: String,
+    name: Option[EntityPath] = None,
+    skip: Int = 0,
+    since: Option[Instant] = None,
+    upto: Option[Instant] = None,
+    context: UserContext,
+    expected: Long)(implicit transid: TransactionId): Unit = {
     retry(super.checkCountActivations(namespace, name, skip, since, upto, context, expected), 100)
   }
 }

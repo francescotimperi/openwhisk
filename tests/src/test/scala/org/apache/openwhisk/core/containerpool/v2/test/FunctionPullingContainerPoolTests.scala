@@ -183,12 +183,13 @@ class FunctionPullingContainerPoolTests
     (containers, factory)
   }
 
-  def poolConfig(userMemory: ByteSize,
-                 memorySyncInterval: FiniteDuration = FiniteDuration(1, TimeUnit.SECONDS),
-                 prewarmMaxRetryLimit: Int = 3,
-                 prewarmPromotion: Boolean = false,
-                 batchDeletionSize: Int = 10,
-                 prewarmContainerCreationConfig: Option[PrewarmContainerCreationConfig] = None) =
+  def poolConfig(
+    userMemory: ByteSize,
+    memorySyncInterval: FiniteDuration = FiniteDuration(1, TimeUnit.SECONDS),
+    prewarmMaxRetryLimit: Int = 3,
+    prewarmPromotion: Boolean = false,
+    batchDeletionSize: Int = 10,
+    prewarmContainerCreationConfig: Option[PrewarmContainerCreationConfig] = None) =
     ContainerPoolConfig(
       userMemory,
       0.5,
@@ -204,8 +205,9 @@ class FunctionPullingContainerPoolTests
       Some(2),
       prewarmContainerCreationConfig)
 
-  def sendAckToScheduler(producer: MessageProducer)(schedulerInstanceId: SchedulerInstanceId,
-                                                    ackMessage: ContainerCreationAckMessage): Future[ResultMetadata] = {
+  def sendAckToScheduler(producer: MessageProducer)(
+    schedulerInstanceId: SchedulerInstanceId,
+    ackMessage: ContainerCreationAckMessage): Future[ResultMetadata] = {
     val topic = s"creationAck${schedulerInstanceId.asString}"
     producer.send(topic, ackMessage)
   }
@@ -234,13 +236,13 @@ class FunctionPullingContainerPoolTests
           sendAckToScheduler(producer))))
 
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)
-    containers(0).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(0).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
 
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)
-    containers(1).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(1).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
   }
 
@@ -261,12 +263,15 @@ class FunctionPullingContainerPoolTests
 
     // Start first action
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction) // 1 * stdMemory taken
-    containers(0).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(0).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
 
     // Send second action to the pool
-    pool ! CreationContainer(creationMessageLarge.copy(revision = bigDoc.rev), bigWhiskAction) // message is too large to be processed immediately.
+    pool ! CreationContainer(
+      creationMessageLarge.copy(revision = bigDoc.rev),
+      bigWhiskAction
+    ) // message is too large to be processed immediately.
     containers(1).expectNoMessage(100.milliseconds)
 
     // First container is removed
@@ -304,18 +309,21 @@ class FunctionPullingContainerPoolTests
     val ackMessage =
       createAckMsg(creationMessage.copy(revision = doc.rev), Some(ShuttingDownError), Some(error))
 
-    utilRetry({
-      val buffer = consumer.peek(50.millisecond)
-      buffer.size shouldBe 1
-      buffer.head._1 shouldBe topic
-      buffer.head._4 shouldBe ackMessage.serialize.getBytes
-    }, 10, Some(500.millisecond))
+    utilRetry(
+      {
+        val buffer = consumer.peek(50.millisecond)
+        buffer.size shouldBe 1
+        buffer.head._1 shouldBe topic
+        buffer.head._4 shouldBe ackMessage.serialize.getBytes
+      },
+      10,
+      Some(500.millisecond))
 
     // pool should be back to work after enabled again
     pool ! Enable
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction) // 1 * stdMemory taken
-    containers(0).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(0).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
   }
 
@@ -339,7 +347,7 @@ class FunctionPullingContainerPoolTests
 
           case _ =>
             TestActor.KeepRunning
-      })
+        })
     }
 
     val doc = put(entityStore, bigWhiskAction)
@@ -354,7 +362,8 @@ class FunctionPullingContainerPoolTests
         List.empty,
         sendAckToScheduler(consumer.getProducer())))
 
-    (0 to 10).foreach(_ => pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)) // 11 * stdMemory taken)
+    (0 to 10).foreach(_ =>
+      pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)) // 11 * stdMemory taken)
 
     (0 to 10).foreach(i => {
       containers(i).expectMsgPF() {
@@ -431,13 +440,14 @@ class FunctionPullingContainerPoolTests
     val (containers, factory) = testContainers(1)
 
     val pool = system.actorOf(
-      Props(new FunctionPullingContainerPool(
-        factory,
-        invokerHealthService.ref,
-        poolConfig(MemoryLimit.STD_MEMORY * 2),
-        invokerInstance,
-        List(PrewarmingConfig(1, exec, memoryLimit)),
-        sendAckToScheduler(producer))))
+      Props(
+        new FunctionPullingContainerPool(
+          factory,
+          invokerHealthService.ref,
+          poolConfig(MemoryLimit.STD_MEMORY * 2),
+          invokerInstance,
+          List(PrewarmingConfig(1, exec, memoryLimit)),
+          sendAckToScheduler(producer))))
     containers(0).expectMsg(Start(exec, memoryLimit))
     stream.toString should include("initing 1 pre-warms to desired count: 1")
     stream.toString should not include ("prewarm container creation is starting with creation delay configuration")
@@ -485,13 +495,14 @@ class FunctionPullingContainerPoolTests
     val (containers, factory) = testContainers(6)
 
     val pool = system.actorOf(
-      Props(new FunctionPullingContainerPool(
-        factory,
-        invokerHealthService.ref,
-        poolConfig(MemoryLimit.STD_MEMORY * 2),
-        invokerInstance,
-        List(PrewarmingConfig(2, exec, memoryLimit)),
-        sendAckToScheduler(producer))))
+      Props(
+        new FunctionPullingContainerPool(
+          factory,
+          invokerHealthService.ref,
+          poolConfig(MemoryLimit.STD_MEMORY * 2),
+          invokerInstance,
+          List(PrewarmingConfig(2, exec, memoryLimit)),
+          sendAckToScheduler(producer))))
 
     containers(0).expectMsg(Start(exec, memoryLimit))
     containers(1).expectMsg(Start(exec, memoryLimit))
@@ -513,13 +524,14 @@ class FunctionPullingContainerPoolTests
     val biggerMemory = memoryLimit * 2
 
     val pool = system.actorOf(
-      Props(new FunctionPullingContainerPool(
-        factory,
-        invokerHealthService.ref,
-        poolConfig(MemoryLimit.STD_MEMORY * 6, prewarmPromotion = false),
-        invokerInstance,
-        List(PrewarmingConfig(1, exec, memoryLimit), PrewarmingConfig(1, exec, biggerMemory)),
-        sendAckToScheduler(producer))))
+      Props(
+        new FunctionPullingContainerPool(
+          factory,
+          invokerHealthService.ref,
+          poolConfig(MemoryLimit.STD_MEMORY * 6, prewarmPromotion = false),
+          invokerInstance,
+          List(PrewarmingConfig(1, exec, memoryLimit), PrewarmingConfig(1, exec, biggerMemory)),
+          sendAckToScheduler(producer))))
     containers(0).expectMsg(Start(exec, memoryLimit))
     containers(1).expectMsg(Start(exec, biggerMemory))
 
@@ -529,19 +541,19 @@ class FunctionPullingContainerPoolTests
 
     // the prewarm container with matched memory should be chose
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)
-    containers(0).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(0).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
 
     // prewarm a new container
-    containers(2).expectMsgPF() {
-      case Start(exec, memoryLimit, _) => true
+    containers(2).expectMsgPF() { case Start(exec, memoryLimit, _) =>
+      true
     }
 
     // the prewarm container with bigger memory should not be chose
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)
-    containers(3).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(3).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
   }
 
@@ -553,13 +565,14 @@ class FunctionPullingContainerPoolTests
     val biggestMemory = memoryLimit * 3
 
     val pool = system.actorOf(
-      Props(new FunctionPullingContainerPool(
-        factory,
-        invokerHealthService.ref,
-        poolConfig(MemoryLimit.STD_MEMORY * 6, prewarmPromotion = true),
-        invokerInstance,
-        List(PrewarmingConfig(1, exec, memoryLimit), PrewarmingConfig(1, exec, biggestMemory)),
-        sendAckToScheduler(producer))))
+      Props(
+        new FunctionPullingContainerPool(
+          factory,
+          invokerHealthService.ref,
+          poolConfig(MemoryLimit.STD_MEMORY * 6, prewarmPromotion = true),
+          invokerInstance,
+          List(PrewarmingConfig(1, exec, memoryLimit), PrewarmingConfig(1, exec, biggestMemory)),
+          sendAckToScheduler(producer))))
     containers(0).expectMsg(Start(exec, memoryLimit))
     containers(1).expectMsg(Start(exec, biggestMemory))
 
@@ -569,31 +582,31 @@ class FunctionPullingContainerPoolTests
 
     // the prewarm container with smallest memory should be chose
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)
-    containers(0).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(0).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
 
     // prewarm a new container
-    containers(2).expectMsgPF() {
-      case Start(exec, memoryLimit, _) => true
+    containers(2).expectMsgPF() { case Start(exec, memoryLimit, _) =>
+      true
     }
 
     // the prewarm container with bigger memory should be chose
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)
-    containers(1).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(1).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
 
     // prewarm a new container
-    containers(3).expectMsgPF() {
-      case Start(exec, biggestMemory, _) => true
+    containers(3).expectMsgPF() { case Start(exec, biggestMemory, _) =>
+      true
     }
 
     // now free memory is (6 - 3 - 1) * stdMemory, and required 2 * stdMemory, so both two prewarmed containers are not suitable
     // a new container should be created
     pool ! CreationContainer(creationMessageLarge.copy(revision = doc.rev), bigWhiskAction)
-    containers(4).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(4).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
 
     // no new prewarmed container should be created
@@ -607,20 +620,21 @@ class FunctionPullingContainerPoolTests
     val alternativeExec = CodeExecAsString(RuntimeManifest("anotherKind", ImageName("testImage")), "testCode", None)
 
     val pool = system.actorOf(
-      Props(new FunctionPullingContainerPool(
-        factory,
-        invokerHealthService.ref,
-        poolConfig(MemoryLimit.STD_MEMORY),
-        invokerInstance,
-        List(PrewarmingConfig(1, alternativeExec, memoryLimit)),
-        sendAckToScheduler(producer))))
+      Props(
+        new FunctionPullingContainerPool(
+          factory,
+          invokerHealthService.ref,
+          poolConfig(MemoryLimit.STD_MEMORY),
+          invokerInstance,
+          List(PrewarmingConfig(1, alternativeExec, memoryLimit)),
+          sendAckToScheduler(producer))))
 
     containers(0).expectMsg(Start(alternativeExec, memoryLimit)) // container0 was prewarmed
     containers(0).send(pool, ReadyToWork(prewarmedData.copy(kind = alternativeExec.kind))) // container0 was started
 
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)
-    containers(1).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(1).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
   }
 
@@ -631,20 +645,21 @@ class FunctionPullingContainerPoolTests
     val alternativeLimit = 128.MB
 
     val pool = system.actorOf(
-      Props(new FunctionPullingContainerPool(
-        factory,
-        invokerHealthService.ref,
-        poolConfig(MemoryLimit.STD_MEMORY),
-        invokerInstance,
-        List(PrewarmingConfig(1, exec, alternativeLimit)),
-        sendAckToScheduler(producer))))
+      Props(
+        new FunctionPullingContainerPool(
+          factory,
+          invokerHealthService.ref,
+          poolConfig(MemoryLimit.STD_MEMORY),
+          invokerInstance,
+          List(PrewarmingConfig(1, exec, alternativeLimit)),
+          sendAckToScheduler(producer))))
 
     containers(0).expectMsg(Start(exec, alternativeLimit)) // container0 was prewarmed
     containers(0).send(pool, ReadyToWork(prewarmedData.copy(memoryLimit = alternativeLimit))) // container0 was started
 
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)
-    containers(1).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(1).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
   }
 
@@ -681,25 +696,25 @@ class FunctionPullingContainerPoolTests
 
     // the revision doesn't match, create 1 container
     pool ! CreationContainer(creationMessage, whiskAction)
-    containers(0).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(0).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
 
     // the invocation namespace doesn't match, create 1 container
     pool ! CreationContainer(creationMessage.copy(invocationNamespace = "otherNamespace"), whiskAction)
-    containers(1).expectMsgPF() {
-      case Initialize("otherNamespace", fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(1).expectMsgPF() { case Initialize("otherNamespace", fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
 
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)
-    container.expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    container.expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
 
     // warmed container is occupied, create 1 more container
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)
-    containers(2).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(2).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
   }
 
@@ -737,8 +752,8 @@ class FunctionPullingContainerPoolTests
 
     // choose the warmed container
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)
-    container.expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    container.expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
 
     // warmed container is failed to resume
@@ -754,8 +769,8 @@ class FunctionPullingContainerPoolTests
       container.ref)
 
     // then a new container will be created
-    containers(0).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(0).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
   }
 
@@ -821,14 +836,15 @@ class FunctionPullingContainerPoolTests
     container3.expectNoMessage()
 
     // a new container will be created
-    containers(0).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(0).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
   }
 
-  private def createAckMsg(creationMessage: ContainerCreationMessage,
-                           error: Option[ContainerCreationError],
-                           reason: Option[String]) = {
+  private def createAckMsg(
+    creationMessage: ContainerCreationMessage,
+    error: Option[ContainerCreationError],
+    reason: Option[String]) = {
     ContainerCreationAckMessage(
       creationMessage.transid,
       creationMessage.creationId,
@@ -865,17 +881,20 @@ class FunctionPullingContainerPoolTests
     val ackMessage = createAckMsg(actualCreationMessage, None, None)
 
     pool ! CreationContainer(actualCreationMessage, whiskAction)
-    containers(0).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(0).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
     containers(0).send(pool, Initialized(initializedData)) // container is initialized
 
-    utilRetry({
-      val buffer = consumer.peek(50.millisecond)
-      buffer.size shouldBe 1
-      buffer.head._1 shouldBe topic
-      buffer.head._4 shouldBe ackMessage.serialize.getBytes
-    }, 10, Some(500.millisecond))
+    utilRetry(
+      {
+        val buffer = consumer.peek(50.millisecond)
+        buffer.size shouldBe 1
+        buffer.head._1 shouldBe topic
+        buffer.head._4 shouldBe ackMessage.serialize.getBytes
+      },
+      10,
+      Some(500.millisecond))
   }
 
   it should "send ack(success) to scheduler when chosen warmed container is resumed" in within(timeout) {
@@ -917,8 +936,8 @@ class FunctionPullingContainerPoolTests
 
     // choose the warmed container
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)
-    container.expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    container.expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
     pool.tell(
       Resumed(
@@ -931,12 +950,15 @@ class FunctionPullingContainerPoolTests
           TestProbe().ref)),
       container.ref)
 
-    utilRetry({
-      val buffer = consumer.peek(50.millisecond)
-      buffer.size shouldBe 1
-      buffer.head._1 shouldBe topic
-      buffer.head._4 shouldBe ackMessage.serialize.getBytes
-    }, 10, Some(500.millisecond))
+    utilRetry(
+      {
+        val buffer = consumer.peek(50.millisecond)
+        buffer.size shouldBe 1
+        buffer.head._1 shouldBe topic
+        buffer.head._4 shouldBe ackMessage.serialize.getBytes
+      },
+      10,
+      Some(500.millisecond))
   }
 
   it should "send ack(reschedule) to scheduler when container creation is failed or resource is not enough" in within(
@@ -964,28 +986,34 @@ class FunctionPullingContainerPoolTests
 
     pool ! CreationContainer(actualCreationMessageLarge, bigWhiskAction)
 
-    utilRetry({
-      val buffer = consumer.peek(50.millisecond)
-      buffer.size shouldBe 1
-      buffer.head._1 shouldBe topic
-      buffer.head._4 shouldBe ackMessage.serialize.getBytes
-    }, 10, Some(500.millisecond))
+    utilRetry(
+      {
+        val buffer = consumer.peek(50.millisecond)
+        buffer.size shouldBe 1
+        buffer.head._1 shouldBe topic
+        buffer.head._4 shouldBe ackMessage.serialize.getBytes
+      },
+      10,
+      Some(500.millisecond))
 
     val actualCreationMessage = creationMessage.copy(revision = doc2.rev)
     val rescheduleAckMsg = createAckMsg(actualCreationMessage, Some(UnknownError), Some("ContainerProxy init failed."))
 
     pool ! CreationContainer(actualCreationMessage, whiskAction)
-    containers(0).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(0).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
     containers(0).send(pool, ContainerRemoved(true)) // the container0 init failed or create container failed
 
-    utilRetry({
-      val buffer2 = consumer.peek(50.millisecond)
-      buffer2.size shouldBe 1
-      buffer2.head._1 shouldBe topic
-      buffer2.head._4 shouldBe rescheduleAckMsg.serialize.getBytes
-    }, 10, Some(500.millisecond))
+    utilRetry(
+      {
+        val buffer2 = consumer.peek(50.millisecond)
+        buffer2.size shouldBe 1
+        buffer2.head._1 shouldBe topic
+        buffer2.head._4 shouldBe rescheduleAckMsg.serialize.getBytes
+      },
+      10,
+      Some(500.millisecond))
   }
 
   it should "send memory info to invokerHealthManager immediately when doesn't have enough resource happens" in within(
@@ -1003,16 +1031,17 @@ class FunctionPullingContainerPoolTests
 
         case _ =>
           TestActor.KeepRunning
-    })
+      })
 
     val pool = system.actorOf(
-      Props(new FunctionPullingContainerPool(
-        factory,
-        invokerHealthService.ref,
-        poolConfig(MemoryLimit.STD_MEMORY * 1, memorySyncInterval = 1.minute),
-        invokerInstance,
-        List(PrewarmingConfig(1, exec, memoryLimit)),
-        sendAckToScheduler(producer))))
+      Props(
+        new FunctionPullingContainerPool(
+          factory,
+          invokerHealthService.ref,
+          poolConfig(MemoryLimit.STD_MEMORY * 1, memorySyncInterval = 1.minute),
+          invokerInstance,
+          List(PrewarmingConfig(1, exec, memoryLimit)),
+          sendAckToScheduler(producer))))
     containers(0).expectMsg(Start(exec, memoryLimit))
 
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)
@@ -1107,13 +1136,14 @@ class FunctionPullingContainerPoolTests
       Some(ReactivePrewarmingConfig(minCount, maxCount, ttl, threshold, increment))
     val prewarmedData = PreWarmData(mock[MockableV2Container], actionKind, memoryLimit, deadline)
     val pool = system.actorOf(
-      Props(new FunctionPullingContainerPool(
-        factory,
-        invokerHealthService.ref,
-        poolConfig,
-        invokerInstance,
-        List(PrewarmingConfig(initialCount, exec, memoryLimit, reactive)),
-        sendAckToScheduler(producer))))
+      Props(
+        new FunctionPullingContainerPool(
+          factory,
+          invokerHealthService.ref,
+          poolConfig,
+          invokerInstance,
+          List(PrewarmingConfig(initialCount, exec, memoryLimit, reactive)),
+          sendAckToScheduler(producer))))
 
     containers(0).expectMsg(Start(exec, memoryLimit, Some(ttl)))
     containers(1).expectMsg(Start(exec, memoryLimit, Some(ttl)))
@@ -1146,12 +1176,12 @@ class FunctionPullingContainerPoolTests
 
     // 2 cold start happened
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)
-    containers(2).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(2).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)
-    containers(3).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(3).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
     // Make sure AdjustPrewarmedContainer is sent by ContainerPool's scheduler after prewarmExpirationCheckIntervel time
     Thread.sleep(prewarmExpirationCheckIntervel.toMillis)
@@ -1184,20 +1214,20 @@ class FunctionPullingContainerPoolTests
 
     // 5 code start happened(5 > maxCount)
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)
-    containers(6).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(6).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)
-    containers(7).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(7).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)
-    containers(8).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(8).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)
-    containers(9).expectMsgPF() {
-      case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) => true
+    containers(9).expectMsgPF() { case Initialize(invocationNamespace, fqn, executeAction, schedulerHost, rpcPort, _) =>
+      true
     }
     pool ! CreationContainer(creationMessage.copy(revision = doc.rev), whiskAction)
     containers(10).expectMsgPF() {

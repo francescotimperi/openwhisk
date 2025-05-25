@@ -70,10 +70,13 @@ class WskAdminTests extends TestHelpers with WskActorSystem with Matchers with B
       wskadmin.cli(Seq("user", "whois", authkey)).stdout.trim should be(
         Seq(s"subject: $subject", s"namespace: $subject").mkString("\n"))
 
-      org.apache.openwhisk.utils.retry({
-        // reverse lookup by namespace
-        wskadmin.cli(Seq("user", "list", "-k", subject)).stdout.trim should be(authkey)
-      }, 10, Some(1.second))
+      org.apache.openwhisk.utils.retry(
+        {
+          // reverse lookup by namespace
+          wskadmin.cli(Seq("user", "list", "-k", subject)).stdout.trim should be(authkey)
+        },
+        10,
+        Some(1.second))
 
       wskadmin.cli(Seq("user", "delete", subject)).stdout should include("Subject deleted")
 
@@ -81,10 +84,13 @@ class WskAdminTests extends TestHelpers with WskActorSystem with Matchers with B
       val newspace = s"${subject}.myspace"
       wskadmin.cli(Seq("user", "create", subject, "-ns", newspace, "-u", auth.compact))
 
-      org.apache.openwhisk.utils.retry({
-        // reverse lookup by namespace
-        wskadmin.cli(Seq("user", "list", "-k", newspace)).stdout.trim should be(auth.compact)
-      }, 10, Some(1.second))
+      org.apache.openwhisk.utils.retry(
+        {
+          // reverse lookup by namespace
+          wskadmin.cli(Seq("user", "list", "-k", newspace)).stdout.trim should be(auth.compact)
+        },
+        10,
+        Some(1.second))
 
       wskadmin.cli(Seq("user", "get", subject, "-ns", newspace)).stdout.trim should be(auth.compact)
 
@@ -129,30 +135,43 @@ class WskAdminTests extends TestHelpers with WskActorSystem with Matchers with B
       wskadmin.cli(Seq("user", "create", subject1, "-ns", commonNamespace, "-u", auth.compact))
       wskadmin.cli(Seq("user", "create", subject2, "-ns", commonNamespace))
 
-      org.apache.openwhisk.utils.retry({
-        // reverse lookup by namespace
-        val out = wskadmin.cli(Seq("user", "list", "-p", "2", "-k", commonNamespace)).stdout.trim
-        out should include(auth.compact)
-        out.linesIterator should have size 2
-      }, 10, Some(1.second))
+      org.apache.openwhisk.utils.retry(
+        {
+          // reverse lookup by namespace
+          val out = wskadmin.cli(Seq("user", "list", "-p", "2", "-k", commonNamespace)).stdout.trim
+          out should include(auth.compact)
+          out.linesIterator should have size 2
+        },
+        10,
+        Some(1.second))
 
       // block the user
       wskadmin.cli(Seq("user", "block", subject1))
 
       // wait until the user can no longer be found
-      org.apache.openwhisk.utils.retry({
-        wskadmin.cli(Seq("user", "list", "-p", "2", "-k", commonNamespace)).stdout.trim.linesIterator should have size 1
-      }, 10, Some(1.second))
+      org.apache.openwhisk.utils.retry(
+        {
+          wskadmin
+            .cli(Seq("user", "list", "-p", "2", "-k", commonNamespace))
+            .stdout
+            .trim
+            .linesIterator should have size 1
+        },
+        10,
+        Some(1.second))
 
       // unblock the user
       wskadmin.cli(Seq("user", "unblock", subject1))
 
       // wait until the user can be found again
-      org.apache.openwhisk.utils.retry({
-        val out = wskadmin.cli(Seq("user", "list", "-p", "2", "-k", commonNamespace)).stdout.trim
-        out should include(auth.compact)
-        out.linesIterator should have size 2
-      }, 10, Some(1.second))
+      org.apache.openwhisk.utils.retry(
+        {
+          val out = wskadmin.cli(Seq("user", "list", "-p", "2", "-k", commonNamespace)).stdout.trim
+          out should include(auth.compact)
+          out.linesIterator should have size 2
+        },
+        10,
+        Some(1.second))
     } finally {
       wskadmin.cli(Seq("user", "delete", subject1)).stdout should include("Subject deleted")
       wskadmin.cli(Seq("user", "delete", subject2)).stdout should include("Subject deleted")

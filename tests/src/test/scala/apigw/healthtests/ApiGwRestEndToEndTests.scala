@@ -44,12 +44,13 @@ class ApiGwRestEndToEndTests extends ApiGwEndToEndTests with WskActorSystem {
     println(s"apiurl: '$apiurl'")
   }
 
-  override def verifyAPIList(rr: RunResult,
-                             actionName: String,
-                             testurlop: String,
-                             testapiname: String,
-                             testbasepath: String,
-                             testrelpath: String): Unit = {
+  override def verifyAPIList(
+    rr: RunResult,
+    actionName: String,
+    testurlop: String,
+    testapiname: String,
+    testbasepath: String,
+    testrelpath: String): Unit = {
     val apiResultRest = rr.asInstanceOf[RestResult]
     val apiValue = RestResult.getFieldJsObject(apiResultRest.getFieldListJsObject("apis")(0), "value")
     val apidoc = RestResult.getFieldJsObject(apiValue, "apidoc")

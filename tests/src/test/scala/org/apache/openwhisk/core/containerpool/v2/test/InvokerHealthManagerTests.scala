@@ -348,7 +348,7 @@ class InvokerHealthManagerTests
         case GracefulShutdown =>
           TestActor.KeepRunning
 
-    })
+      })
     probe.expectMsg(10.seconds, Transition(fsm, Unhealthy, Healthy))
 
     dataManagementService.expectMsg(

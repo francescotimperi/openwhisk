@@ -65,10 +65,9 @@ class ElasticSearchRestClientTests
   private def testFlow(httpResponse: HttpResponse = HttpResponse(), httpRequest: HttpRequest = HttpRequest())
     : Flow[(HttpRequest, Promise[HttpResponse]), (Try[HttpResponse], Promise[HttpResponse]), NotUsed] =
     Flow[(HttpRequest, Promise[HttpResponse])]
-      .mapAsyncUnordered(1) {
-        case (request, userContext) =>
-          request shouldBe httpRequest
-          Future.successful((Success(httpResponse), userContext))
+      .mapAsyncUnordered(1) { case (request, userContext) =>
+        request shouldBe httpRequest
+        Future.successful((Success(httpResponse), userContext))
       }
 
   private def await[T](awaitable: Future[T], timeout: FiniteDuration = 10.seconds) = Await.result(awaitable, timeout)
@@ -116,14 +115,13 @@ class ElasticSearchRestClientTests
   }
 
   it should "construct a query with aggregations" in {
-    Seq((EsAggMax, "max"), (EsAggMin, "min")).foreach {
-      case (aggArg, aggValue) =>
-        val queryAgg = EsQueryAggs("someAgg", aggArg, "someField")
+    Seq((EsAggMax, "max"), (EsAggMin, "min")).foreach { case (aggArg, aggValue) =>
+      val queryAgg = EsQueryAggs("someAgg", aggArg, "someField")
 
-        EsQuery(EsQueryAll(), aggs = Some(queryAgg)).toJson shouldBe JsObject(
-          "query" -> JsObject("match_all" -> JsObject.empty),
-          "aggs" -> JsObject("someAgg" -> JsObject(aggValue -> JsObject("field" -> "someField".toJson))),
-          "from" -> 0.toJson)
+      EsQuery(EsQueryAll(), aggs = Some(queryAgg)).toJson shouldBe JsObject(
+        "query" -> JsObject("match_all" -> JsObject.empty),
+        "aggs" -> JsObject("someAgg" -> JsObject(aggValue -> JsObject("field" -> "someField".toJson))),
+        "from" -> 0.toJson)
     }
   }
 
@@ -135,14 +133,13 @@ class ElasticSearchRestClientTests
       "from" -> 0.toJson)
 
     // Test match with types
-    Seq((EsMatchPhrase, "phrase"), (EsMatchPhrasePrefix, "phrase_prefix")).foreach {
-      case (typeArg, typeValue) =>
-        val queryMatch = EsQueryMatch("someField", "someValue", Some(typeArg))
+    Seq((EsMatchPhrase, "phrase"), (EsMatchPhrasePrefix, "phrase_prefix")).foreach { case (typeArg, typeValue) =>
+      val queryMatch = EsQueryMatch("someField", "someValue", Some(typeArg))
 
-        EsQuery(queryMatch).toJson shouldBe JsObject(
-          "query" -> JsObject(
-            "match" -> JsObject("someField" -> JsObject("query" -> "someValue".toJson, "type" -> typeValue.toJson))),
-          "from" -> 0.toJson)
+      EsQuery(queryMatch).toJson shouldBe JsObject(
+        "query" -> JsObject(
+          "match" -> JsObject("someField" -> JsObject("query" -> "someValue".toJson, "type" -> typeValue.toJson))),
+        "from" -> 0.toJson)
     }
   }
 
@@ -163,14 +160,13 @@ class ElasticSearchRestClientTests
   }
 
   it should "construct a query with order" in {
-    Seq((EsOrderAsc, "asc"), (EsOrderDesc, "desc")).foreach {
-      case (orderArg, orderValue) =>
-        val queryOrder = EsQueryOrder("someField", orderArg)
+    Seq((EsOrderAsc, "asc"), (EsOrderDesc, "desc")).foreach { case (orderArg, orderValue) =>
+      val queryOrder = EsQueryOrder("someField", orderArg)
 
-        EsQuery(EsQueryAll(), Some(queryOrder)).toJson shouldBe JsObject(
-          "query" -> JsObject("match_all" -> JsObject.empty),
-          "sort" -> JsArray(JsObject("someField" -> JsObject("order" -> orderValue.toJson))),
-          "from" -> 0.toJson)
+      EsQuery(EsQueryAll(), Some(queryOrder)).toJson shouldBe JsObject(
+        "query" -> JsObject("match_all" -> JsObject.empty),
+        "sort" -> JsArray(JsObject("someField" -> JsObject("order" -> orderValue.toJson))),
+        "from" -> 0.toJson)
     }
   }
 

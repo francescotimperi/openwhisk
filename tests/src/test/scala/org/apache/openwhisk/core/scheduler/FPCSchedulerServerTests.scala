@@ -132,10 +132,11 @@ class FPCSchedulerServerTests
 
 }
 
-class TestScheduler(schedulerStates: List[(SchedulerInstanceId, Int)],
-                    creationCount: Int,
-                    queueSize: Int,
-                    statusDatas: List[StatusData])
+class TestScheduler(
+  schedulerStates: List[(SchedulerInstanceId, Int)],
+  creationCount: Int,
+  queueSize: Int,
+  statusDatas: List[StatusData])
     extends SchedulerCore {
   var shutdownCount = 0
 

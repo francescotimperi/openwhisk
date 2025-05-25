@@ -59,7 +59,7 @@ class DataManagementServiceTests
 
       case _ =>
         TestActor.KeepRunning
-  })
+    })
 
   private def etcdWorkerFactory(actor: ActorRef) = { (_: ActorRefFactory) =>
     actor
@@ -95,17 +95,17 @@ class DataManagementServiceTests
     val watcherService = TestProbe()
     val workerFactory = (f: ActorRefFactory) =>
       f.actorOf(Props(new Actor {
-        override def receive: Receive = {
-          case request: RegisterData =>
-            if (request.value == "async")
-              Future {
-                Thread.sleep(1000)
-                queue.enqueue(request.value)
-                context.parent ! FinishWork(request.key)
-              } else {
+        override def receive: Receive = { case request: RegisterData =>
+          if (request.value == "async")
+            Future {
+              Thread.sleep(1000)
               queue.enqueue(request.value)
               context.parent ! FinishWork(request.key)
             }
+          else {
+            queue.enqueue(request.value)
+            context.parent ! FinishWork(request.key)
+          }
         }
       }))
 
@@ -133,17 +133,17 @@ class DataManagementServiceTests
     val watcherService = TestProbe()
     val workerFactory = (f: ActorRefFactory) =>
       f.actorOf(Props(new Actor {
-        override def receive: Receive = {
-          case request: RegisterData =>
-            if (request.value == "async")
-              Future {
-                Thread.sleep(1000)
-                queue.enqueue(request.value)
-                context.parent ! FinishWork(request.key)
-              } else {
+        override def receive: Receive = { case request: RegisterData =>
+          if (request.value == "async")
+            Future {
+              Thread.sleep(1000)
               queue.enqueue(request.value)
               context.parent ! FinishWork(request.key)
             }
+          else {
+            queue.enqueue(request.value)
+            context.parent ! FinishWork(request.key)
+          }
         }
       }))
 

@@ -71,21 +71,20 @@ class LimitsApiTests extends ControllerTestCommon with WhiskLimitsApi {
   val creds = WhiskAuthHelpers.newIdentity()
   val credsWithSetLimits = WhiskAuthHelpers
     .newIdentity()
-    .copy(
-      limits = UserLimits(
-        Some(testInvokesPerMinute),
-        Some(testConcurrent),
-        Some(testFiresPerMinute),
-        Some(testAllowedKinds),
-        Some(testStoreActivations),
-        minActionMemory = Some(testMemoryMin),
-        maxActionMemory = Some(testMemoryMax),
-        minActionLogs = Some(testLogMin),
-        maxActionLogs = Some(testLogMax),
-        maxActionTimeout = Some(testDurationMax),
-        minActionTimeout = Some(testDurationMin),
-        maxActionConcurrency = Some(testConcurrencyMax),
-        minActionConcurrency = Some(testConcurrencyMin)))
+    .copy(limits = UserLimits(
+      Some(testInvokesPerMinute),
+      Some(testConcurrent),
+      Some(testFiresPerMinute),
+      Some(testAllowedKinds),
+      Some(testStoreActivations),
+      minActionMemory = Some(testMemoryMin),
+      maxActionMemory = Some(testMemoryMax),
+      minActionLogs = Some(testLogMin),
+      maxActionLogs = Some(testLogMax),
+      maxActionTimeout = Some(testDurationMax),
+      minActionTimeout = Some(testDurationMin),
+      maxActionConcurrency = Some(testConcurrencyMax),
+      minActionConcurrency = Some(testConcurrencyMin)))
   val namespace = EntityPath(creds.subject.asString)
   val collectionPath = s"/${EntityPath.DEFAULT}/${collection.path}"
 
@@ -110,8 +109,10 @@ class LimitsApiTests extends ControllerTestCommon with WhiskLimitsApi {
         responseAs[UserLimits].maxActionLogs.get.megabytes shouldBe LogLimit.MAX_LOGSIZE_DEFAULT.toMB
         responseAs[UserLimits].minActionTimeout.get.duration shouldBe TimeLimit.MIN_DURATION_DEFAULT
         responseAs[UserLimits].maxActionTimeout.get.duration shouldBe TimeLimit.MAX_DURATION_DEFAULT
-        responseAs[UserLimits].minActionConcurrency.get.maxConcurrent shouldBe IntraConcurrencyLimit.MIN_CONCURRENT_DEFAULT
-        responseAs[UserLimits].maxActionConcurrency.get.maxConcurrent shouldBe IntraConcurrencyLimit.MAX_CONCURRENT_DEFAULT
+        responseAs[
+          UserLimits].minActionConcurrency.get.maxConcurrent shouldBe IntraConcurrencyLimit.MIN_CONCURRENT_DEFAULT
+        responseAs[
+          UserLimits].maxActionConcurrency.get.maxConcurrent shouldBe IntraConcurrencyLimit.MAX_CONCURRENT_DEFAULT
       }
     }
   }

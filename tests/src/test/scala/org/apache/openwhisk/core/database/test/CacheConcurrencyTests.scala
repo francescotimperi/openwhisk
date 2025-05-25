@@ -143,12 +143,11 @@ class CacheConcurrencyTests
           WhiskProperties.getControllerHosts.split(",").foreach { _ =>
             run("get after update") { name =>
               wsk.action.get(name)
-            } map {
-              case (name, rr) =>
-                withClue(s"get after update: failed check for $name") {
-                  rr.stdout should include("blue")
-                  rr.stdout should not include ("red")
-                }
+            } map { case (name, rr) =>
+              withClue(s"get after update: failed check for $name") {
+                rr.stdout should include("blue")
+                rr.stdout should not include ("red")
+              }
             }
           }
         },

@@ -34,10 +34,13 @@ class StandaloneApiGwTests extends ApiGwRestTests with StandaloneServerFixture {
 
   override protected def waitForOtherThings(): Unit = {
     val w = Stopwatch.createStarted()
-    retry({
-      println(s"Waiting for route management actions to be installed since $w")
-      require(logLines.exists(_.contains("Installed Route Management Actions")))
-    }, 30, Some(500.millis))
+    retry(
+      {
+        println(s"Waiting for route management actions to be installed since $w")
+        require(logLines.exists(_.contains("Installed Route Management Actions")))
+      },
+      30,
+      Some(500.millis))
   }
 
 }

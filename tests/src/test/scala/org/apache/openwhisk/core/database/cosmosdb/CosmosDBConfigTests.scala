@@ -30,13 +30,15 @@ class CosmosDBConfigTests extends FlatSpec with Matchers {
   behavior of "CosmosDB Config"
 
   it should "match SDK defaults" in {
-    val config = ConfigFactory.parseString(s"""
+    val config = ConfigFactory
+      .parseString(s"""
       | whisk.cosmosdb {
       |  endpoint = "http://localhost"
       |  key = foo
       |  db  = openwhisk
       | }
-         """.stripMargin).withFallback(globalConfig)
+         """.stripMargin)
+      .withFallback(globalConfig)
     val cosmos = CosmosDBConfig(config, "WhiskAuth")
 
     //Cosmos SDK does not have equals defined so match them explicitly
@@ -58,13 +60,15 @@ class CosmosDBConfigTests extends FlatSpec with Matchers {
   }
 
   it should "work with generic config" in {
-    val config = ConfigFactory.parseString(s"""
+    val config = ConfigFactory
+      .parseString(s"""
       | whisk.cosmosdb {
       |  endpoint = "http://localhost"
       |  key = foo
       |  db  = openwhisk
       | }
-         """.stripMargin).withFallback(globalConfig)
+         """.stripMargin)
+      .withFallback(globalConfig)
     val cosmos = CosmosDBConfig(config, "WhiskAuth")
     cosmos.endpoint shouldBe "http://localhost"
     cosmos.key shouldBe "foo"
@@ -72,7 +76,8 @@ class CosmosDBConfigTests extends FlatSpec with Matchers {
   }
 
   it should "work with extended config" in {
-    val config = ConfigFactory.parseString(s"""
+    val config = ConfigFactory
+      .parseString(s"""
       | whisk.cosmosdb {
       |  endpoint = "http://localhost"
       |  key = foo
@@ -81,7 +86,8 @@ class CosmosDBConfigTests extends FlatSpec with Matchers {
       |     max-pool-size = 42
       |  }
       | }
-         """.stripMargin).withFallback(globalConfig)
+         """.stripMargin)
+      .withFallback(globalConfig)
     val cosmos = CosmosDBConfig(config, "WhiskAuth")
     cosmos.endpoint shouldBe "http://localhost"
     cosmos.key shouldBe "foo"
@@ -96,7 +102,8 @@ class CosmosDBConfigTests extends FlatSpec with Matchers {
   }
 
   it should "work with specific extended config" in {
-    val config = ConfigFactory.parseString(s"""
+    val config = ConfigFactory
+      .parseString(s"""
       | whisk.cosmosdb {
       |  endpoint = "http://localhost"
       |  key = foo
@@ -117,7 +124,8 @@ class CosmosDBConfigTests extends FlatSpec with Matchers {
       |     }
       |  }
       | }
-         """.stripMargin).withFallback(globalConfig)
+         """.stripMargin)
+      .withFallback(globalConfig)
     val cosmos = CosmosDBConfig(config, "WhiskAuth")
     cosmos.endpoint shouldBe "http://localhost"
     cosmos.key shouldBe "foo"

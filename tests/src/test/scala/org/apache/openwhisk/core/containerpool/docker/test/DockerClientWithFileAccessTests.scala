@@ -69,13 +69,15 @@ class DockerClientWithFileAccessTestsIp
               JsObject("IPAddress" -> JsString(ipInConfigFile.host)))))
 
   /** Returns a DockerClient with mocked results */
-  def dockerClient(execResult: Future[String] = Future.successful(ipInDockerInspect.host),
-                   readResult: Future[JsObject] = Future.successful(dockerConfig)) =
+  def dockerClient(
+    execResult: Future[String] = Future.successful(ipInDockerInspect.host),
+    readResult: Future[JsObject] = Future.successful(dockerConfig)) =
     new DockerClientWithFileAccess()(global) {
       override val dockerCmd = Seq(dockerCommand)
       override def getClientVersion() = "mock-test-client"
-      override def executeProcess(args: Seq[String], timeout: Duration)(implicit ec: ExecutionContext,
-                                                                        as: ActorSystem) = execResult
+      override def executeProcess(args: Seq[String], timeout: Duration)(implicit
+        ec: ExecutionContext,
+        as: ActorSystem) = execResult
       override def configFileContents(configFile: File) = readResult
       // Make protected ipAddressFromFile available for testing - requires reflectiveCalls
       def publicIpAddressFromFile(id: ContainerId, network: String): Future[ContainerAddress] =

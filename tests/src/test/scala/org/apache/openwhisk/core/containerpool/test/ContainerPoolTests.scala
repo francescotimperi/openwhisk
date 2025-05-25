@@ -1004,24 +1004,27 @@ class ContainerPoolObjectTests extends FlatSpec with Matchers with MockFactory {
     ExecutableWhiskAction(EntityPath(namespace), EntityName(name), actionExec, limits = limits)
 
   /** Helper to create WarmedData with sensible defaults */
-  def warmedData(action: ExecutableWhiskAction = createAction(),
-                 namespace: String = standardNamespace.asString,
-                 lastUsed: Instant = Instant.now,
-                 active: Int = 0) =
+  def warmedData(
+    action: ExecutableWhiskAction = createAction(),
+    namespace: String = standardNamespace.asString,
+    lastUsed: Instant = Instant.now,
+    active: Int = 0) =
     WarmedData(stub[MockableContainer], EntityName(namespace), action, lastUsed, active)
 
   /** Helper to create WarmingData with sensible defaults */
-  def warmingData(action: ExecutableWhiskAction = createAction(),
-                  namespace: String = standardNamespace.asString,
-                  lastUsed: Instant = Instant.now,
-                  active: Int = 0) =
+  def warmingData(
+    action: ExecutableWhiskAction = createAction(),
+    namespace: String = standardNamespace.asString,
+    lastUsed: Instant = Instant.now,
+    active: Int = 0) =
     WarmingData(stub[MockableContainer], EntityName(namespace), action, lastUsed, active)
 
   /** Helper to create WarmingData with sensible defaults */
-  def warmingColdData(action: ExecutableWhiskAction = createAction(),
-                      namespace: String = standardNamespace.asString,
-                      lastUsed: Instant = Instant.now,
-                      active: Int = 0) =
+  def warmingColdData(
+    action: ExecutableWhiskAction = createAction(),
+    namespace: String = standardNamespace.asString,
+    lastUsed: Instant = Instant.now,
+    active: Int = 0) =
     WarmingColdData(EntityName(namespace), action, lastUsed, active)
 
   /** Helper to create PreWarmedData with sensible defaults */

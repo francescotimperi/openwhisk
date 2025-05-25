@@ -86,7 +86,8 @@ trait DbUtils extends Assertions {
       case t: Throwable =>
         println(s"unexpected failure $t")
         Failure(t)
-    } else Failure(new NoDocumentException("timed out"))
+    }
+    else Failure(new NoDocumentException("timed out"))
   }
 
   /**
@@ -94,8 +95,8 @@ trait DbUtils extends Assertions {
    * where the step performs a direct db query to retrieve the view and check the count
    * matches the given value.
    */
-  def waitOnView[Au](db: ArtifactStore[Au], namespace: EntityName, count: Int, view: View)(
-    implicit context: ExecutionContext,
+  def waitOnView[Au](db: ArtifactStore[Au], namespace: EntityName, count: Int, view: View)(implicit
+    context: ExecutionContext,
     transid: TransactionId,
     timeout: Duration): Unit =
     waitOnViewImpl(db, List(namespace.asString), List(namespace.asString, WhiskQueries.TOP), count, view)
@@ -105,8 +106,8 @@ trait DbUtils extends Assertions {
    * where the step performs a direct db query to retrieve the view and check the count
    * matches the given value.
    */
-  def waitOnView[Au](db: ArtifactStore[Au], path: EntityPath, count: Int, view: View)(
-    implicit context: ExecutionContext,
+  def waitOnView[Au](db: ArtifactStore[Au], path: EntityPath, count: Int, view: View)(implicit
+    context: ExecutionContext,
     transid: TransactionId,
     timeout: Duration): Unit =
     waitOnViewImpl(db, List(path.asString), List(path.asString, WhiskQueries.TOP), count, view)
@@ -116,9 +117,10 @@ trait DbUtils extends Assertions {
    * where the step performs a direct db query to retrieve the view and check the count
    * matches the given value.
    */
-  def waitOnView[Au](db: ArtifactStore[Au], count: Int, view: View)(implicit context: ExecutionContext,
-                                                                    transid: TransactionId,
-                                                                    timeout: Duration): Unit =
+  def waitOnView[Au](db: ArtifactStore[Au], count: Int, view: View)(implicit
+    context: ExecutionContext,
+    transid: TransactionId,
+    timeout: Duration): Unit =
     waitOnViewImpl(db, List.empty, List.empty, count, view)
 
   /**
@@ -134,13 +136,15 @@ trait DbUtils extends Assertions {
     view: View)(implicit context: ExecutionContext, transid: TransactionId, timeout: Duration): Unit = {
     // Query the view at least `successfulViewCalls` times successfully, to handle inconsistency between several CouchDB-nodes.
     (0 until successfulViewCalls).map { _ =>
-      val success = retry(() => {
-        db.query(view.name, startKey, endKey, 0, 0, false, true, false, StaleParameter.No) map { l =>
-          if (l.length != count) {
-            throw RetryOp()
-          } else true
-        }
-      }, timeout)
+      val success = retry(
+        () => {
+          db.query(view.name, startKey, endKey, 0, 0, false, true, false, StaleParameter.No) map { l =>
+            if (l.length != count) {
+              throw RetryOp()
+            } else true
+          }
+        },
+        timeout)
       assert(success.isSuccess, "wait aborted")
     }
   }
@@ -158,13 +162,15 @@ trait DbUtils extends Assertions {
     includeDocs: Boolean = false)(implicit context: ExecutionContext, transid: TransactionId, timeout: Duration) = {
     // Query the view at least `successfulViewCalls` times successfully, to handle inconsistency between several CouchDB-nodes.
     (0 until successfulViewCalls).map { _ =>
-      val success = retry(() => {
-        factory.listCollectionInNamespace(db, namespace, 0, 0, includeDocs) map { l =>
-          if (l.fold(_.length, _.length) < count) {
-            throw RetryOp()
-          } else true
-        }
-      }, timeout)
+      val success = retry(
+        () => {
+          factory.listCollectionInNamespace(db, namespace, 0, 0, includeDocs) map { l =>
+            if (l.fold(_.length, _.length) < count) {
+              throw RetryOp()
+            } else true
+          }
+        },
+        timeout)
       assert(success.isSuccess, "wait aborted")
     }
   }
@@ -173,18 +179,21 @@ trait DbUtils extends Assertions {
    * Wait on view for the authentication table. This is like the other waitOnViews but
    * specific to the WhiskAuth records.
    */
-  def waitOnView(db: AuthStore, authkey: BasicAuthenticationAuthKey, count: Int)(implicit context: ExecutionContext,
-                                                                                 transid: TransactionId,
-                                                                                 timeout: Duration) = {
+  def waitOnView(db: AuthStore, authkey: BasicAuthenticationAuthKey, count: Int)(implicit
+    context: ExecutionContext,
+    transid: TransactionId,
+    timeout: Duration) = {
     // Query the view at least `successfulViewCalls` times successfully, to handle inconsistency between several CouchDB-nodes.
     (0 until successfulViewCalls).map { _ =>
-      val success = retry(() => {
-        Identity.list(db, List(authkey.uuid.asString, authkey.key.asString)) map { l =>
-          if (l.length != count) {
-            throw RetryOp()
-          } else true
-        }
-      }, timeout)
+      val success = retry(
+        () => {
+          Identity.list(db, List(authkey.uuid.asString, authkey.key.asString)) map { l =>
+            if (l.length != count) {
+              throw RetryOp()
+            } else true
+          }
+        },
+        timeout)
       assert(success.isSuccess, "wait aborted after: " + timeout + ": " + success)
     }
   }
@@ -192,8 +201,8 @@ trait DbUtils extends Assertions {
   /**
    * Wait on view using the CouchDbRestClient. This is like the other waitOnViews.
    */
-  def waitOnView(db: CouchDbRestClient, designDocName: String, viewName: String, count: Int)(
-    implicit context: ExecutionContext,
+  def waitOnView(db: CouchDbRestClient, designDocName: String, viewName: String, count: Int)(implicit
+    context: ExecutionContext,
     timeout: Duration) = {
     // Query the view at least `successfulViewCalls` times successfully, to handle inconsistency between several CouchDB-nodes.
     (0 until successfulViewCalls).map { _ =>
@@ -217,8 +226,8 @@ trait DbUtils extends Assertions {
   /**
    * Puts document 'w' in datastore, and add it to gc queue to delete after the test completes.
    */
-  def put[A, Au >: A](db: ArtifactStore[Au], w: A, garbageCollect: Boolean = true)(
-    implicit transid: TransactionId,
+  def put[A, Au >: A](db: ArtifactStore[Au], w: A, garbageCollect: Boolean = true)(implicit
+    transid: TransactionId,
     timeout: Duration = 10 seconds): DocInfo = {
     val docFuture = db.put(w)
     val doc = Await.result(docFuture, timeout)
@@ -245,12 +254,14 @@ trait DbUtils extends Assertions {
   /**
    * Gets document by id from datastore, and add it to gc queue to delete after the test completes.
    */
-  def get[A <: DocumentRevisionProvider, Au >: A](db: ArtifactStore[Au],
-                                                  docid: DocId,
-                                                  factory: DocumentFactory[A],
-                                                  garbageCollect: Boolean = true)(implicit transid: TransactionId,
-                                                                                  timeout: Duration = 10 seconds,
-                                                                                  ma: Manifest[A]): A = {
+  def get[A <: DocumentRevisionProvider, Au >: A](
+    db: ArtifactStore[Au],
+    docid: DocId,
+    factory: DocumentFactory[A],
+    garbageCollect: Boolean = true)(implicit
+    transid: TransactionId,
+    timeout: Duration = 10 seconds,
+    ma: Manifest[A]): A = {
     val docFuture = factory.get(db, docid)
     val doc = Await.result(docFuture, timeout)
     assert(doc != null)
@@ -261,8 +272,8 @@ trait DbUtils extends Assertions {
   /**
    * Deletes document by id from datastore.
    */
-  def del[A <: WhiskDocument, Au >: A](db: ArtifactStore[Au], docid: DocId, factory: DocumentFactory[A])(
-    implicit transid: TransactionId,
+  def del[A <: WhiskDocument, Au >: A](db: ArtifactStore[Au], docid: DocId, factory: DocumentFactory[A])(implicit
+    transid: TransactionId,
     timeout: Duration = 10 seconds,
     ma: Manifest[A]) = {
     val docFuture = factory.get(db, docid)
@@ -274,20 +285,23 @@ trait DbUtils extends Assertions {
   /**
    * Deletes document by id and revision from datastore.
    */
-  def delete(db: ArtifactStore[_], docinfo: DocInfo)(implicit transid: TransactionId,
-                                                     timeout: Duration = 10 seconds) = {
+  def delete(db: ArtifactStore[_], docinfo: DocInfo)(implicit
+    transid: TransactionId,
+    timeout: Duration = 10 seconds) = {
     Await.result(db.del(docinfo), timeout)
   }
 
   /**
    * Puts a document 'entity' into the datastore, then do a get to retrieve it and confirm the identity.
    */
-  def putGetCheck[A <: DocumentRevisionProvider, Au >: A](db: ArtifactStore[Au],
-                                                          entity: A,
-                                                          factory: DocumentFactory[A],
-                                                          gc: Boolean = true)(implicit transid: TransactionId,
-                                                                              timeout: Duration = 10 seconds,
-                                                                              ma: Manifest[A]): (DocInfo, A) = {
+  def putGetCheck[A <: DocumentRevisionProvider, Au >: A](
+    db: ArtifactStore[Au],
+    entity: A,
+    factory: DocumentFactory[A],
+    gc: Boolean = true)(implicit
+    transid: TransactionId,
+    timeout: Duration = 10 seconds,
+    ma: Manifest[A]): (DocInfo, A) = {
     val doc = put(db, entity, gc)
     assert(doc != null && doc.id.asString != null && doc.rev.asString != null)
     val future = factory.get(db, doc.id, doc.rev)

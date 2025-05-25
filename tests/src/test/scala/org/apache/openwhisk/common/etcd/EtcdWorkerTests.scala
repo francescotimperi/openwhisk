@@ -71,7 +71,7 @@ class EtcdWorkerTests
 
       case _ =>
         TestActor.KeepRunning
-  })
+    })
 
   //val dataManagementService = TestProbe()
   val schedulerId = SchedulerInstanceId("scheduler0")

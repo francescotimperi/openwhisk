@@ -277,15 +277,13 @@ class ContainerManagerTests
     val invokers: List[InvokerHealth] = List(
       InvokerHealth(InvokerInstanceId(0, userMemory = 256.MB, tags = Seq.empty[String]), Healthy),
       InvokerHealth(InvokerInstanceId(1, userMemory = 256.MB, tags = Seq.empty[String]), Healthy),
-      InvokerHealth(InvokerInstanceId(2, userMemory = 512.MB, tags = Seq.empty[String]), Healthy),
-    )
+      InvokerHealth(InvokerInstanceId(2, userMemory = 512.MB, tags = Seq.empty[String]), Healthy))
 
     // after then, invoker states changes like this.
     val updatedInvokers: List[InvokerHealth] = List(
       InvokerHealth(InvokerInstanceId(0, userMemory = 512.MB, tags = Seq.empty[String]), Healthy),
       InvokerHealth(InvokerInstanceId(1, userMemory = 256.MB, tags = Seq.empty[String]), Healthy),
-      InvokerHealth(InvokerInstanceId(2, userMemory = 256.MB, tags = Seq.empty[String]), Healthy),
-    )
+      InvokerHealth(InvokerInstanceId(2, userMemory = 256.MB, tags = Seq.empty[String]), Healthy))
     expectGetInvokers(mockEtcd, invokers) // for warm up
     expectGetInvokers(mockEtcd, invokers) // for first creation
     expectGetInvokers(mockEtcd, updatedInvokers) // for second creation
@@ -294,8 +292,8 @@ class ContainerManagerTests
     val mockWatcher = TestProbe()
     val receiver = TestProbe()
     // ignore warmUp message
-    receiver.ignoreMsg {
-      case s: String => s.contains("warmUp")
+    receiver.ignoreMsg { case s: String =>
+      s.contains("warmUp")
     }
 
     val manager =
@@ -440,8 +438,7 @@ class ContainerManagerTests
     val invokers: List[InvokerHealth] = List(
       InvokerHealth(InvokerInstanceId(0, userMemory = testMemory, tags = Seq.empty[String]), Unhealthy),
       InvokerHealth(InvokerInstanceId(1, userMemory = testMemory, tags = Seq.empty[String]), Unhealthy),
-      InvokerHealth(InvokerInstanceId(2, userMemory = testMemory, tags = Seq.empty[String]), Healthy),
-    )
+      InvokerHealth(InvokerInstanceId(2, userMemory = testMemory, tags = Seq.empty[String]), Healthy))
     expectGetInvokers(mockEtcd, invokers)
     expectGetInvokers(mockEtcd, invokers) // one for warmup
 
@@ -449,8 +446,8 @@ class ContainerManagerTests
     val mockWatcher = TestProbe()
     val receiver = TestProbe()
     // ignore warmUp message
-    receiver.ignoreMsg {
-      case s: String => s.contains("warmUp")
+    receiver.ignoreMsg { case s: String =>
+      s.contains("warmUp")
     }
 
     val manager =
@@ -486,8 +483,8 @@ class ContainerManagerTests
     // it should be scheduled to the sole health invoker: invoker2
     receiver.expectMsg(s"invoker2-$msg")
 
-    mockJobManager.expectMsgPF() {
-      case RegisterCreationJob(`msg`) => true
+    mockJobManager.expectMsgPF() { case RegisterCreationJob(`msg`) =>
+      true
     }
   }
 
@@ -654,9 +651,8 @@ class ContainerManagerTests
         testInvocationNamespace,
         testfqn.resolve(EntityName("ns1")),
         testRevision,
-        actionMetadata.copy(
-          annotations =
-            Parameters(Annotations.InvokerResourcesAnnotationName, JsArray(JsString("cpu"), JsString("memory")))),
+        actionMetadata.copy(annotations =
+          Parameters(Annotations.InvokerResourcesAnnotationName, JsArray(JsString("cpu"), JsString("memory")))),
         testsid,
         schedulerHost,
         rpcPort)
@@ -666,9 +662,8 @@ class ContainerManagerTests
         testInvocationNamespace,
         testfqn.resolve(EntityName("ns2")),
         testRevision,
-        actionMetadata.copy(
-          annotations =
-            Parameters(Annotations.InvokerResourcesAnnotationName, JsArray(JsString("memory"), JsString("disk")))),
+        actionMetadata.copy(annotations =
+          Parameters(Annotations.InvokerResourcesAnnotationName, JsArray(JsString("memory"), JsString("disk")))),
         testsid,
         schedulerHost,
         rpcPort)
@@ -678,9 +673,8 @@ class ContainerManagerTests
         testInvocationNamespace,
         testfqn.resolve(EntityName("ns3")),
         testRevision,
-        actionMetadata.copy(
-          annotations =
-            Parameters(Annotations.InvokerResourcesAnnotationName, JsArray(JsString("disk"), JsString("cpu")))),
+        actionMetadata.copy(annotations =
+          Parameters(Annotations.InvokerResourcesAnnotationName, JsArray(JsString("disk"), JsString("cpu")))),
         testsid,
         schedulerHost,
         rpcPort)
@@ -700,11 +694,10 @@ class ContainerManagerTests
         testInvocationNamespace,
         testfqn.resolve(EntityName("ns5")),
         testRevision,
-        actionMetadata.copy(
-          annotations =
-            Parameters(Annotations.InvokerResourcesAnnotationName, JsArray(JsString("fake"))) ++ Parameters(
-              Annotations.InvokerResourcesStrictPolicyAnnotationName,
-              JsBoolean(true))),
+        actionMetadata.copy(annotations =
+          Parameters(Annotations.InvokerResourcesAnnotationName, JsArray(JsString("fake"))) ++ Parameters(
+            Annotations.InvokerResourcesStrictPolicyAnnotationName,
+            JsBoolean(true))),
         testsid,
         schedulerHost,
         rpcPort)
@@ -725,7 +718,8 @@ class ContainerManagerTests
     val pairs = ContainerManager.schedule(
       healthyInvokers,
       List(msg1, msg2, msg3, msg4, msg5),
-      msg1.whiskActionMetaData.limits.memory.megabytes.MB) // the memory is same for all msgs
+      msg1.whiskActionMetaData.limits.memory.megabytes.MB
+    ) // the memory is same for all msgs
     pairs should contain theSameElementsAs List(
       ScheduledPair(msg1, Some(healthyInvokers(0).id), None),
       ScheduledPair(msg2, Some(healthyInvokers(1).id), None),
@@ -780,11 +774,10 @@ class ContainerManagerTests
         testInvocationNamespace,
         testfqn.resolve(EntityName("ns1")),
         testRevision,
-        actionMetadata.copy(
-          annotations =
-            Parameters(Annotations.InvokerResourcesAnnotationName, JsArray(JsString("non-exist"))) ++ Parameters(
-              Annotations.InvokerResourcesStrictPolicyAnnotationName,
-              JsBoolean(true))),
+        actionMetadata.copy(annotations =
+          Parameters(Annotations.InvokerResourcesAnnotationName, JsArray(JsString("non-exist"))) ++ Parameters(
+            Annotations.InvokerResourcesStrictPolicyAnnotationName,
+            JsBoolean(true))),
         testsid,
         schedulerHost,
         rpcPort)
@@ -794,11 +787,10 @@ class ContainerManagerTests
         testInvocationNamespace,
         testfqn.resolve(EntityName("ns2")),
         testRevision,
-        actionMetadata.copy(
-          annotations =
-            Parameters(Annotations.InvokerResourcesAnnotationName, JsArray(JsString("non-exist"))) ++ Parameters(
-              Annotations.InvokerResourcesStrictPolicyAnnotationName,
-              JsBoolean(false))),
+        actionMetadata.copy(annotations =
+          Parameters(Annotations.InvokerResourcesAnnotationName, JsArray(JsString("non-exist"))) ++ Parameters(
+            Annotations.InvokerResourcesStrictPolicyAnnotationName,
+            JsBoolean(false))),
         testsid,
         schedulerHost,
         rpcPort)
@@ -1002,8 +994,8 @@ class ContainerManagerTests
 
     manager ! creationMsg
 
-    mockJobManager.expectMsgPF() {
-      case RegisterCreationJob(`msg1`) => true
+    mockJobManager.expectMsgPF() { case RegisterCreationJob(`msg1`) =>
+      true
     }
 
     Thread.sleep(1000)
@@ -1018,8 +1010,7 @@ class ContainerManagerTests
     val invokers: List[InvokerHealth] = List(
       InvokerHealth(InvokerInstanceId(0, userMemory = testMemory, tags = Seq.empty[String]), Healthy),
       InvokerHealth(InvokerInstanceId(1, userMemory = testMemory, tags = Seq.empty[String]), Healthy),
-      InvokerHealth(InvokerInstanceId(2, userMemory = testMemory, tags = Seq.empty[String]), Healthy),
-    )
+      InvokerHealth(InvokerInstanceId(2, userMemory = testMemory, tags = Seq.empty[String]), Healthy))
     val fqn = FullyQualifiedEntityName(EntityPath("ns1"), EntityName(testAction))
 
     expectGetInvokers(mockEtcd, invokers)
@@ -1140,8 +1131,7 @@ class ContainerManagerTests
     val invokers: List[InvokerHealth] = List(
       InvokerHealth(InvokerInstanceId(0, userMemory = testMemory, tags = Seq.empty[String]), Healthy),
       InvokerHealth(InvokerInstanceId(1, userMemory = testMemory, tags = Seq.empty[String]), Healthy),
-      InvokerHealth(InvokerInstanceId(2, userMemory = testMemory, tags = Seq.empty[String]), Healthy),
-    )
+      InvokerHealth(InvokerInstanceId(2, userMemory = testMemory, tags = Seq.empty[String]), Healthy))
     expectGetInvokers(mockEtcd, invokers)
 
     val mockJobManager = TestProbe()
@@ -1211,8 +1201,7 @@ class ContainerManagerTests
     val candidates = List(
       InvokerHealth(InvokerInstanceId(0, userMemory = 128 MB), Healthy),
       InvokerHealth(InvokerInstanceId(1, userMemory = 128 MB), Healthy),
-      InvokerHealth(InvokerInstanceId(2, userMemory = 256 MB), Healthy),
-    )
+      InvokerHealth(InvokerInstanceId(2, userMemory = 256 MB), Healthy))
     val msg = ContainerCreationMessage(
       TransactionId.testing,
       testInvocationNamespace,
@@ -1234,8 +1223,7 @@ class ContainerManagerTests
     val candidates = List(
       InvokerHealth(InvokerInstanceId(0, userMemory = 128 MB), Healthy),
       InvokerHealth(InvokerInstanceId(1, userMemory = 128 MB), Healthy),
-      InvokerHealth(InvokerInstanceId(2, userMemory = 128 MB), Healthy),
-    )
+      InvokerHealth(InvokerInstanceId(2, userMemory = 128 MB), Healthy))
     val msg = ContainerCreationMessage(
       TransactionId.testing,
       testInvocationNamespace,
@@ -1273,13 +1261,11 @@ class ContainerManagerTests
     val invokers = List(
       InvokerHealth(InvokerInstanceId(0, userMemory = 1024 MB), Healthy),
       InvokerHealth(InvokerInstanceId(1, userMemory = 1024 MB), Healthy),
-      InvokerHealth(InvokerInstanceId(2, userMemory = 1024 MB), Healthy),
-    )
+      InvokerHealth(InvokerInstanceId(2, userMemory = 1024 MB), Healthy))
     val expected = List(
       InvokerHealth(InvokerInstanceId(0, userMemory = 1024 MB), Healthy),
       InvokerHealth(InvokerInstanceId(1, userMemory = 768 MB), Healthy),
-      InvokerHealth(InvokerInstanceId(2, userMemory = 1024 MB), Healthy),
-    )
+      InvokerHealth(InvokerInstanceId(2, userMemory = 1024 MB), Healthy))
     val requiredMemory = 256.MB.toMB
     val invokerId = Some(InvokerInstanceId(1, userMemory = 1024 MB))
 
@@ -1292,8 +1278,7 @@ class ContainerManagerTests
     val invokers = List(
       InvokerHealth(InvokerInstanceId(0, userMemory = 1024 MB), Healthy),
       InvokerHealth(InvokerInstanceId(1, userMemory = 1024 MB), Healthy),
-      InvokerHealth(InvokerInstanceId(2, userMemory = 1024 MB), Healthy),
-    )
+      InvokerHealth(InvokerInstanceId(2, userMemory = 1024 MB), Healthy))
     val requiredMemory = 256.MB.toMB
 
     val updatedInvokers = ContainerManager.updateInvokerMemory(None, requiredMemory, invokers)
@@ -1305,12 +1290,10 @@ class ContainerManagerTests
     val invokers = List(
       InvokerHealth(InvokerInstanceId(0, userMemory = 1024 MB), Healthy),
       InvokerHealth(InvokerInstanceId(1, userMemory = 320 MB), Healthy),
-      InvokerHealth(InvokerInstanceId(2, userMemory = 1024 MB), Healthy),
-    )
+      InvokerHealth(InvokerInstanceId(2, userMemory = 1024 MB), Healthy))
     val expected = List(
       InvokerHealth(InvokerInstanceId(0, userMemory = 1024 MB), Healthy),
-      InvokerHealth(InvokerInstanceId(2, userMemory = 1024 MB), Healthy),
-    )
+      InvokerHealth(InvokerInstanceId(2, userMemory = 1024 MB), Healthy))
     val requiredMemory = 256.MB.toMB
     val invokerId = Some(InvokerInstanceId(1, userMemory = 320 MB))
 

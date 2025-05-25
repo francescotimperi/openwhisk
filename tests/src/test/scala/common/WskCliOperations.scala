@@ -67,10 +67,12 @@ import FullyQualifiedNames.resolve
  */
 class Wsk(cliPath: String = Wsk.defaultCliPath) extends WskOperations with RunCliCmd {
 
-  assert({
-    val f = new File(cliPath)
-    f.exists && f.isFile && f.canExecute
-  }, s"did not find $cliPath")
+  assert(
+    {
+      val f = new File(cliPath)
+      f.exists && f.isFile && f.canExecute
+    },
+    s"did not find $cliPath")
 
   override def baseCommand = Buffer(cliPath)
 
@@ -93,10 +95,11 @@ trait CliListOrGetFromCollectionOperations extends ListOrGetFromCollectionOperat
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def list(namespace: Option[String] = None,
-                    limit: Option[Int] = None,
-                    nameSort: Option[Boolean] = None,
-                    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult = {
+  override def list(
+    namespace: Option[String] = None,
+    limit: Option[Int] = None,
+    nameSort: Option[Boolean] = None,
+    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult = {
     val params = Seq(noun, "list", resolve(namespace), "--auth", wp.authKey) ++ {
       limit map { l =>
         Seq("--limit", l.toString)
@@ -116,32 +119,33 @@ trait CliListOrGetFromCollectionOperations extends ListOrGetFromCollectionOperat
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def get(name: String,
-                   expectedExitCode: Int = SUCCESS_EXIT,
-                   summary: Boolean = false,
-                   fieldFilter: Option[String] = None,
-                   url: Option[Boolean] = None,
-                   save: Option[Boolean] = None,
-                   saveAs: Option[String] = None)(implicit wp: WskProps): RunResult = {
+  override def get(
+    name: String,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    summary: Boolean = false,
+    fieldFilter: Option[String] = None,
+    url: Option[Boolean] = None,
+    save: Option[Boolean] = None,
+    saveAs: Option[String] = None)(implicit wp: WskProps): RunResult = {
 
     val params = Seq(noun, "get", "--auth", wp.authKey) ++
       Seq(fqn(name)) ++ { if (summary) Seq("--summary") else Seq.empty } ++ {
-      fieldFilter map { f =>
-        Seq(f)
-      } getOrElse Seq.empty
-    } ++ {
-      url map { u =>
-        Seq("--url")
-      } getOrElse Seq.empty
-    } ++ {
-      save map { s =>
-        Seq("--save")
-      } getOrElse Seq.empty
-    } ++ {
-      saveAs map { s =>
-        Seq("--save-as", s)
-      } getOrElse Seq.empty
-    }
+        fieldFilter map { f =>
+          Seq(f)
+        } getOrElse Seq.empty
+      } ++ {
+        url map { u =>
+          Seq("--url")
+        } getOrElse Seq.empty
+      } ++ {
+        save map { s =>
+          Seq("--save")
+        } getOrElse Seq.empty
+      } ++ {
+        saveAs map { s =>
+          Seq("--save-as", s)
+        } getOrElse Seq.empty
+      }
 
     wsk.cli(wp.overrides ++ params, expectedExitCode)
   }
@@ -281,12 +285,13 @@ class CliActionOperations(override val wsk: RunCliCmd)
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def invoke(name: String,
-                      parameters: Map[String, JsValue] = Map.empty,
-                      parameterFile: Option[String] = None,
-                      blocking: Boolean = false,
-                      result: Boolean = false,
-                      expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult = {
+  override def invoke(
+    name: String,
+    parameters: Map[String, JsValue] = Map.empty,
+    parameterFile: Option[String] = None,
+    blocking: Boolean = false,
+    result: Boolean = false,
+    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult = {
     val params = Seq(noun, "invoke", "--auth", wp.authKey, fqn(name)) ++ {
       parameters flatMap { p =>
         Seq("-p", p._1, p._2.compactPrint)
@@ -315,15 +320,16 @@ class CliTriggerOperations(override val wsk: RunCliCmd)
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def create(name: String,
-                      parameters: Map[String, JsValue] = Map.empty,
-                      annotations: Map[String, JsValue] = Map.empty,
-                      parameterFile: Option[String] = None,
-                      annotationFile: Option[String] = None,
-                      feed: Option[String] = None,
-                      shared: Option[Boolean] = None,
-                      update: Boolean = false,
-                      expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult = {
+  override def create(
+    name: String,
+    parameters: Map[String, JsValue] = Map.empty,
+    annotations: Map[String, JsValue] = Map.empty,
+    parameterFile: Option[String] = None,
+    annotationFile: Option[String] = None,
+    feed: Option[String] = None,
+    shared: Option[Boolean] = None,
+    update: Boolean = false,
+    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult = {
     val params = Seq(noun, if (!update) "create" else "update", "--auth", wp.authKey, fqn(name)) ++ {
       feed map { f =>
         Seq("--feed", fqn(f))
@@ -359,10 +365,11 @@ class CliTriggerOperations(override val wsk: RunCliCmd)
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def fire(name: String,
-                    parameters: Map[String, JsValue] = Map.empty,
-                    parameterFile: Option[String] = None,
-                    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult = {
+  override def fire(
+    name: String,
+    parameters: Map[String, JsValue] = Map.empty,
+    parameterFile: Option[String] = None,
+    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult = {
     val params = Seq(noun, "fire", "--auth", wp.authKey, fqn(name)) ++ {
       parameters flatMap { p =>
         Seq("-p", p._1, p._2.compactPrint)
@@ -393,22 +400,24 @@ class CliRuleOperations(override val wsk: RunCliCmd)
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def create(name: String,
-                      trigger: String,
-                      action: String,
-                      annotations: Map[String, JsValue] = Map.empty,
-                      shared: Option[Boolean] = None,
-                      update: Boolean = false,
-                      expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult = {
-    val params = Seq(noun, if (!update) "create" else "update", "--auth", wp.authKey, fqn(name), (trigger), (action)) ++ {
-      annotations flatMap { p =>
-        Seq("-a", p._1, p._2.compactPrint)
+  override def create(
+    name: String,
+    trigger: String,
+    action: String,
+    annotations: Map[String, JsValue] = Map.empty,
+    shared: Option[Boolean] = None,
+    update: Boolean = false,
+    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult = {
+    val params =
+      Seq(noun, if (!update) "create" else "update", "--auth", wp.authKey, fqn(name), (trigger), (action)) ++ {
+        annotations flatMap { p =>
+          Seq("-a", p._1, p._2.compactPrint)
+        }
+      } ++ {
+        shared map { s =>
+          Seq("--shared", if (s) "yes" else "no")
+        } getOrElse Seq.empty
       }
-    } ++ {
-      shared map { s =>
-        Seq("--shared", if (s) "yes" else "no")
-      } getOrElse Seq.empty
-    }
     wsk.cli(wp.overrides ++ params, expectedExitCode)
   }
 
@@ -468,10 +477,11 @@ class CliActivationOperations(val wsk: RunCliCmd) extends ActivationOperations w
    * @param since (optional) time travels back to activation since given duration
    * @param actionName (optional) name of entity to filter activation records on.
    */
-  override def console(duration: Duration,
-                       since: Option[Duration] = None,
-                       expectedExitCode: Int = SUCCESS_EXIT,
-                       actionName: Option[String] = None)(implicit wp: WskProps): RunResult = {
+  override def console(
+    duration: Duration,
+    since: Option[Duration] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    actionName: Option[String] = None)(implicit wp: WskProps): RunResult = {
     val params = Seq(noun, "poll") ++ {
       actionName map { name =>
         Seq(name)
@@ -494,11 +504,12 @@ class CliActivationOperations(val wsk: RunCliCmd) extends ActivationOperations w
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  def list(filter: Option[String] = None,
-           limit: Option[Int] = None,
-           since: Option[Instant] = None,
-           skip: Option[Int] = None,
-           expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult = {
+  def list(
+    filter: Option[String] = None,
+    limit: Option[Int] = None,
+    since: Option[Instant] = None,
+    skip: Option[Int] = None,
+    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult = {
     val params = Seq(noun, "list", "--auth", wp.authKey) ++ { filter map { Seq(_) } getOrElse Seq.empty } ++ {
       limit map { l =>
         Seq("--limit", l.toString)
@@ -537,11 +548,12 @@ class CliActivationOperations(val wsk: RunCliCmd) extends ActivationOperations w
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    * @param last retrieves latest acitvation
    */
-  override def get(activationId: Option[String] = None,
-                   expectedExitCode: Int = SUCCESS_EXIT,
-                   fieldFilter: Option[String] = None,
-                   last: Option[Boolean] = None,
-                   summary: Option[Boolean] = None)(implicit wp: WskProps): RunResult = {
+  override def get(
+    activationId: Option[String] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    fieldFilter: Option[String] = None,
+    last: Option[Boolean] = None,
+    summary: Option[Boolean] = None)(implicit wp: WskProps): RunResult = {
     val params = {
       activationId map { a =>
         Seq(a)
@@ -570,9 +582,10 @@ class CliActivationOperations(val wsk: RunCliCmd) extends ActivationOperations w
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    * @param last retrieves latest acitvation
    */
-  override def logs(activationId: Option[String] = None,
-                    expectedExitCode: Int = SUCCESS_EXIT,
-                    last: Option[Boolean] = None)(implicit wp: WskProps): RunResult = {
+  override def logs(
+    activationId: Option[String] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    last: Option[Boolean] = None)(implicit wp: WskProps): RunResult = {
     val params = {
       activationId map { a =>
         Seq(a)
@@ -593,9 +606,10 @@ class CliActivationOperations(val wsk: RunCliCmd) extends ActivationOperations w
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    * @param last retrieves latest acitvation
    */
-  override def result(activationId: Option[String] = None,
-                      expectedExitCode: Int = SUCCESS_EXIT,
-                      last: Option[Boolean] = None)(implicit wp: WskProps): RunResult = {
+  override def result(
+    activationId: Option[String] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    last: Option[Boolean] = None)(implicit wp: WskProps): RunResult = {
     val params = {
       activationId map { a =>
         Seq(a)
@@ -623,18 +637,22 @@ class CliActivationOperations(val wsk: RunCliCmd) extends ActivationOperations w
    * @param retries the maximum retries (total timeout is retries + 1 seconds)
    * @return activation ids found, caller must check length of sequence
    */
-  override def pollFor(N: Int,
-                       entity: Option[String],
-                       limit: Option[Int] = None,
-                       since: Option[Instant] = None,
-                       skip: Option[Int] = Some(0),
-                       retries: Int = 10,
-                       pollPeriod: Duration = 1.second)(implicit wp: WskProps): Seq[String] = {
+  override def pollFor(
+    N: Int,
+    entity: Option[String],
+    limit: Option[Int] = None,
+    since: Option[Instant] = None,
+    skip: Option[Int] = Some(0),
+    retries: Int = 10,
+    pollPeriod: Duration = 1.second)(implicit wp: WskProps): Seq[String] = {
     Try {
-      retry({
-        val result = ids(list(filter = entity, limit = limit, since = since, skip = skip))
-        if (result.length >= N) result else throw PartialResult(result)
-      }, retries, waitBeforeRetry = Some(pollPeriod))
+      retry(
+        {
+          val result = ids(list(filter = entity, limit = limit, since = since, skip = skip))
+          if (result.length >= N) result else throw PartialResult(result)
+        },
+        retries,
+        waitBeforeRetry = Some(pollPeriod))
     } match {
       case Success(ids)                => ids
       case Failure(PartialResult(ids)) => ids
@@ -648,10 +666,11 @@ class CliActivationOperations(val wsk: RunCliCmd) extends ActivationOperations w
    *
    * @return either Left(error message) or Right(activation as JsObject)
    */
-  override def waitForActivation(activationId: String,
-                                 initialWait: Duration = 1 second,
-                                 pollPeriod: Duration = 1 second,
-                                 totalWait: Duration = 30 seconds)(implicit wp: WskProps): Either[String, JsObject] = {
+  override def waitForActivation(
+    activationId: String,
+    initialWait: Duration = 1 second,
+    pollPeriod: Duration = 1 second,
+    totalWait: Duration = 30 seconds)(implicit wp: WskProps): Either[String, JsObject] = {
     val activation = waitfor(
       () => {
         val result =
@@ -696,8 +715,8 @@ class CliNamespaceOperations(override val wsk: RunCliCmd)
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def list(expectedExitCode: Int = SUCCESS_EXIT, nameSort: Option[Boolean] = None)(
-    implicit wp: WskProps): RunResult = {
+  override def list(expectedExitCode: Int = SUCCESS_EXIT, nameSort: Option[Boolean] = None)(implicit
+    wp: WskProps): RunResult = {
     val params = Seq(noun, "list", "--auth", wp.authKey) ++ {
       nameSort map { n =>
         Seq("--name-sort")
@@ -726,8 +745,8 @@ class CliNamespaceOperations(override val wsk: RunCliCmd)
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  def get(namespace: Option[String] = None, expectedExitCode: Int, nameSort: Option[Boolean] = None)(
-    implicit wp: WskProps): RunResult = {
+  def get(namespace: Option[String] = None, expectedExitCode: Int, nameSort: Option[Boolean] = None)(implicit
+    wp: WskProps): RunResult = {
     val params = {
       nameSort map { n =>
         Seq("--name-sort")
@@ -750,14 +769,15 @@ class CliPackageOperations(override val wsk: RunCliCmd)
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def create(name: String,
-                      parameters: Map[String, JsValue] = Map.empty,
-                      annotations: Map[String, JsValue] = Map.empty,
-                      parameterFile: Option[String] = None,
-                      annotationFile: Option[String] = None,
-                      shared: Option[Boolean] = None,
-                      update: Boolean = false,
-                      expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult = {
+  override def create(
+    name: String,
+    parameters: Map[String, JsValue] = Map.empty,
+    annotations: Map[String, JsValue] = Map.empty,
+    parameterFile: Option[String] = None,
+    annotationFile: Option[String] = None,
+    shared: Option[Boolean] = None,
+    update: Boolean = false,
+    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult = {
     val params = Seq(noun, if (!update) "create" else "update", "--auth", wp.authKey, fqn(name)) ++ {
       parameters flatMap { p =>
         Seq("-p", p._1, p._2.compactPrint)
@@ -789,11 +809,12 @@ class CliPackageOperations(override val wsk: RunCliCmd)
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def bind(provider: String,
-                    name: String,
-                    parameters: Map[String, JsValue] = Map.empty,
-                    annotations: Map[String, JsValue] = Map.empty,
-                    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult = {
+  override def bind(
+    provider: String,
+    name: String,
+    parameters: Map[String, JsValue] = Map.empty,
+    annotations: Map[String, JsValue] = Map.empty,
+    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult = {
     val params = Seq(noun, "bind", "--auth", wp.authKey, fqn(provider), fqn(name)) ++ {
       parameters flatMap { p =>
         Seq("-p", p._1, p._2.compactPrint)
@@ -816,15 +837,16 @@ class CliGatewayOperations(val wsk: RunCliCmd) extends GatewayOperations {
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def create(basepath: Option[String] = None,
-                      relpath: Option[String] = None,
-                      operation: Option[String] = None,
-                      action: Option[String] = None,
-                      apiname: Option[String] = None,
-                      swagger: Option[String] = None,
-                      responsetype: Option[String] = None,
-                      expectedExitCode: Int = SUCCESS_EXIT,
-                      cliCfgFile: Option[String] = None)(implicit wp: WskProps): RunResult = {
+  override def create(
+    basepath: Option[String] = None,
+    relpath: Option[String] = None,
+    operation: Option[String] = None,
+    action: Option[String] = None,
+    apiname: Option[String] = None,
+    swagger: Option[String] = None,
+    responsetype: Option[String] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    cliCfgFile: Option[String] = None)(implicit wp: WskProps): RunResult = {
     val params = Seq(noun, "create", "--auth", wp.authKey) ++ {
       basepath map { b =>
         Seq(b)
@@ -867,15 +889,16 @@ class CliGatewayOperations(val wsk: RunCliCmd) extends GatewayOperations {
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def list(basepathOrApiName: Option[String] = None,
-                    relpath: Option[String] = None,
-                    operation: Option[String] = None,
-                    limit: Option[Int] = None,
-                    since: Option[Instant] = None,
-                    full: Option[Boolean] = None,
-                    nameSort: Option[Boolean] = None,
-                    expectedExitCode: Int = SUCCESS_EXIT,
-                    cliCfgFile: Option[String] = None)(implicit wp: WskProps): RunResult = {
+  override def list(
+    basepathOrApiName: Option[String] = None,
+    relpath: Option[String] = None,
+    operation: Option[String] = None,
+    limit: Option[Int] = None,
+    since: Option[Instant] = None,
+    full: Option[Boolean] = None,
+    nameSort: Option[Boolean] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    cliCfgFile: Option[String] = None)(implicit wp: WskProps): RunResult = {
     val params = Seq(noun, "list", "--auth", wp.authKey) ++ {
       basepathOrApiName map { b =>
         Seq(b)
@@ -919,11 +942,12 @@ class CliGatewayOperations(val wsk: RunCliCmd) extends GatewayOperations {
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def get(basepathOrApiName: Option[String] = None,
-                   full: Option[Boolean] = None,
-                   expectedExitCode: Int = SUCCESS_EXIT,
-                   cliCfgFile: Option[String] = None,
-                   format: Option[String] = None)(implicit wp: WskProps): RunResult = {
+  override def get(
+    basepathOrApiName: Option[String] = None,
+    full: Option[Boolean] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    cliCfgFile: Option[String] = None,
+    format: Option[String] = None)(implicit wp: WskProps): RunResult = {
     val params = Seq(noun, "get", "--auth", wp.authKey) ++ {
       basepathOrApiName map { b =>
         Seq(b)
@@ -950,11 +974,12 @@ class CliGatewayOperations(val wsk: RunCliCmd) extends GatewayOperations {
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def delete(basepathOrApiName: String,
-                      relpath: Option[String] = None,
-                      operation: Option[String] = None,
-                      expectedExitCode: Int = SUCCESS_EXIT,
-                      cliCfgFile: Option[String] = None)(implicit wp: WskProps): RunResult = {
+  override def delete(
+    basepathOrApiName: String,
+    relpath: Option[String] = None,
+    operation: Option[String] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    cliCfgFile: Option[String] = None)(implicit wp: WskProps): RunResult = {
     val params = Seq(noun, "delete", "--auth", wp.authKey, basepathOrApiName) ++ {
       relpath map { r =>
         Seq(r)

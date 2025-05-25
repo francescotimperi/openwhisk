@@ -44,7 +44,6 @@ import org.apache.openwhisk.http.Messages
  * These tests exercise a fresh instance of the service object in memory -- these
  * tests do NOT communication with a whisk deployment.
  *
- *
  * @Idioglossia
  * "using Specification DSL to write unit tests, as in should, must, not, be"
  * "using Specs2RouteTest DSL to chain HTTP requests for unit testing, as in ~>"
@@ -204,9 +203,12 @@ class RulesApiTests extends ControllerTestCommon with WhiskRulesApi {
       EntityName("get_active_rule"),
       afullname(namespace, "get_active_rule trigger"),
       afullname(namespace, "an action"))
-    val trigger = WhiskTrigger(rule.trigger.path, rule.trigger.name, rules = Some {
-      Map(rule.fullyQualifiedName(false) -> ReducedRule(rule.action, Status.ACTIVE))
-    })
+    val trigger = WhiskTrigger(
+      rule.trigger.path,
+      rule.trigger.name,
+      rules = Some {
+        Map(rule.fullyQualifiedName(false) -> ReducedRule(rule.action, Status.ACTIVE))
+      })
 
     put(entityStore, trigger)
     put(entityStore, rule)
@@ -226,9 +228,12 @@ class RulesApiTests extends ControllerTestCommon with WhiskRulesApi {
       EntityName("get_active_rule"),
       afullname(namespace, "get_active_rule trigger"),
       afullname(namespace, "an action"))
-    val trigger = WhiskTrigger(rule.trigger.path, rule.trigger.name, rules = Some {
-      Map(rule.fullyQualifiedName(false) -> ReducedRule(rule.action, Status.ACTIVE))
-    })
+    val trigger = WhiskTrigger(
+      rule.trigger.path,
+      rule.trigger.name,
+      rules = Some {
+        Map(rule.fullyQualifiedName(false) -> ReducedRule(rule.action, Status.ACTIVE))
+      })
 
     put(entityStore, trigger)
     put(entityStore, rule)
@@ -284,9 +289,12 @@ class RulesApiTests extends ControllerTestCommon with WhiskRulesApi {
       EntityName("reject_delete_rule_active"),
       FullyQualifiedEntityName(namespace, aname()),
       afullname(namespace, "an action"))
-    val trigger = WhiskTrigger(namespace, rule.trigger.name, rules = Some {
-      Map(rule.fullyQualifiedName(false) -> ReducedRule(rule.action, Status.ACTIVE))
-    })
+    val trigger = WhiskTrigger(
+      namespace,
+      rule.trigger.name,
+      rules = Some {
+        Map(rule.fullyQualifiedName(false) -> ReducedRule(rule.action, Status.ACTIVE))
+      })
 
     put(entityStore, trigger)
     put(entityStore, rule)
@@ -819,9 +827,12 @@ class RulesApiTests extends ControllerTestCommon with WhiskRulesApi {
     implicit val tid = transid()
 
     val rule = WhiskRule(namespace, aname(), afullname(namespace, "a trigger"), afullname(namespace, "an action"))
-    val trigger = WhiskTrigger(namespace, rule.trigger.name, rules = Some {
-      Map(rule.fullyQualifiedName(false) -> ReducedRule(rule.action, Status.ACTIVE))
-    })
+    val trigger = WhiskTrigger(
+      namespace,
+      rule.trigger.name,
+      rules = Some {
+        Map(rule.fullyQualifiedName(false) -> ReducedRule(rule.action, Status.ACTIVE))
+      })
     val action = WhiskAction(namespace, aname(), jsDefault("??"))
     val content = WhiskRulePut(Some(trigger.fullyQualifiedName(false)), Some(action.fullyQualifiedName(false)))
 
@@ -867,9 +878,12 @@ class RulesApiTests extends ControllerTestCommon with WhiskRulesApi {
     implicit val tid = transid()
 
     val rule = WhiskRule(namespace, aname(), afullname(namespace, aname().name), afullname(namespace, "an action"))
-    val trigger = WhiskTrigger(namespace, rule.trigger.name, rules = Some {
-      Map(rule.fullyQualifiedName(false) -> ReducedRule(rule.action, Status.ACTIVE))
-    })
+    val trigger = WhiskTrigger(
+      namespace,
+      rule.trigger.name,
+      rules = Some {
+        Map(rule.fullyQualifiedName(false) -> ReducedRule(rule.action, Status.ACTIVE))
+      })
 
     put(entityStore, trigger)
     put(entityStore, rule)
@@ -901,9 +915,12 @@ class RulesApiTests extends ControllerTestCommon with WhiskRulesApi {
     implicit val tid = transid()
 
     val rule = WhiskRule(namespace, aname(), afullname(namespace, aname().name), afullname(namespace, "an action"))
-    val trigger = WhiskTrigger(namespace, rule.trigger.name, rules = Some {
-      Map(rule.fullyQualifiedName(false) -> ReducedRule(rule.action, Status.INACTIVE))
-    })
+    val trigger = WhiskTrigger(
+      namespace,
+      rule.trigger.name,
+      rules = Some {
+        Map(rule.fullyQualifiedName(false) -> ReducedRule(rule.action, Status.INACTIVE))
+      })
 
     put(entityStore, trigger, false)
     put(entityStore, rule)
@@ -952,9 +969,12 @@ class RulesApiTests extends ControllerTestCommon with WhiskRulesApi {
     implicit val tid = transid()
 
     val rule = WhiskRule(namespace, aname(), afullname(namespace, aname().name), afullname(namespace, "an action"))
-    val trigger = WhiskTrigger(namespace, rule.trigger.name, rules = Some {
-      Map(rule.fullyQualifiedName(false) -> ReducedRule(rule.action, Status.ACTIVE))
-    })
+    val trigger = WhiskTrigger(
+      namespace,
+      rule.trigger.name,
+      rules = Some {
+        Map(rule.fullyQualifiedName(false) -> ReducedRule(rule.action, Status.ACTIVE))
+      })
 
     put(entityStore, trigger, false)
     put(entityStore, rule)

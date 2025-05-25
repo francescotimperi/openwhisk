@@ -108,49 +108,46 @@ class SplunkLogStoreTests
 
   val testFlow: Flow[(HttpRequest, Promise[HttpResponse]), (Try[HttpResponse], Promise[HttpResponse]), NotUsed] =
     Flow[(HttpRequest, Promise[HttpResponse])]
-      .mapAsyncUnordered(1) {
-        case (request, userContext) =>
-          //we use cachedHostConnectionPoolHttps so won't get the host+port with the request
-          Unmarshal(request.entity)
-            .to[FormData]
-            .map { form =>
-              val earliestTime = form.fields.get("earliest_time")
-              val latestTime = form.fields.get("latest_time")
-              val outputMode = form.fields.get("output_mode")
-              val search = form.fields.get("search")
-              val execMode = form.fields.get("exec_mode")
-              val maxTime = form.fields.get("max_time")
+      .mapAsyncUnordered(1) { case (request, userContext) =>
+        //we use cachedHostConnectionPoolHttps so won't get the host+port with the request
+        Unmarshal(request.entity)
+          .to[FormData]
+          .map { form =>
+            val earliestTime = form.fields.get("earliest_time")
+            val latestTime = form.fields.get("latest_time")
+            val outputMode = form.fields.get("output_mode")
+            val search = form.fields.get("search")
+            val execMode = form.fields.get("exec_mode")
+            val maxTime = form.fields.get("max_time")
 
-              request.uri.path.toString() shouldBe "/services/search/jobs"
-              request.headers shouldBe List(Authorization.basic(testConfig.username, testConfig.password))
-              earliestTime shouldBe Some(startTimePlusOffset)
-              latestTime shouldBe Some(endTimePlusOffset)
-              outputMode shouldBe Some("json")
-              execMode shouldBe Some("oneshot")
-              maxTime shouldBe Some("10")
-              search shouldBe Some(
-                s"""search index="${testConfig.index}" | search ${testConfig.queryConstraints} | search ${testConfig.namespaceField}=${activation.namespace.asString} | search ${testConfig.activationIdField}=${activation.activationId.toString} | spath ${testConfig.logMessageField} | table ${testConfig.logTimestampField}, ${testConfig.logStreamField}, ${testConfig.logMessageField} | reverse""")
+            request.uri.path.toString() shouldBe "/services/search/jobs"
+            request.headers shouldBe List(Authorization.basic(testConfig.username, testConfig.password))
+            earliestTime shouldBe Some(startTimePlusOffset)
+            latestTime shouldBe Some(endTimePlusOffset)
+            outputMode shouldBe Some("json")
+            execMode shouldBe Some("oneshot")
+            maxTime shouldBe Some("10")
+            search shouldBe Some(
+              s"""search index="${testConfig.index}" | search ${testConfig.queryConstraints} | search ${testConfig.namespaceField}=${activation.namespace.asString} | search ${testConfig.activationIdField}=${activation.activationId.toString} | spath ${testConfig.logMessageField} | table ${testConfig.logTimestampField}, ${testConfig.logStreamField}, ${testConfig.logMessageField} | reverse""")
 
-              (
-                Success(
-                  HttpResponse(
-                    StatusCodes.OK,
-                    entity = HttpEntity(
-                      ContentTypes.`application/json`,
-                      """{"preview":false,"init_offset":0,"messages":[],"fields":[{"name":"log_message"}],"results":[{"log_timestamp": "2007-12-03T10:15:30Z", "log_stream":"stdout", "log_message":"some log message"},{"log_timestamp": "2007-12-03T10:15:31Z", "log_stream":"stderr", "log_message":"some other log message"},{},{"log_timestamp": "2007-12-03T10:15:32Z", "log_stream":"stderr"}], "highlighted":{}}"""))),
-                userContext)
-            }
-            .recover {
-              case e =>
-                println("failed")
-                (Failure(e), userContext)
-            }
+            (
+              Success(
+                HttpResponse(
+                  StatusCodes.OK,
+                  entity = HttpEntity(
+                    ContentTypes.`application/json`,
+                    """{"preview":false,"init_offset":0,"messages":[],"fields":[{"name":"log_message"}],"results":[{"log_timestamp": "2007-12-03T10:15:30Z", "log_stream":"stdout", "log_message":"some log message"},{"log_timestamp": "2007-12-03T10:15:31Z", "log_stream":"stderr", "log_message":"some other log message"},{},{"log_timestamp": "2007-12-03T10:15:32Z", "log_stream":"stderr"}], "highlighted":{}}"""))),
+              userContext)
+          }
+          .recover { case e =>
+            println("failed")
+            (Failure(e), userContext)
+          }
       }
   val failFlow: Flow[(HttpRequest, Promise[HttpResponse]), (Try[HttpResponse], Promise[HttpResponse]), NotUsed] =
     Flow[(HttpRequest, Promise[HttpResponse])]
-      .map {
-        case (request, userContext) =>
-          (Success(HttpResponse(StatusCodes.InternalServerError)), userContext)
+      .map { case (request, userContext) =>
+        (Success(HttpResponse(StatusCodes.InternalServerError)), userContext)
 
       }
 
