@@ -82,9 +82,8 @@ dependencies {
     implementation "io.altoo:akka-kryo-serialization_${gradle.scala.depVersion}:1.0.0"
     implementation "com.lightbend.akka.management:akka-management-cluster-bootstrap_${gradle.scala.depVersion}:${gradle.akka_management.version}"
     implementation "com.lightbend.akka.discovery:akka-discovery-kubernetes-api_${gradle.scala.depVersion}:${gradle.akka_management.version}"
-    
     implementation "com.lightbend.akka.grpc:akka-grpc-runtime_${gradle.scala.depVersion}:${gradle.akka_gprc.version}"
-    implementation "com.typesafe.akka:akka-stream_${gradle.scala.depVersion}:${gradle.akka.version}"    
+    implementation "com.typesafe.akka:akka-stream_${gradle.scala.depVersion}:${gradle.akka.version}"
 }
 
 // workaround for akka-grpc
