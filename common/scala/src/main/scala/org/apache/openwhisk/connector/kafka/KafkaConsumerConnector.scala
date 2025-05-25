@@ -68,8 +68,9 @@ class KafkaConsumerConnector(
    *
    * @param duration the maximum duration for the long poll
    */
-  override def peek(duration: FiniteDuration = 500.milliseconds,
-                    retry: Int = 3): Iterable[(String, Int, Long, Array[Byte])] = {
+  override def peek(
+    duration: FiniteDuration = 500.milliseconds,
+    retry: Int = 3): Iterable[(String, Int, Long, Array[Byte])] = {
 
     // poll can be infinitely blocked in edge-cases, so we need to wakeup explicitly.
     val wakeUpTask = actorSystem.scheduler.scheduleOnce(cfg.sessionTimeoutMs.milliseconds + 1.second) {

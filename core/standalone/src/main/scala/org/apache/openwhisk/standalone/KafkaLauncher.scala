@@ -74,15 +74,14 @@ class KafkaLauncher(
 
     Future
       .fromTry(t)
-      .map(
-        _ =>
-          Seq(
-            ServiceContainer(kafkaPort, s"localhost:$kafkaPort", "kafka"),
-            ServiceContainer(
-              kafkaDockerPort,
-              s"${StandaloneDockerSupport.getLocalHostIp()}:$kafkaDockerPort",
-              "kafka-docker"),
-            ServiceContainer(zkPort, "Zookeeper", "zookeeper")))
+      .map(_ =>
+        Seq(
+          ServiceContainer(kafkaPort, s"localhost:$kafkaPort", "kafka"),
+          ServiceContainer(
+            kafkaDockerPort,
+            s"${StandaloneDockerSupport.getLocalHostIp()}:$kafkaDockerPort",
+            "kafka-docker"),
+          ServiceContainer(zkPort, "Zookeeper", "zookeeper")))
   }
 
   def runKafkaUI(): Future[Seq[ServiceContainer]] = {
@@ -113,8 +112,9 @@ class KafkaLauncher(
 object KafkaAwareLeanBalancer extends LoadBalancerProvider {
   override def requiredProperties: Map[String, String] = LeanBalancer.requiredProperties ++ kafkaHosts
 
-  override def instance(whiskConfig: WhiskConfig, instance: ControllerInstanceId)(implicit actorSystem: ActorSystem,
-                                                                                  logging: Logging): LoadBalancer =
+  override def instance(whiskConfig: WhiskConfig, instance: ControllerInstanceId)(implicit
+    actorSystem: ActorSystem,
+    logging: Logging): LoadBalancer =
     LeanBalancer.instance(whiskConfig, instance)
 }
 

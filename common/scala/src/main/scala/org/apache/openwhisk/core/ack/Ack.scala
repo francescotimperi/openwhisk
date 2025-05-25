@@ -38,12 +38,13 @@ import scala.concurrent.Future
  * @param acknowledgement the acknowledgement message to send
  */
 trait ActiveAck {
-  def apply(tid: TransactionId,
-            activationResult: WhiskActivation,
-            blockingInvoke: Boolean,
-            controllerInstance: ControllerInstanceId,
-            userId: UUID,
-            acknowledgement: AcknowledgementMessage): Future[Any]
+  def apply(
+    tid: TransactionId,
+    activationResult: WhiskActivation,
+    blockingInvoke: Boolean,
+    controllerInstance: ControllerInstanceId,
+    userId: UUID,
+    acknowledgement: AcknowledgementMessage): Future[Any]
 }
 
 trait EventSender {

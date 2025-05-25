@@ -40,7 +40,8 @@ import scala.concurrent.{ExecutionContext, Future}
  * up to the client to interpret the results accordingly.
  */
 class CouchDbRestClient(protocol: String, host: String, port: Int, username: String, password: String, db: String)(
-  implicit system: ActorSystem,
+  implicit
+  system: ActorSystem,
   logging: Logging)
     extends PoolingRestClient(protocol, host, port, 16 * 1024)(
       system,
@@ -86,15 +87,16 @@ class CouchDbRestClient(protocol: String, host: String, port: Int, username: Str
     requestJson[JsObject](mkRequest(HttpMethods.DELETE, uri(db, id), headers = baseHeaders ++ revHeader(rev)))
 
   // http://docs.couchdb.org/en/1.6.1/api/ddoc/views.html
-  def executeView(designDoc: String, viewName: String)(startKey: List[Any] = Nil,
-                                                       endKey: List[Any] = Nil,
-                                                       skip: Option[Int] = None,
-                                                       limit: Option[Int] = None,
-                                                       stale: StaleParameter = StaleParameter.No,
-                                                       includeDocs: Boolean = false,
-                                                       descending: Boolean = false,
-                                                       reduce: Boolean = false,
-                                                       group: Boolean = false): Future[Either[StatusCode, JsObject]] = {
+  def executeView(designDoc: String, viewName: String)(
+    startKey: List[Any] = Nil,
+    endKey: List[Any] = Nil,
+    skip: Option[Int] = None,
+    limit: Option[Int] = None,
+    stale: StaleParameter = StaleParameter.No,
+    includeDocs: Boolean = false,
+    descending: Boolean = false,
+    reduce: Boolean = false,
+    group: Boolean = false): Future[Either[StatusCode, JsObject]] = {
 
     require(reduce || !group, "Parameter 'group=true' cannot be used together with the parameter 'reduce=false'.")
 
@@ -134,8 +136,8 @@ class CouchDbRestClient(protocol: String, host: String, port: Int, username: Str
 
     // Throw out all undefined arguments.
     val argMap: Map[String, String] = args
-      .collect({
-        case (l, Some(r)) => (l, r)
+      .collect({ case (l, Some(r)) =>
+        (l, r)
       })
       .toMap
 
@@ -146,11 +148,12 @@ class CouchDbRestClient(protocol: String, host: String, port: Int, username: Str
 
   // Streams an attachment to the database
   // http://docs.couchdb.org/en/1.6.1/api/document/attachments.html#put--db-docid-attname
-  def putAttachment(id: String,
-                    rev: String,
-                    attName: String,
-                    contentType: ContentType,
-                    source: Source[ByteString, _]): Future[Either[StatusCode, JsObject]] = {
+  def putAttachment(
+    id: String,
+    rev: String,
+    attName: String,
+    contentType: ContentType,
+    source: Source[ByteString, _]): Future[Either[StatusCode, JsObject]] = {
     val entity = HttpEntity.Chunked(contentType, source.map(bs => HttpEntity.ChunkStreamPart(bs)))
     val request =
       mkRequest(HttpMethods.PUT, uri(db, id, attName), Future.successful(entity), baseHeaders ++ revHeader(rev))
@@ -159,10 +162,11 @@ class CouchDbRestClient(protocol: String, host: String, port: Int, username: Str
 
   // Retrieves and streams an attachment into a Sink, producing a result of type T.
   // http://docs.couchdb.org/en/1.6.1/api/document/attachments.html#get--db-docid-attname
-  def getAttachment[T](id: String,
-                       rev: String,
-                       attName: String,
-                       sink: Sink[ByteString, Future[T]]): Future[Either[StatusCode, (ContentType, T)]] = {
+  def getAttachment[T](
+    id: String,
+    rev: String,
+    attName: String,
+    sink: Sink[ByteString, Future[T]]): Future[Either[StatusCode, (ContentType, T)]] = {
     val httpRequest = mkRequest(HttpMethods.GET, uri(db, id, attName), headers = baseHeaders ++ revHeader(rev))
 
     request(httpRequest).flatMap { response =>

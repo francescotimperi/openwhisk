@@ -157,11 +157,10 @@ protected[core] class Parameters protected[entity] (protected[entity] val params
    * @return parameters will all values decoded (where scheme is known)
    */
   def unlock(decoder: ParameterEncryption): Parameters = {
-    new Parameters(params.map {
-      case p @ (paramName, paramValue) =>
-        paramValue.encryption
-          .map(paramName -> decoder.encryptor(_).decrypt(paramValue))
-          .getOrElse(p)
+    new Parameters(params.map { case p @ (paramName, paramValue) =>
+      paramValue.encryption
+        .map(paramName -> decoder.encryptor(_).decrypt(paramValue))
+        .getOrElse(p)
     })
   }
 
@@ -198,9 +197,10 @@ protected[entity] class ParameterName protected[entity] (val name: String) exten
  * @param init if true, this parameter value is only offered to the action during initialization
  * @param encryption the name of the encryption algorithm used to store the parameter or none (plain text)
  */
-protected[entity] case class ParameterValue protected[entity] (private val v: JsValue,
-                                                               val init: Boolean,
-                                                               val encryption: Option[String] = None) {
+protected[entity] case class ParameterValue protected[entity] (
+  private val v: JsValue,
+  val init: Boolean,
+  val encryption: Option[String] = None) {
 
   /** @return JsValue if defined else JsNull. */
   protected[entity] def value = Option(v) getOrElse JsNull
@@ -217,13 +217,14 @@ protected[entity] case class ParameterValue protected[entity] (private val v: Js
 protected[core] object Parameters extends ArgNormalizer[Parameters] {
 
   protected[core] val MAX_SIZE = loadConfigOrThrow[ByteSize](ConfigKeys.parameterSizeLimit) // system limit
-  protected[core] val MAX_SIZE_DEFAULT = try {
-    loadConfigOrThrow[ByteSize](ConfigKeys.namespaceParameterSizeLimit)
-  } catch {
-    case _: Throwable =>
-      // Supports backwards compatibility for openwhisk that do not use the namespace default limit
-      MAX_SIZE
-  }
+  protected[core] val MAX_SIZE_DEFAULT =
+    try {
+      loadConfigOrThrow[ByteSize](ConfigKeys.namespaceParameterSizeLimit)
+    } catch {
+      case _: Throwable =>
+        // Supports backwards compatibility for openwhisk that do not use the namespace default limit
+        MAX_SIZE
+    }
 
   require(MAX_SIZE >= MAX_SIZE_DEFAULT, "The system limit must be greater than the namespace limit.")
 

@@ -104,9 +104,10 @@ class LimitsCommand extends Subcommand("limits") with WhiskCommand {
   }
   addSubcommand(delete)
 
-  def exec(cmd: ScallopConfBase)(implicit system: ActorSystem,
-                                 logging: Logging,
-                                 transid: TransactionId): Future[Either[CommandError, String]] = {
+  def exec(cmd: ScallopConfBase)(implicit
+    system: ActorSystem,
+    logging: Logging,
+    transid: TransactionId): Future[Either[CommandError, String]] = {
     implicit val executionContext = system.dispatcher
     val authStore = LimitsCommand.createDataStore()
     val result = cmd match {
@@ -120,22 +121,23 @@ class LimitsCommand extends Subcommand("limits") with WhiskCommand {
     result
   }
 
-  def setLimits(authStore: AuthStore)(implicit transid: TransactionId,
-                                      ec: ExecutionContext): Future[Either[CommandError, String]] = {
+  def setLimits(authStore: AuthStore)(implicit
+    transid: TransactionId,
+    ec: ExecutionContext): Future[Either[CommandError, String]] = {
     authStore
       .get[LimitEntity](set.limits.docinfo)
       .flatMap { limits =>
         val newLimits = set.limits.revision[LimitEntity](limits.rev)
         authStore.put(newLimits).map(_ => Right(CommandMessages.limitsSuccessfullyUpdated(limits.name.asString)))
       }
-      .recoverWith {
-        case _: NoDocumentException =>
-          authStore.put(set.limits).map(_ => Right(CommandMessages.limitsSuccessfullySet(set.limits.name.asString)))
+      .recoverWith { case _: NoDocumentException =>
+        authStore.put(set.limits).map(_ => Right(CommandMessages.limitsSuccessfullySet(set.limits.name.asString)))
       }
   }
 
-  def getLimits(authStore: AuthStore)(implicit transid: TransactionId,
-                                      ec: ExecutionContext): Future[Either[CommandError, String]] = {
+  def getLimits(authStore: AuthStore)(implicit
+    transid: TransactionId,
+    ec: ExecutionContext): Future[Either[CommandError, String]] = {
     val info = DocInfo(LimitsCommand.limitIdOf(EntityName(get.namespace())))
     authStore
       .get[LimitEntity](info)
@@ -149,23 +151,22 @@ class LimitsCommand extends Subcommand("limits") with WhiskCommand {
           l.storeActivations.map(sa => s"storeActivations = $sa")).flatten.mkString(Properties.lineSeparator)
         Right(msg)
       }
-      .recover {
-        case _: NoDocumentException =>
-          Right(CommandMessages.defaultLimits)
+      .recover { case _: NoDocumentException =>
+        Right(CommandMessages.defaultLimits)
       }
   }
 
-  def delLimits(authStore: AuthStore)(implicit transid: TransactionId,
-                                      ec: ExecutionContext): Future[Either[CommandError, String]] = {
+  def delLimits(authStore: AuthStore)(implicit
+    transid: TransactionId,
+    ec: ExecutionContext): Future[Either[CommandError, String]] = {
     val info = DocInfo(LimitsCommand.limitIdOf(EntityName(delete.namespace())))
     authStore
       .get[LimitEntity](info)
       .flatMap { l =>
         authStore.del(l.docinfo).map(_ => Right(CommandMessages.limitsDeleted))
       }
-      .recover {
-        case _: NoDocumentException =>
-          Left(IllegalState(CommandMessages.limitsNotFound(delete.namespace())))
+      .recover { case _: NoDocumentException =>
+        Left(IllegalState(CommandMessages.limitsNotFound(delete.namespace())))
       }
   }
 }

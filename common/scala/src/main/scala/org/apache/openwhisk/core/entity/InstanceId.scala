@@ -34,13 +34,14 @@ import scala.util.Try
  * @param tags actions which included specified annotation tags can be run on this invoker
  * @param dedicatedNamespaces only dedicatedNamespaces's actions can be run on this invoker
  */
-case class InvokerInstanceId(val instance: Int,
-                             uniqueName: Option[String] = None,
-                             displayedName: Option[String] = None,
-                             val userMemory: ByteSize,
-                             val busyMemory: Option[ByteSize] = None,
-                             val tags: Seq[String] = Seq.empty[String],
-                             val dedicatedNamespaces: Seq[String] = Seq.empty)
+case class InvokerInstanceId(
+  val instance: Int,
+  uniqueName: Option[String] = None,
+  displayedName: Option[String] = None,
+  val userMemory: ByteSize,
+  val busyMemory: Option[ByteSize] = None,
+  val tags: Seq[String] = Seq.empty[String],
+  val dedicatedNamespaces: Seq[String] = Seq.empty)
     extends InstanceId {
   def toInt: Int = instance
 

@@ -39,17 +39,17 @@ import org.apache.openwhisk.core.ConfigKeys
 
 case class DockerContainerFactoryConfig(useRunc: Boolean)
 
-class DockerContainerFactory(instance: InvokerInstanceId,
-                             parameters: Map[String, Set[String]],
-                             containerArgsConfig: ContainerArgsConfig =
-                               loadConfigOrThrow[ContainerArgsConfig](ConfigKeys.containerArgs),
-                             protected val runtimesRegistryConfig: RuntimesRegistryConfig =
-                               loadConfigOrThrow[RuntimesRegistryConfig](ConfigKeys.runtimesRegistry),
-                             protected val userImagesRegistryConfig: RuntimesRegistryConfig =
-                               loadConfigOrThrow[RuntimesRegistryConfig](ConfigKeys.userImagesRegistry),
-                             dockerContainerFactoryConfig: DockerContainerFactoryConfig =
-                               loadConfigOrThrow[DockerContainerFactoryConfig](ConfigKeys.dockerContainerFactory))(
-  implicit actorSystem: ActorSystem,
+class DockerContainerFactory(
+  instance: InvokerInstanceId,
+  parameters: Map[String, Set[String]],
+  containerArgsConfig: ContainerArgsConfig = loadConfigOrThrow[ContainerArgsConfig](ConfigKeys.containerArgs),
+  protected val runtimesRegistryConfig: RuntimesRegistryConfig =
+    loadConfigOrThrow[RuntimesRegistryConfig](ConfigKeys.runtimesRegistry),
+  protected val userImagesRegistryConfig: RuntimesRegistryConfig =
+    loadConfigOrThrow[RuntimesRegistryConfig](ConfigKeys.userImagesRegistry),
+  dockerContainerFactoryConfig: DockerContainerFactoryConfig =
+    loadConfigOrThrow[DockerContainerFactoryConfig](ConfigKeys.dockerContainerFactory))(implicit
+  actorSystem: ActorSystem,
   ec: ExecutionContext,
   logging: Logging,
   docker: DockerApiWithFileAccess,
@@ -140,11 +140,12 @@ class DockerContainerFactory(instance: InvokerInstanceId,
 }
 
 object DockerContainerFactoryProvider extends ContainerFactoryProvider {
-  override def instance(actorSystem: ActorSystem,
-                        logging: Logging,
-                        config: WhiskConfig,
-                        instanceId: InvokerInstanceId,
-                        parameters: Map[String, Set[String]]): ContainerFactory = {
+  override def instance(
+    actorSystem: ActorSystem,
+    logging: Logging,
+    config: WhiskConfig,
+    instanceId: InvokerInstanceId,
+    parameters: Map[String, Set[String]]): ContainerFactory = {
 
     new DockerContainerFactory(instanceId, parameters)(
       actorSystem,

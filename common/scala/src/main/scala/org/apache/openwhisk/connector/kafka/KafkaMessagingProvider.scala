@@ -44,12 +44,13 @@ object KafkaMessagingProvider extends MessagingProvider {
   private val topicPartitionsConfigKey = "partitions"
 
   def getConsumer(config: WhiskConfig, groupId: String, topic: String, maxPeek: Int, maxPollInterval: FiniteDuration)(
-    implicit logging: Logging,
+    implicit
+    logging: Logging,
     actorSystem: ActorSystem): MessageConsumer =
     new KafkaConsumerConnector(config.kafkaHosts, groupId, topic, maxPeek)
 
-  def getProducer(config: WhiskConfig, maxRequestSize: Option[ByteSize] = None)(
-    implicit logging: Logging,
+  def getProducer(config: WhiskConfig, maxRequestSize: Option[ByteSize] = None)(implicit
+    logging: Logging,
     actorSystem: ActorSystem): MessageProducer =
     new KafkaProducerConnector(config.kafkaHosts, maxRequestSize = maxRequestSize)
 
@@ -89,17 +90,16 @@ object KafkaMessagingProvider extends MessagingProvider {
                       logging.error(this, s"ensureTopic for $topic failed due to $t")
                       Failure(t)
                   }
-            })
+              })
         }
 
         val result = createTopic()
         client.close()
         result
       })
-      .recoverWith {
-        case e =>
-          logging.error(this, s"ensureTopic for $topic failed due to $e")
-          Failure(e)
+      .recoverWith { case e =>
+        logging.error(this, s"ensureTopic for $topic failed due to $e")
+        Failure(e)
       }
   }
 }
@@ -122,8 +122,8 @@ object KafkaConfiguration {
   def configToKafkaKey(configKey: String): String = configKey.replace("-", ".")
 
   /** Converts a Map read from TypesafeConfig to a Map to be read by Kafka clients. */
-  def configMapToKafkaConfig(configMap: Map[String, String]): Map[String, String] = configMap.map {
-    case (key, value) => configToKafkaKey(key) -> value
+  def configMapToKafkaConfig(configMap: Map[String, String]): Map[String, String] = configMap.map { case (key, value) =>
+    configToKafkaKey(key) -> value
   }
 
   /**

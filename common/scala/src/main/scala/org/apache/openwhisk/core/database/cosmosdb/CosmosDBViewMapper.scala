@@ -47,13 +47,14 @@ private[cosmosdb] trait CosmosDBViewMapper {
   protected val notDeleted = s"(NOT(IS_DEFINED(r.$deleted)) OR r.$deleted = false)"
   protected def handler: DocumentHandler
 
-  def prepareQuery(ddoc: String,
-                   viewName: String,
-                   startKey: List[Any],
-                   endKey: List[Any],
-                   limit: Int,
-                   includeDocs: Boolean,
-                   descending: Boolean): SqlQuerySpec
+  def prepareQuery(
+    ddoc: String,
+    viewName: String,
+    startKey: List[Any],
+    endKey: List[Any],
+    limit: Int,
+    includeDocs: Boolean,
+    descending: Boolean): SqlQuerySpec
 
   def prepareCountQuery(ddoc: String, viewName: String, startKey: List[Any], endKey: List[Any]): SqlQuerySpec
 
@@ -83,22 +84,24 @@ private[cosmosdb] trait CosmosDBViewMapper {
    *
    * @return an optional string representation of stats for logging purpose
    */
-  def recordQueryStats(ddoc: String,
-                       viewName: String,
-                       descending: Boolean,
-                       queryParams: SqlParameterCollection,
-                       result: List[JsObject]): Option[String] = None
+  def recordQueryStats(
+    ddoc: String,
+    viewName: String,
+    descending: Boolean,
+    queryParams: SqlParameterCollection,
+    result: List[JsObject]): Option[String] = None
 }
 
 private[cosmosdb] abstract class SimpleMapper extends CosmosDBViewMapper {
 
-  def prepareQuery(ddoc: String,
-                   viewName: String,
-                   startKey: List[Any],
-                   endKey: List[Any],
-                   limit: Int,
-                   includeDocs: Boolean,
-                   descending: Boolean): SqlQuerySpec = {
+  def prepareQuery(
+    ddoc: String,
+    viewName: String,
+    startKey: List[Any],
+    endKey: List[Any],
+    limit: Int,
+    includeDocs: Boolean,
+    descending: Boolean): SqlQuerySpec = {
     checkKeys(startKey, endKey)
 
     val selectClause = select(ddoc, viewName, limit, includeDocs)
@@ -132,10 +135,11 @@ private[cosmosdb] abstract class SimpleMapper extends CosmosDBViewMapper {
   private def prepareFieldClause(ddoc: String, viewName: String) =
     CosmosDBUtil.prepareFieldClause(handler.fieldsRequiredForView(ddoc, viewName))
 
-  protected def where(ddoc: String,
-                      viewName: String,
-                      startKey: List[Any],
-                      endKey: List[Any]): (String, List[(String, Any)])
+  protected def where(
+    ddoc: String,
+    viewName: String,
+    startKey: List[Any],
+    endKey: List[Any]): (String, List[(String, Any)])
 
   protected def orderByField(ddoc: String, viewName: String): String
 }
@@ -151,17 +155,17 @@ private[cosmosdb] object WhisksViewMapper extends SimpleMapper {
   val handler = WhisksHandler
 
   override def indexingPolicy: IndexingPolicy =
-    IndexingPolicy(
-      includedPaths = Set(
-        IncludedPath(s"/$TYPE/?", Index(Range, String, -1)),
-        IncludedPath(s"/$NS/?", Index(Range, String, -1)),
-        IncludedPath(s"/$computed/$ROOT_NS/?", Index(Range, String, -1)),
-        IncludedPath(s"/$UPDATED/?", Index(Range, Number, -1))))
+    IndexingPolicy(includedPaths = Set(
+      IncludedPath(s"/$TYPE/?", Index(Range, String, -1)),
+      IncludedPath(s"/$NS/?", Index(Range, String, -1)),
+      IncludedPath(s"/$computed/$ROOT_NS/?", Index(Range, String, -1)),
+      IncludedPath(s"/$UPDATED/?", Index(Range, Number, -1))))
 
-  override protected def where(ddoc: String,
-                               view: String,
-                               startKey: List[Any],
-                               endKey: List[Any]): (String, List[(String, Any)]) = {
+  override protected def where(
+    ddoc: String,
+    view: String,
+    startKey: List[Any],
+    endKey: List[Any]): (String, List[(String, Any)]) = {
     val entityType = WhisksHandler.getEntityTypeForDesignDoc(ddoc, view)
     val namespace = startKey.head
 
@@ -209,17 +213,17 @@ private[cosmosdb] object ActivationViewMapper extends SimpleMapper with WhiskIns
   val handler = ActivationHandler
 
   override def indexingPolicy: IndexingPolicy =
-    IndexingPolicy(
-      includedPaths = Set(
-        IncludedPath(s"/$NS/?", Index(Range, String, -1)),
-        IncludedPath(s"/$computed/$NS_PATH/?", Index(Range, String, -1)),
-        IncludedPath(s"/$START/?", Index(Range, Number, -1)),
-        IncludedPath(s"/$deleted/?", Index(Range, Number, -1))))
+    IndexingPolicy(includedPaths = Set(
+      IncludedPath(s"/$NS/?", Index(Range, String, -1)),
+      IncludedPath(s"/$computed/$NS_PATH/?", Index(Range, String, -1)),
+      IncludedPath(s"/$START/?", Index(Range, Number, -1)),
+      IncludedPath(s"/$deleted/?", Index(Range, Number, -1))))
 
-  override protected def where(ddoc: String,
-                               view: String,
-                               startKey: List[Any],
-                               endKey: List[Any]): (String, List[(String, Any)]) = {
+  override protected def where(
+    ddoc: String,
+    view: String,
+    startKey: List[Any],
+    endKey: List[Any]): (String, List[(String, Any)]) = {
     val nsValue = startKey.head.asInstanceOf[String]
     view match {
       //whisks-filters ddoc uses namespace + invoking action path as first key
@@ -231,10 +235,11 @@ private[cosmosdb] object ActivationViewMapper extends SimpleMapper with WhiskIns
     }
   }
 
-  private def filterActivation(nsKey: String,
-                               nsValue: String,
-                               startKey: List[Any],
-                               endKey: List[Any]): (String, List[(String, Any)]) = {
+  private def filterActivation(
+    nsKey: String,
+    nsValue: String,
+    startKey: List[Any],
+    endKey: List[Any]): (String, List[(String, Any)]) = {
     val params = ("@nsvalue", nsValue) :: Nil
     val filter = (startKey, endKey) match {
       case (_ :: Nil, _ :: `TOP` :: Nil) =>
@@ -256,11 +261,12 @@ private[cosmosdb] object ActivationViewMapper extends SimpleMapper with WhiskIns
   private val resultDeltaToken = createStatsToken("activations", "resultDelta", "activations")
   private val sinceDeltaToken = createStatsToken("activations", "sinceDelta", "activations")
 
-  override def recordQueryStats(ddoc: String,
-                                viewName: String,
-                                descending: Boolean,
-                                queryParams: SqlParameterCollection,
-                                result: List[JsObject]): Option[String] = {
+  override def recordQueryStats(
+    ddoc: String,
+    viewName: String,
+    descending: Boolean,
+    queryParams: SqlParameterCollection,
+    result: List[JsObject]): Option[String] = {
     val stat = if (viewName == "activations" && descending) {
       // Collect stats for the delta between
       // 1. now and start time of last activation
@@ -305,32 +311,33 @@ private[cosmosdb] object SubjectViewMapper extends CosmosDBViewMapper {
     //Booleans are indexed by default
     //Specifying less precision for key as match on uuid should be sufficient
     //and keys are bigger
-    IndexingPolicy(
-      includedPaths = Set(
-        IncludedPath(s"/$UUID/?", Index(Range, String, -1)),
-        IncludedPath(s"/$NSS/[]/$NAME/?", Index(Range, String, -1)),
-        IncludedPath(s"/$SUBJECT/?", Index(Range, String, -1)),
-        IncludedPath(s"/$NSS/[]/$UUID/?", Index(Range, String, -1)),
-        IncludedPath(s"/$CONCURRENT_INVOCATIONS/?", Index(Range, Number, -1)),
-        IncludedPath(s"/$INVOCATIONS_PER_MIN/?", Index(Range, Number, -1))))
+    IndexingPolicy(includedPaths = Set(
+      IncludedPath(s"/$UUID/?", Index(Range, String, -1)),
+      IncludedPath(s"/$NSS/[]/$NAME/?", Index(Range, String, -1)),
+      IncludedPath(s"/$SUBJECT/?", Index(Range, String, -1)),
+      IncludedPath(s"/$NSS/[]/$UUID/?", Index(Range, String, -1)),
+      IncludedPath(s"/$CONCURRENT_INVOCATIONS/?", Index(Range, Number, -1)),
+      IncludedPath(s"/$INVOCATIONS_PER_MIN/?", Index(Range, Number, -1))))
 
-  override def prepareQuery(ddoc: String,
-                            view: String,
-                            startKey: List[Any],
-                            endKey: List[Any],
-                            limit: Int,
-                            includeDocs: Boolean,
-                            descending: Boolean): SqlQuerySpec =
+  override def prepareQuery(
+    ddoc: String,
+    view: String,
+    startKey: List[Any],
+    endKey: List[Any],
+    limit: Int,
+    includeDocs: Boolean,
+    descending: Boolean): SqlQuerySpec =
     prepareQuery(ddoc, view, startKey, endKey, count = false)
 
   override def prepareCountQuery(ddoc: String, view: String, startKey: List[Any], endKey: List[Any]): SqlQuerySpec =
     prepareQuery(ddoc, view, startKey, endKey, count = true)
 
-  private def prepareQuery(ddoc: String,
-                           view: String,
-                           startKey: List[Any],
-                           endKey: List[Any],
-                           count: Boolean): SqlQuerySpec = {
+  private def prepareQuery(
+    ddoc: String,
+    view: String,
+    startKey: List[Any],
+    endKey: List[Any],
+    count: Boolean): SqlQuerySpec = {
     require(startKey == endKey, s"startKey: $startKey and endKey: $endKey must be same for $ddoc/$view")
     (ddoc, view) match {
       case (s, "identities") if s.startsWith("subjects") =>
@@ -342,11 +349,12 @@ private[cosmosdb] object SubjectViewMapper extends CosmosDBViewMapper {
     }
   }
 
-  private def queryForMatchingSubjectOrNamespace(ddoc: String,
-                                                 view: String,
-                                                 startKey: List[Any],
-                                                 endKey: List[Any],
-                                                 count: Boolean): SqlQuerySpec = {
+  private def queryForMatchingSubjectOrNamespace(
+    ddoc: String,
+    view: String,
+    startKey: List[Any],
+    endKey: List[Any],
+    count: Boolean): SqlQuerySpec = {
     val (where, params) = startKey match {
       case (ns: String) :: Nil =>
         (

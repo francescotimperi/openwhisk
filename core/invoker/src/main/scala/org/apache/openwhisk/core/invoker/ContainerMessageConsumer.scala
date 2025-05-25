@@ -41,8 +41,8 @@ class ContainerMessageConsumer(
   msgProvider: MessagingProvider,
   longPollDuration: FiniteDuration,
   maxPeek: Int,
-  sendAckToScheduler: (SchedulerInstanceId, ContainerCreationAckMessage) => Future[ResultMetadata])(
-  implicit actorSystem: ActorSystem,
+  sendAckToScheduler: (SchedulerInstanceId, ContainerCreationAckMessage) => Future[ResultMetadata])(implicit
+  actorSystem: ActorSystem,
   executionContext: ExecutionContext,
   logging: Logging) {
 
@@ -76,43 +76,42 @@ class ContainerMessageConsumer(
           containerPool ! CreationContainer(creation, action)
           feed ! MessageFeed.Processed
         }
-        createContainer.recover {
-          case t =>
-            val creationError = t match {
-              case _: ActionLimitsException => InvalidActionLimitError
-              case _                        => DBFetchError
-            }
-            val message = t match {
-              case _: ActionLimitsException => t.getMessage // return generated failed message
-              case _: NoDocumentException =>
-                Messages.actionRemovedWhileInvoking
-              case _: DocumentRevisionMismatchException =>
-                Messages.actionMismatchWhileInvoking
-              case e: Throwable =>
-                logging.error(
-                  this,
-                  s"An unknown DB error occurred while fetching action ${creation.invocationNamespace}/${creation.action} for creation ${creation.creationId}, error: $e.")
-                Messages.actionFetchErrorWhileInvoking
-            }
-            logging.error(
-              this,
-              s"failed to create a container ${creation.invocationNamespace}/${creation.action}, error: $message (creationId: ${creation.creationId})")
+        createContainer.recover { case t =>
+          val creationError = t match {
+            case _: ActionLimitsException => InvalidActionLimitError
+            case _                        => DBFetchError
+          }
+          val message = t match {
+            case _: ActionLimitsException => t.getMessage // return generated failed message
+            case _: NoDocumentException =>
+              Messages.actionRemovedWhileInvoking
+            case _: DocumentRevisionMismatchException =>
+              Messages.actionMismatchWhileInvoking
+            case e: Throwable =>
+              logging.error(
+                this,
+                s"An unknown DB error occurred while fetching action ${creation.invocationNamespace}/${creation.action} for creation ${creation.creationId}, error: $e.")
+              Messages.actionFetchErrorWhileInvoking
+          }
+          logging.error(
+            this,
+            s"failed to create a container ${creation.invocationNamespace}/${creation.action}, error: $message (creationId: ${creation.creationId})")
 
-            val ack = ContainerCreationAckMessage(
-              creation.transid,
-              creation.creationId,
-              creation.invocationNamespace,
-              creation.action,
-              creation.revision,
-              creation.whiskActionMetaData,
-              invokerInstanceId,
-              creation.schedulerHost,
-              creation.rpcPort,
-              creation.retryCount,
-              Some(creationError),
-              Some(message))
-            sendAckToScheduler(creation.rootSchedulerIndex, ack)
-            feed ! MessageFeed.Processed
+          val ack = ContainerCreationAckMessage(
+            creation.transid,
+            creation.creationId,
+            creation.invocationNamespace,
+            creation.action,
+            creation.revision,
+            creation.whiskActionMetaData,
+            invokerInstanceId,
+            creation.schedulerHost,
+            creation.rpcPort,
+            creation.retryCount,
+            Some(creationError),
+            Some(message))
+          sendAckToScheduler(creation.rootSchedulerIndex, ack)
+          feed ! MessageFeed.Processed
         }
       case Success(deletion: ContainerDeletionMessage) =>
         implicit val transid: TransactionId = deletion.transid

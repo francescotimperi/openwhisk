@@ -29,10 +29,13 @@ class ServerStartupCheck(uri: Uri, serverName: String) {
 
   def waitForServerToStart(): Unit = {
     val w = Stopwatch.createStarted()
-    retry({
-      println(s"Waiting for $serverName server at $uri to start since $w")
-      require(getResponseCode() == 200)
-    }, 30, Some(1.second))
+    retry(
+      {
+        println(s"Waiting for $serverName server at $uri to start since $w")
+        require(getResponseCode() == 200)
+      },
+      30,
+      Some(1.second))
   }
 
   private def getResponseCode(): Int = {

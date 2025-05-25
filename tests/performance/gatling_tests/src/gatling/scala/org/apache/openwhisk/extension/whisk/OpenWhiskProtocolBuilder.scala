@@ -54,8 +54,8 @@ case object OpenWhiskProtocolBuilderBase {
 object OpenWhiskProtocolBuilder {
 
   /** convert the OpenWhiskProtocolBuilder to an HttpProtocol. */
-  implicit def toHttpProtocol(builder: OpenWhiskProtocolBuilder)(
-    implicit configuration: GatlingConfiguration): HttpProtocol = builder.build
+  implicit def toHttpProtocol(builder: OpenWhiskProtocolBuilder)(implicit
+    configuration: GatlingConfiguration): HttpProtocol = builder.build
 }
 
 case class OpenWhiskProtocolBuilder(private val protocol: OpenWhiskProtocol) {

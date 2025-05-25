@@ -38,8 +38,8 @@ trait MessagingProvider extends Spi {
     topic: String,
     maxPeek: Int = Int.MaxValue,
     maxPollInterval: FiniteDuration = 5.minutes)(implicit logging: Logging, actorSystem: ActorSystem): MessageConsumer
-  def getProducer(config: WhiskConfig, maxRequestSize: Option[ByteSize] = None)(
-    implicit logging: Logging,
+  def getProducer(config: WhiskConfig, maxRequestSize: Option[ByteSize] = None)(implicit
+    logging: Logging,
     actorSystem: ActorSystem): MessageProducer
   def ensureTopic(config: WhiskConfig, topic: String, topicConfig: String, maxMessageBytes: Option[ByteSize] = None)(
     implicit logging: Logging): Try[Unit]

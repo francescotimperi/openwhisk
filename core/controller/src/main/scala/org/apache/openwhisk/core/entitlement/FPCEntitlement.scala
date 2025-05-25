@@ -43,8 +43,8 @@ protected[core] class FPCEntitlementProvider(
   private val fpcEntitlementConfig: FPCEntitlementConfig =
     loadConfigOrThrow[FPCEntitlementConfig](ConfigKeys.fpcLoadBalancer)
 
-  override protected[core] def checkThrottles(user: Identity, right: Privilege, resources: Set[Resource])(
-    implicit transid: TransactionId): Future[Unit] = {
+  override protected[core] def checkThrottles(user: Identity, right: Privilege, resources: Set[Resource])(implicit
+    transid: TransactionId): Future[Unit] = {
     if (fpcEntitlementConfig.usePerMinThrottles) {
       checkUserThrottle(user, right, resources).flatMap(_ => checkFPCConcurrentThrottle(user, right, resources))
     } else {
@@ -52,8 +52,8 @@ protected[core] class FPCEntitlementProvider(
     }
   }
 
-  private def checkFPCConcurrentThrottle(user: Identity, right: Privilege, resources: Set[Resource])(
-    implicit transid: TransactionId): Future[Unit] = {
+  private def checkFPCConcurrentThrottle(user: Identity, right: Privilege, resources: Set[Resource])(implicit
+    transid: TransactionId): Future[Unit] = {
     if (right == ACTIVATE) {
       val checks = resources.filter(_.collection.path == Collection.ACTIONS).map { res =>
         loadBalancer.checkThrottle(user.namespace.name.toPath, res.fqname)
@@ -77,8 +77,8 @@ protected[core] class FPCEntitlementProvider(
 
 private object FPCEntitlementProvider extends EntitlementSpiProvider {
 
-  override def instance(config: WhiskConfig, loadBalancer: LoadBalancer, instance: ControllerInstanceId)(
-    implicit actorSystem: ActorSystem,
+  override def instance(config: WhiskConfig, loadBalancer: LoadBalancer, instance: ControllerInstanceId)(implicit
+    actorSystem: ActorSystem,
     logging: Logging) =
     new FPCEntitlementProvider(config: WhiskConfig, loadBalancer: LoadBalancer, instance)
 }

@@ -58,9 +58,10 @@ import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
-class Scheduler(schedulerId: SchedulerInstanceId, schedulerEndpoints: SchedulerEndpoints)(implicit config: WhiskConfig,
-                                                                                          actorSystem: ActorSystem,
-                                                                                          logging: Logging)
+class Scheduler(schedulerId: SchedulerInstanceId, schedulerEndpoints: SchedulerEndpoints)(implicit
+  config: WhiskConfig,
+  actorSystem: ActorSystem,
+  logging: Logging)
     extends SchedulerCore {
   implicit val ec = actorSystem.dispatcher
   private val authStore = WhiskAuthStore.datastore()
@@ -167,11 +168,12 @@ class Scheduler(schedulerId: SchedulerInstanceId, schedulerEndpoints: SchedulerE
   val dataManagementService: ActorRef =
     actorSystem.actorOf(DataManagementService.props(watcherService, etcdWorkerFactory))
 
-  val feedFactory = (f: ActorRefFactory,
-                     description: String,
-                     topic: String,
-                     maxActiveAcksPerPoll: Int,
-                     processAck: Array[Byte] => Future[Unit]) => {
+  val feedFactory = (
+    f: ActorRefFactory,
+    description: String,
+    topic: String,
+    maxActiveAcksPerPoll: Int,
+    processAck: Array[Byte] => Future[Unit]) => {
     val consumer = msgProvider.getConsumer(config, topic, topic, maxActiveAcksPerPoll)
     f.actorOf(Props(new MessageFeed(description, logging, consumer, maxActiveAcksPerPoll, 1.second, processAck)))
   }
@@ -336,11 +338,10 @@ object Scheduler {
         topicPrefix + "creationAck" + instanceId.asString,
         "creationAck",
         Some(ActivationEntityLimit.MAX_ACTIVATION_LIMIT)))
-      .foreach {
-        case (topic, topicConfigurationKey, maxMessageBytes) =>
-          if (msgProvider.ensureTopic(config, topic, topicConfigurationKey, maxMessageBytes).isFailure) {
-            abort(s"failure during msgProvider.ensureTopic for topic $topic")
-          }
+      .foreach { case (topic, topicConfigurationKey, maxMessageBytes) =>
+        if (msgProvider.ensureTopic(config, topic, topicConfigurationKey, maxMessageBytes).isFailure) {
+          abort(s"failure during msgProvider.ensureTopic for topic $topic")
+        }
       }
 
     ExecManifest.initialize(config) match {
@@ -422,11 +423,12 @@ object SchedulerStates extends DefaultJsonProtocol {
   def parse(states: String) = Try(serdes.read(states.parseJson))
 }
 
-case class SchedulingConfig(staleThreshold: FiniteDuration,
-                            checkInterval: FiniteDuration,
-                            dropInterval: FiniteDuration,
-                            allowOverProvisionBeforeThrottle: Boolean,
-                            namespaceOverProvisionBeforeThrottleRatio: Double)
+case class SchedulingConfig(
+  staleThreshold: FiniteDuration,
+  checkInterval: FiniteDuration,
+  dropInterval: FiniteDuration,
+  allowOverProvisionBeforeThrottle: Boolean,
+  namespaceOverProvisionBeforeThrottleRatio: Double)
 
 class CompatibleKryoInitializer extends DefaultKryoInitializer {
   override def preInit(kryo: ScalaKryo): Unit = {

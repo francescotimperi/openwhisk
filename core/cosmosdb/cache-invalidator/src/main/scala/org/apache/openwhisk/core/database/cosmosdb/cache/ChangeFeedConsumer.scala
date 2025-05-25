@@ -42,8 +42,8 @@ trait ChangeFeedObserver {
   def process(context: ChangeFeedObserverContext, docs: Seq[CosmosItemProperties]): Future[Done]
 }
 
-class ChangeFeedConsumer(collName: String, config: CacheInvalidatorConfig, observer: ChangeFeedObserver)(
-  implicit ec: ExecutionContext,
+class ChangeFeedConsumer(collName: String, config: CacheInvalidatorConfig, observer: ChangeFeedObserver)(implicit
+  ec: ExecutionContext,
   log: Logging) {
   import ChangeFeedConsumer._
 
@@ -109,11 +109,10 @@ class ChangeFeedConsumer(collName: String, config: CacheInvalidatorConfig, obser
         }
       }
       .getOrElse(Future.successful(Done))
-      .andThen {
-        case _ =>
-          log.info(this, "Closing cosmos clients.")
-          clients.values.foreach(c => c.close())
-          Future.successful(Done)
+      .andThen { case _ =>
+        log.info(this, "Closing cosmos clients.")
+        clients.values.foreach(c => c.close())
+        Future.successful(Done)
       }
 
   }
@@ -121,8 +120,9 @@ class ChangeFeedConsumer(collName: String, config: CacheInvalidatorConfig, obser
   private object ObserverBridge extends com.azure.data.cosmos.internal.changefeed.ChangeFeedObserver {
     override def open(context: ChangeFeedObserverContext): Unit = {}
     override def close(context: ChangeFeedObserverContext, reason: ChangeFeedObserverCloseReason): Unit = {}
-    override def processChanges(context: ChangeFeedObserverContext,
-                                docs: util.List[CosmosItemProperties]): Mono[Void] = {
+    override def processChanges(
+      context: ChangeFeedObserverContext,
+      docs: util.List[CosmosItemProperties]): Mono[Void] = {
       val f = observer.process(context, docs.asScala.toList).map(_ => null).toJava.toCompletableFuture
       Mono.fromFuture(f)
     }

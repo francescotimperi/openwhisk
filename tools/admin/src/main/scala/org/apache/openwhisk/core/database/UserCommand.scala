@@ -141,9 +141,10 @@ class UserCommand extends Subcommand("user") with WhiskCommand {
   }
   addSubcommand(unblock)
 
-  def exec(cmd: ScallopConfBase)(implicit system: ActorSystem,
-                                 logging: Logging,
-                                 transid: TransactionId): Future[Either[CommandError, String]] = {
+  def exec(cmd: ScallopConfBase)(implicit
+    system: ActorSystem,
+    logging: Logging,
+    transid: TransactionId): Future[Either[CommandError, String]] = {
     implicit val executionContext = system.dispatcher
     val authStore = UserCommand.createDataStore()
     val result = cmd match {
@@ -161,8 +162,9 @@ class UserCommand extends Subcommand("user") with WhiskCommand {
     result
   }
 
-  def createUser(authStore: AuthStore)(implicit transid: TransactionId,
-                                       ec: ExecutionContext): Future[Either[CommandError, String]] = {
+  def createUser(authStore: AuthStore)(implicit
+    transid: TransactionId,
+    ec: ExecutionContext): Future[Either[CommandError, String]] = {
     val authKey = create.auth.map(BasicAuthenticationAuthKey(_)).getOrElse(BasicAuthenticationAuthKey())
     authStore
       .get[ExtendedAuth](DocInfo(create.subject()))
@@ -186,16 +188,16 @@ class UserCommand extends Subcommand("user") with WhiskCommand {
           Future.successful(Left(IllegalState(CommandMessages.namespaceExists)))
         }
       }
-      .recoverWith {
-        case _: NoDocumentException =>
-          val auth =
-            WhiskAuth(Subject(create.subject()), Set(WhiskNamespace(create.desiredNamespace(authKey), authKey)))
-          authStore.put(auth).map(_ => Right(authKey.compact))
+      .recoverWith { case _: NoDocumentException =>
+        val auth =
+          WhiskAuth(Subject(create.subject()), Set(WhiskNamespace(create.desiredNamespace(authKey), authKey)))
+        authStore.put(auth).map(_ => Right(authKey.compact))
       }
   }
 
-  def deleteUser(authStore: AuthStore)(implicit transid: TransactionId,
-                                       ec: ExecutionContext): Future[Either[CommandError, String]] = {
+  def deleteUser(authStore: AuthStore)(implicit
+    transid: TransactionId,
+    ec: ExecutionContext): Future[Either[CommandError, String]] = {
     authStore
       .get[ExtendedAuth](DocInfo(delete.subject()))
       .flatMap { auth =>
@@ -214,14 +216,14 @@ class UserCommand extends Subcommand("user") with WhiskCommand {
             authStore.del(auth.docinfo).map(_ => Right(CommandMessages.subjectDeleted))
           }
       }
-      .recover {
-        case _: NoDocumentException =>
-          Left(IllegalState(CommandMessages.subjectMissing))
+      .recover { case _: NoDocumentException =>
+        Left(IllegalState(CommandMessages.subjectMissing))
       }
   }
 
-  def getKey(authStore: AuthStore)(implicit transid: TransactionId,
-                                   ec: ExecutionContext): Future[Either[CommandError, String]] = {
+  def getKey(authStore: AuthStore)(implicit
+    transid: TransactionId,
+    ec: ExecutionContext): Future[Either[CommandError, String]] = {
     authStore
       .get[ExtendedAuth](DocInfo(get.subject()))
       .map { auth =>
@@ -236,28 +238,28 @@ class UserCommand extends Subcommand("user") with WhiskCommand {
             .map(n => Right(n.authkey.compact))
             .getOrElse(Left(IllegalState(CommandMessages.namespaceMissing(ns, get.subject()))))
         }
-      } recover {
-      case _: NoDocumentException =>
-        Left(IllegalState(CommandMessages.subjectMissing))
+      } recover { case _: NoDocumentException =>
+      Left(IllegalState(CommandMessages.subjectMissing))
     }
   }
 
-  def whoIs(authStore: AuthStore)(implicit transid: TransactionId,
-                                  ec: ExecutionContext): Future[Either[CommandError, String]] = {
+  def whoIs(authStore: AuthStore)(implicit
+    transid: TransactionId,
+    ec: ExecutionContext): Future[Either[CommandError, String]] = {
     Identity
       .get(authStore, BasicAuthenticationAuthKey(whois.authkey()))
       .map { i =>
         val msg = Seq(s"subject: ${i.subject}", s"namespace: ${i.namespace}").mkString(Properties.lineSeparator)
         Right(msg)
       }
-      .recover {
-        case _: NoDocumentException =>
-          Left(IllegalState(CommandMessages.subjectMissing))
+      .recover { case _: NoDocumentException =>
+        Left(IllegalState(CommandMessages.subjectMissing))
       }
   }
 
-  def list(authStore: AuthStore)(implicit transid: TransactionId,
-                                 ec: ExecutionContext): Future[Either[CommandError, String]] = {
+  def list(authStore: AuthStore)(implicit
+    transid: TransactionId,
+    ec: ExecutionContext): Future[Either[CommandError, String]] = {
     Identity
       .list(authStore, List(list.namespace()), limit = list.limit)
       .map { rows =>
@@ -279,8 +281,8 @@ class UserCommand extends Subcommand("user") with WhiskCommand {
       }
   }
 
-  def changeUserState(authStore: AuthStore, subjects: List[String], blocked: Boolean)(
-    implicit transid: TransactionId,
+  def changeUserState(authStore: AuthStore, subjects: List[String], blocked: Boolean)(implicit
+    transid: TransactionId,
     system: ActorSystem,
     ec: ExecutionContext): Future[Either[CommandError, String]] = {
     Source(subjects)
@@ -299,8 +301,8 @@ class UserCommand extends Subcommand("user") with WhiskCommand {
       }
   }
 
-  private def changeUserState(authStore: AuthStore, subject: String, blocked: Boolean)(
-    implicit transid: TransactionId,
+  private def changeUserState(authStore: AuthStore, subject: String, blocked: Boolean)(implicit
+    transid: TransactionId,
     ec: ExecutionContext): Future[Either[CommandError, String]] = {
     authStore
       .get[ExtendedAuth](DocInfo(subject))
@@ -310,9 +312,8 @@ class UserCommand extends Subcommand("user") with WhiskCommand {
         val msg = if (blocked) CommandMessages.blocked(subject) else CommandMessages.unblocked(subject)
         authStore.put(newAuth).map(_ => Right(msg))
       }
-      .recover {
-        case _: NoDocumentException =>
-          Left(IllegalState(CommandMessages.subjectMissing(subject)))
+      .recover { case _: NoDocumentException =>
+        Left(IllegalState(CommandMessages.subjectMissing(subject)))
       }
   }
 }

@@ -54,10 +54,9 @@ class FPCSchedulerServer(scheduler: SchedulerCore, systemUsername: String, syste
             if username == systemUsername && password == systemPassword =>
           (path("state") & get) {
             complete {
-              scheduler.getState.map {
-                case (list, creationCount) =>
-                  val sum = list.map(tuple => tuple._2).sum
-                  (Map("queue" -> sum.toString) ++ Map("creationCount" -> creationCount.toString)).toJson
+              scheduler.getState.map { case (list, creationCount) =>
+                val sum = list.map(tuple => tuple._2).sum
+                (Map("queue" -> sum.toString) ++ Map("creationCount" -> creationCount.toString)).toJson
               }
             }
           } ~ (path("disable") & post) {
@@ -95,8 +94,9 @@ object FPCSchedulerServer {
   private val schedulerPassword = loadConfigOrThrow[String](ConfigKeys.whiskSchedulerPassword)
   private val queuePathPrefix = "queues"
 
-  def instance(scheduler: SchedulerCore)(implicit ec: ExecutionContext,
-                                         actorSystem: ActorSystem,
-                                         logger: Logging): BasicRasService =
+  def instance(scheduler: SchedulerCore)(implicit
+    ec: ExecutionContext,
+    actorSystem: ActorSystem,
+    logger: Logging): BasicRasService =
     new FPCSchedulerServer(scheduler, schedulerUsername, schedulerPassword)
 }

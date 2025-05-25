@@ -32,16 +32,17 @@ import pureconfig.generic.auto._
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 
-case class CosmosDBConfig(endpoint: String,
-                          key: String,
-                          db: String,
-                          throughput: Int,
-                          consistencyLevel: ConsistencyLevel,
-                          connectionPolicy: ConnectionPolicy,
-                          timeToLive: Option[Duration],
-                          clusterId: Option[String],
-                          softDeleteTTL: Option[FiniteDuration],
-                          recordUsageFrequency: Option[FiniteDuration]) {
+case class CosmosDBConfig(
+  endpoint: String,
+  key: String,
+  db: String,
+  throughput: Int,
+  consistencyLevel: ConsistencyLevel,
+  connectionPolicy: ConnectionPolicy,
+  timeToLive: Option[Duration],
+  clusterId: Option[String],
+  softDeleteTTL: Option[FiniteDuration],
+  recordUsageFrequency: Option[FiniteDuration]) {
 
   def createClient(): AsyncDocumentClient = {
     new AsyncDocumentClient.Builder()
@@ -53,11 +54,12 @@ case class CosmosDBConfig(endpoint: String,
   }
 }
 
-case class ConnectionPolicy(maxPoolSize: Int,
-                            preferredLocations: Seq[String],
-                            usingMultipleWriteLocations: Boolean,
-                            retryOptions: RetryOptions,
-                            connectionMode: ConnectionMode) {
+case class ConnectionPolicy(
+  maxPoolSize: Int,
+  preferredLocations: Seq[String],
+  usingMultipleWriteLocations: Boolean,
+  retryOptions: RetryOptions,
+  connectionMode: ConnectionMode) {
   def asJava: JConnectionPolicy = {
     val p = new JConnectionPolicy
     p.setMaxPoolSize(maxPoolSize)

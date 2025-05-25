@@ -126,13 +126,15 @@ case class ExitStatus(statusValue: Int) {
 abstract class ProcessRunningException(info: String, val exitStatus: ExitStatus, val stdout: String, val stderr: String)
     extends Exception(s"info: $info, code: $exitStatus, stdout: $stdout, stderr: $stderr")
 
-case class ProcessUnsuccessfulException(override val exitStatus: ExitStatus,
-                                        override val stdout: String,
-                                        override val stderr: String)
+case class ProcessUnsuccessfulException(
+  override val exitStatus: ExitStatus,
+  override val stdout: String,
+  override val stderr: String)
     extends ProcessRunningException("command was unsuccessful", exitStatus, stdout, stderr)
 
-case class ProcessTimeoutException(timeout: Duration,
-                                   override val exitStatus: ExitStatus,
-                                   override val stdout: String,
-                                   override val stderr: String)
+case class ProcessTimeoutException(
+  timeout: Duration,
+  override val exitStatus: ExitStatus,
+  override val stdout: String,
+  override val stderr: String)
     extends ProcessRunningException(s"command was terminated, took longer than $timeout", exitStatus, stdout, stderr)

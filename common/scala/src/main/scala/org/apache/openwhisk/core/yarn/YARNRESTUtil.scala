@@ -39,29 +39,32 @@ case class YARNResponseDefinition(diagnostics: String)
 case class ConfigurationDefinition(env: Map[String, String])
 case class ArtifactDefinition(id: String, `type`: String)
 case class ResourceDefinition(cpus: Int, memory: String)
-case class ContainerDefinition(ip: Option[String],
-                               bare_host: Option[String],
-                               component_instance_name: String,
-                               hostname: Option[String],
-                               id: String,
-                               launch_time: Long,
-                               state: String)
-case class ComponentDefinition(name: String,
-                               number_of_containers: Option[Int],
-                               launch_command: Option[String],
-                               containers: Option[List[ContainerDefinition]],
-                               artifact: Option[ArtifactDefinition],
-                               resource: Option[ResourceDefinition],
-                               configuration: Option[ConfigurationDefinition],
-                               decommissioned_instances: List[String])
+case class ContainerDefinition(
+  ip: Option[String],
+  bare_host: Option[String],
+  component_instance_name: String,
+  hostname: Option[String],
+  id: String,
+  launch_time: Long,
+  state: String)
+case class ComponentDefinition(
+  name: String,
+  number_of_containers: Option[Int],
+  launch_command: Option[String],
+  containers: Option[List[ContainerDefinition]],
+  artifact: Option[ArtifactDefinition],
+  resource: Option[ResourceDefinition],
+  configuration: Option[ConfigurationDefinition],
+  decommissioned_instances: List[String])
 
-case class ServiceDefinition(name: Option[String],
-                             version: Option[String],
-                             description: Option[String],
-                             state: Option[String],
-                             queue: Option[String],
-                             components: List[ComponentDefinition],
-                             kerberos_principal: Option[KerberosPrincipalDefinition])
+case class ServiceDefinition(
+  name: Option[String],
+  version: Option[String],
+  description: Option[String],
+  state: Option[String],
+  queue: Option[String],
+  components: List[ComponentDefinition],
+  kerberos_principal: Option[KerberosPrincipalDefinition])
 
 object YARNJsonProtocol extends DefaultJsonProtocol {
   implicit val KerberosPrincipalDefinitionFormat: RootJsonFormat[KerberosPrincipalDefinition] = jsonFormat2(
@@ -83,8 +86,8 @@ case class httpresponse(statusCode: StatusCode, content: String)
 object YARNRESTUtil {
   val SIMPLEAUTH = "simple"
   val KERBEROSAUTH = "kerberos"
-  def downloadServiceDefinition(authType: String, serviceName: String, masterUrl: String)(
-    implicit logging: Logging): ServiceDefinition = {
+  def downloadServiceDefinition(authType: String, serviceName: String, masterUrl: String)(implicit
+    logging: Logging): ServiceDefinition = {
     val response: httpresponse =
       YARNRESTUtil.submitRequestWithAuth(authType, HttpMethods.GET, s"$masterUrl/app/v1/services/$serviceName", "")
 

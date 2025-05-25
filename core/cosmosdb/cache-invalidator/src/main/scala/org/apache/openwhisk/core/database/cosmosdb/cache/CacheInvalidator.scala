@@ -51,20 +51,18 @@ class CacheInvalidator(globalConfig: Config)(implicit system: ActorSystem, log: 
         registerShutdownTasks(system, feedConsumer, producer)
         log.info(this, s"Started the Cache invalidator service. ClusterId [${config.invalidatorConfig.clusterId}]")
       }
-      .recover {
-        case t: Throwable =>
-          log.error(this, s"Shutdown after failure to start invalidator: ${t}")
-          stop(Some(t))
+      .recover { case t: Throwable =>
+        log.error(this, s"Shutdown after failure to start invalidator: ${t}")
+        stop(Some(t))
       }
 
     //If the producer stream fails, stop everything.
     producer
       .getStreamFuture()
       .map(_ => log.info(this, "Successfully completed producer"))
-      .recover {
-        case t: Throwable =>
-          log.error(this, s"Shutdown after producer failure: ${t}")
-          stop(Some(t))
+      .recover { case t: Throwable =>
+        log.error(this, s"Shutdown after producer failure: ${t}")
+        stop(Some(t))
       }
 
     (startFuture, running.future)
@@ -72,12 +70,10 @@ class CacheInvalidator(globalConfig: Config)(implicit system: ActorSystem, log: 
   def stop(error: Option[Throwable])(implicit system: ActorSystem, ec: ExecutionContext, log: Logging): Future[Done] = {
     feedConsumer
       .close()
-      .andThen {
-        case _ =>
-          producer.close().andThen {
-            case _ =>
-              terminate(error)
-          }
+      .andThen { case _ =>
+        producer.close().andThen { case _ =>
+          terminate(error)
+        }
       }
   }
   def terminate(error: Option[Throwable]): Unit = {
@@ -88,16 +84,16 @@ class CacheInvalidator(globalConfig: Config)(implicit system: ActorSystem, log: 
       }
     }
   }
-  private def registerShutdownTasks(system: ActorSystem,
-                                    feedConsumer: ChangeFeedConsumer,
-                                    producer: KafkaEventProducer)(implicit ec: ExecutionContext, log: Logging): Unit = {
+  private def registerShutdownTasks(
+    system: ActorSystem,
+    feedConsumer: ChangeFeedConsumer,
+    producer: KafkaEventProducer)(implicit ec: ExecutionContext, log: Logging): Unit = {
     CoordinatedShutdown(system).addTask(CoordinatedShutdown.PhaseBeforeServiceUnbind, "closeFeedListeners") { () =>
       feedConsumer
         .close()
         .flatMap { _ =>
-          producer.close().andThen {
-            case Success(_) =>
-              log.info(this, "Kafka producer successfully shutdown")
+          producer.close().andThen { case Success(_) =>
+            log.info(this, "Kafka producer successfully shutdown")
           }
         }
     }

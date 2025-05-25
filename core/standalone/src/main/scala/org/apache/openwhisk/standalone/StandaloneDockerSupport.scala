@@ -41,9 +41,10 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.sys.process._
 import scala.util.Try
 
-class StandaloneDockerSupport(docker: DockerClient)(implicit logging: Logging,
-                                                    ec: ExecutionContext,
-                                                    actorSystem: ActorSystem) {
+class StandaloneDockerSupport(docker: DockerClient)(implicit
+  logging: Logging,
+  ec: ExecutionContext,
+  actorSystem: ActorSystem) {
   CoordinatedShutdown(actorSystem)
     .addTask(
       CoordinatedShutdown.PhaseBeforeActorSystemTerminate,
@@ -86,15 +87,16 @@ object StandaloneDockerSupport {
     Try(new Socket("localhost", port).close()).isFailure
   }
 
-  def createRunCmd(name: String,
-                   environment: Map[String, String] = Map.empty,
-                   dockerRunParameters: Map[String, Set[String]] = Map.empty): Seq[String] = {
-    val environmentArgs = environment.flatMap {
-      case (key, value) => Seq("-e", s"$key=$value")
+  def createRunCmd(
+    name: String,
+    environment: Map[String, String] = Map.empty,
+    dockerRunParameters: Map[String, Set[String]] = Map.empty): Seq[String] = {
+    val environmentArgs = environment.flatMap { case (key, value) =>
+      Seq("-e", s"$key=$value")
     }
 
-    val params = dockerRunParameters.flatMap {
-      case (key, valueList) => valueList.toList.flatMap(Seq(key, _))
+    val params = dockerRunParameters.flatMap { case (key, valueList) =>
+      valueList.toList.flatMap(Seq(key, _))
     }
 
     Seq("--name", name, "--network", network) ++
@@ -211,14 +213,14 @@ class StandaloneDockerClient(pullDisabled: Boolean)(implicit log: Logging, as: A
     if (pullDisabled) Future.successful(()) else super.pull(image)
   }
 
-  override def runCmd(args: Seq[String], timeout: Duration, maskedArgs: Option[Seq[String]] = None)(
-    implicit transid: TransactionId): Future[String] =
+  override def runCmd(args: Seq[String], timeout: Duration, maskedArgs: Option[Seq[String]] = None)(implicit
+    transid: TransactionId): Future[String] =
     super.runCmd(args, timeout, maskedArgs)
 
   val clientConfig: DockerClientConfig = loadConfigOrThrow[DockerClientConfig](ConfigKeys.dockerClient)
 
-  def runDetached(image: String, args: Seq[String], shouldPull: Boolean)(
-    implicit tid: TransactionId): Future[StandaloneDockerContainer] = {
+  def runDetached(image: String, args: Seq[String], shouldPull: Boolean)(implicit
+    tid: TransactionId): Future[StandaloneDockerContainer] = {
     for {
       _ <- if (shouldPull) pull(image) else Future.successful(())
       id <- run(image, args).recoverWith {

@@ -134,8 +134,8 @@ class PoolingRestClient(
 
   def shutdown(): Future[Unit] = {
     killSwitch.shutdown()
-    Try(requestQueue.complete()).recover {
-      case t: IllegalStateException => logging.warn(this, t.getMessage)
+    Try(requestQueue.complete()).recover { case t: IllegalStateException =>
+      logging.warn(this, t.getMessage)
     }
     Future.unit
   }
@@ -143,17 +143,18 @@ class PoolingRestClient(
 
 object PoolingRestClient {
 
-  def mkRequest(method: HttpMethod,
-                uri: Uri,
-                body: Future[MessageEntity] = Future.successful(HttpEntity.Empty),
-                headers: List[HttpHeader] = List.empty)(implicit ec: ExecutionContext): Future[HttpRequest] = {
+  def mkRequest(
+    method: HttpMethod,
+    uri: Uri,
+    body: Future[MessageEntity] = Future.successful(HttpEntity.Empty),
+    headers: List[HttpHeader] = List.empty)(implicit ec: ExecutionContext): Future[HttpRequest] = {
     body.map { b =>
       HttpRequest(method, uri, headers, b)
     }
   }
 
-  def mkJsonRequest(method: HttpMethod, uri: Uri, body: JsValue, headers: List[HttpHeader] = List.empty)(
-    implicit ec: ExecutionContext): Future[HttpRequest] = {
+  def mkJsonRequest(method: HttpMethod, uri: Uri, body: JsValue, headers: List[HttpHeader] = List.empty)(implicit
+    ec: ExecutionContext): Future[HttpRequest] = {
     val b = Marshal(body).to[MessageEntity]
     mkRequest(method, uri, b, headers)
   }

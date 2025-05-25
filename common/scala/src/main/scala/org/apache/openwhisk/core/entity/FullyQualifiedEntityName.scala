@@ -31,10 +31,11 @@ import org.apache.openwhisk.core.entity.size.SizeString
  * - Version: the semantic version of the resource
  * - Binding : the entity path of the package binding, it can be used by entities that support binding
  */
-protected[core] case class FullyQualifiedEntityName(path: EntityPath,
-                                                    name: EntityName,
-                                                    version: Option[SemVer] = None,
-                                                    binding: Option[EntityPath] = None)
+protected[core] case class FullyQualifiedEntityName(
+  path: EntityPath,
+  name: EntityName,
+  version: Option[SemVer] = None,
+  binding: Option[EntityPath] = None)
     extends ByteSizeable {
   private val qualifiedName: String = path + EntityPath.PATHSEP + name
 

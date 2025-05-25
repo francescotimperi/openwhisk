@@ -31,10 +31,11 @@ import scala.concurrent.duration._
 // messages received by the actor
 // it is required to specify a recipient directly for the retryable message processing
 case class ElectLeader(key: String, value: String, recipient: ActorRef, watchEnabled: Boolean = true)
-case class RegisterInitialData(key: String,
-                               value: String,
-                               failoverEnabled: Boolean = true,
-                               recipient: Option[ActorRef] = None)
+case class RegisterInitialData(
+  key: String,
+  value: String,
+  failoverEnabled: Boolean = true,
+  recipient: Option[ActorRef] = None)
 
 case class RegisterData(key: String, value: String, failoverEnabled: Boolean = true)
 case class UnregisterData(key: String)
@@ -52,8 +53,8 @@ case class AlreadyExist()
  * In the event any issue occurs while storing data, the actor keeps trying until the data is stored guaranteeing delivery to ETCD.
  * So it guarantees the data is eventually stored.
  */
-class DataManagementService(watcherService: ActorRef, workerFactory: ActorRefFactory => ActorRef)(
-  implicit logging: Logging,
+class DataManagementService(watcherService: ActorRef, workerFactory: ActorRefFactory => ActorRef)(implicit
+  logging: Logging,
   actorSystem: ActorSystem)
     extends Actor {
   private implicit val ec = context.dispatcher
@@ -172,8 +173,9 @@ class DataManagementService(watcherService: ActorRef, workerFactory: ActorRefFac
 object DataManagementService {
   val retryInterval: FiniteDuration = loadConfigOrThrow[FiniteDuration](ConfigKeys.dataManagementServiceRetryInterval)
 
-  def props(watcherService: ActorRef, workerFactory: ActorRefFactory => ActorRef)(implicit logging: Logging,
-                                                                                  actorSystem: ActorSystem): Props = {
+  def props(watcherService: ActorRef, workerFactory: ActorRefFactory => ActorRef)(implicit
+    logging: Logging,
+    actorSystem: ActorSystem): Props = {
     Props(new DataManagementService(watcherService, workerFactory))
   }
 }

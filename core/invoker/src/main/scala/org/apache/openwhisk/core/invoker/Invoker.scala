@@ -41,10 +41,11 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Try
 
-case class CmdLineArgs(uniqueName: Option[String] = None,
-                       id: Option[Int] = None,
-                       displayedName: Option[String] = None,
-                       overwriteId: Option[Int] = None)
+case class CmdLineArgs(
+  uniqueName: Option[String] = None,
+  id: Option[Int] = None,
+  displayedName: Option[String] = None,
+  overwriteId: Option[Int] = None)
 
 object Invoker {
 
@@ -64,11 +65,12 @@ object Invoker {
   trait LogsCollector {
     def logsToBeCollected(action: ExecutableWhiskAction): Boolean = action.limits.logs.asMegaBytes != 0.MB
 
-    def apply(transid: TransactionId,
-              user: Identity,
-              activation: WhiskActivation,
-              container: Container,
-              action: ExecutableWhiskAction): Future[ActivationLogs]
+    def apply(
+      transid: TransactionId,
+      user: Identity,
+      activation: WhiskActivation,
+      container: Container,
+      action: ExecutableWhiskAction): Future[ActivationLogs]
   }
 
   protected val protocol = loadConfigOrThrow[String]("whisk.invoker.protocol")
@@ -189,7 +191,7 @@ object Invoker {
       // --uniqueName is defined with a valid value, id is empty, assign an id via zookeeper
       case CmdLineArgs(Some(unique), None, _, overwriteId) =>
         if (config.zookeeperHosts.startsWith(":") || config.zookeeperHosts.endsWith(":") ||
-            config.zookeeperHosts.equals("")) {
+          config.zookeeperHosts.equals("")) {
           abort(s"Must provide valid zookeeper host and port to use dynamicId assignment (${config.zookeeperHosts})")
         }
         new InstanceIdAssigner(config.zookeeperHosts).setAndGetId(unique, overwriteId)
@@ -215,17 +217,18 @@ object Invoker {
 
     val msgProvider = SpiLoader.get[MessagingProvider]
     if (msgProvider
-          .ensureTopic(config, topic = topicName, topicConfig = topicBaseName, maxMessageBytes = maxMessageBytes)
-          .isFailure) {
+        .ensureTopic(config, topic = topicName, topicConfig = topicBaseName, maxMessageBytes = maxMessageBytes)
+        .isFailure) {
       abort(s"failure during msgProvider.ensureTopic for topic $topicName")
     }
 
     val producer = msgProvider.getProducer(config, Some(ActivationEntityLimit.MAX_ACTIVATION_LIMIT))
-    val invoker = try {
-      SpiLoader.get[InvokerProvider].instance(config, invokerInstance, producer, poolConfig, limitConfig)
-    } catch {
-      case e: Exception => abort(s"Failed to initialize reactive invoker: ${e.getMessage}")
-    }
+    val invoker =
+      try {
+        SpiLoader.get[InvokerProvider].instance(config, invokerInstance, producer, poolConfig, limitConfig)
+      } catch {
+        case e: Exception => abort(s"Failed to initialize reactive invoker: ${e.getMessage}")
+      }
 
     val port = config.servicePort.toInt
     val httpsConfig =

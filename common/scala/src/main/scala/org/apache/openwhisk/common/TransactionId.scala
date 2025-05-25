@@ -50,8 +50,8 @@ case class TransactionId private (meta: TransactionMetadata) extends AnyVal {
    * @param message An additional message to be written into the log, together with the other information.
    * @param logLevel The Loglevel, the message should have. Default is <code>InfoLevel</code>.
    */
-  def mark(from: AnyRef, marker: LogMarkerToken, message: => String = "", logLevel: LogLevel = DebugLevel)(
-    implicit logging: Logging) = {
+  def mark(from: AnyRef, marker: LogMarkerToken, message: => String = "", logLevel: LogLevel = DebugLevel)(implicit
+    logging: Logging) = {
 
     if (TransactionId.metricsLog) {
       // marker received with a debug level will be emitted on info level
@@ -75,8 +75,8 @@ case class TransactionId private (meta: TransactionMetadata) extends AnyVal {
    *
    * @return startMarker that has to be passed to the finished or failed method to calculate the time difference.
    */
-  def started(from: AnyRef, marker: LogMarkerToken, message: => String = "", logLevel: LogLevel = DebugLevel)(
-    implicit logging: Logging): StartMarker = {
+  def started(from: AnyRef, marker: LogMarkerToken, message: => String = "", logLevel: LogLevel = DebugLevel)(implicit
+    logging: Logging): StartMarker = {
 
     if (TransactionId.metricsLog) {
       // marker received with a debug level will be emitted on info level
@@ -101,11 +101,12 @@ case class TransactionId private (meta: TransactionMetadata) extends AnyVal {
    * @param logLevel The Loglevel, the message should have. Default is <code>InfoLevel</code>.
    * @param endTime Manually set the timestamp of the end. By default it is NOW.
    */
-  def finished(from: AnyRef,
-               startMarker: StartMarker,
-               message: => String = "",
-               logLevel: LogLevel = DebugLevel,
-               endTime: Instant = Instant.now(Clock.systemUTC))(implicit logging: Logging) = {
+  def finished(
+    from: AnyRef,
+    startMarker: StartMarker,
+    message: => String = "",
+    logLevel: LogLevel = DebugLevel,
+    endTime: Instant = Instant.now(Clock.systemUTC))(implicit logging: Logging) = {
 
     val endMarker = startMarker.startMarker.asFinish
     val deltaToEnd = deltaToMarker(startMarker, endTime)
@@ -211,17 +212,19 @@ case class StartMarker(start: Instant, startMarker: LogMarkerToken)
  * @param start the timestamp when the request processing commenced
  * @param extraLogging enables logging, if set to true
  */
-protected case class TransactionMetadata(id: String,
-                                         start: Instant,
-                                         extraLogging: Boolean = false,
-                                         parent: Option[TransactionMetadata] = None) {
+protected case class TransactionMetadata(
+  id: String,
+  start: Instant,
+  extraLogging: Boolean = false,
+  parent: Option[TransactionMetadata] = None) {
   override def toString = s"#tid_$id"
 }
 
-case class MetricConfig(prometheusEnabled: Boolean,
-                        kamonEnabled: Boolean,
-                        kamonTagsEnabled: Boolean,
-                        logsEnabled: Boolean)
+case class MetricConfig(
+  prometheusEnabled: Boolean,
+  kamonEnabled: Boolean,
+  kamonTagsEnabled: Boolean,
+  logsEnabled: Boolean)
 object TransactionId {
   val metricConfig = loadConfigOrThrow[MetricConfig](ConfigKeys.metrics)
 
@@ -237,9 +240,13 @@ object TransactionId {
   val unknown = TransactionId(systemPrefix + "unknown")
   val testing = TransactionId(systemPrefix + "testing") // Common id for for unit testing
   val invoker = TransactionId(systemPrefix + "invoker") // Invoker startup/shutdown or GC activity
-  val invokerHealthManager = TransactionId(systemPrefix + "invokerHealthManager") // Invoker startup/shutdown or GC activity
+  val invokerHealthManager = TransactionId(
+    systemPrefix + "invokerHealthManager"
+  ) // Invoker startup/shutdown or GC activity
   def invokerHealthActivation = TransactionId(systemPrefix + "invokerHealthActivation") // Invoker health activation
-  val invokerWarmup = TransactionId(systemPrefix + "invokerWarmup") // Invoker warmup thread that makes stem-cell containers
+  val invokerWarmup = TransactionId(
+    systemPrefix + "invokerWarmup"
+  ) // Invoker warmup thread that makes stem-cell containers
   val invokerColdstart = TransactionId(systemPrefix + "invokerColdstart") //Invoker cold start thread
   val invokerNanny = TransactionId(systemPrefix + "invokerNanny") // Invoker nanny thread
   val dispatcher = TransactionId(systemPrefix + "dispatcher") // Kafka message dispatcher

@@ -36,7 +36,6 @@ import spray.json._
  * NOTE: This limit is only leveraged on openwhisk v2 with the scheduler service. If this limit is set on a deployment of openwhisk
  * not using the scheduler service, the limit will do nothing.
  *
- *
  * @param maxConcurrentInstances the max number of concurrent activations in a single container
  */
 protected[entity] class InstanceConcurrencyLimit private (val maxConcurrentInstances: Int) extends AnyVal

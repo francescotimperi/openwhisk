@@ -149,11 +149,10 @@ class InvokerReactive(
         .props(containerFactory.createContainer, ack, store, collectLogs, instance, poolConfig))
 
   val prewarmingConfigs: List[PrewarmingConfig] = {
-    ExecManifest.runtimesManifest.stemcells.flatMap {
-      case (mf, cells) =>
-        cells.map { cell =>
-          PrewarmingConfig(cell.initialCount, new CodeExecAsString(mf, "", None), cell.memory, cell.reactive)
-        }
+    ExecManifest.runtimesManifest.stemcells.flatMap { case (mf, cells) =>
+      cells.map { cell =>
+        PrewarmingConfig(cell.initialCount, new CodeExecAsString(mf, "", None), cell.memory, cell.reactive)
+      }
     }.toList
   }
 
@@ -254,13 +253,12 @@ class InvokerReactive(
           Future.successful(())
         }
       }
-      .recoverWith {
-        case t =>
-          // Iff everything above failed, we have a terminal error at hand. Either the message failed
-          // to deserialize, or something threw an error where it is not expected to throw.
-          activationFeed ! MessageFeed.Processed
-          logging.error(this, s"terminal failure while processing message: $t")
-          Future.successful(())
+      .recoverWith { case t =>
+        // Iff everything above failed, we have a terminal error at hand. Either the message failed
+        // to deserialize, or something threw an error where it is not expected to throw.
+        activationFeed ! MessageFeed.Processed
+        logging.error(this, s"terminal failure while processing message: $t")
+        Future.successful(())
       }
   }
 

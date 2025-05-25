@@ -194,9 +194,10 @@ object LimitedWhiskEntityPut extends DefaultJsonProtocol {
 
 case class SizeError(field: String, is: ByteSize, allowed: ByteSize)
 
-case class LimitedWhiskEntityPut(exec: Option[Exec] = None,
-                                 parameters: Option[Parameters] = None,
-                                 annotations: Option[Parameters] = None) {
+case class LimitedWhiskEntityPut(
+  exec: Option[Exec] = None,
+  parameters: Option[Parameters] = None,
+  annotations: Option[Parameters] = None) {
 
   def isWithinSizeLimits(userLimits: UserLimits): Option[SizeError] = {
 

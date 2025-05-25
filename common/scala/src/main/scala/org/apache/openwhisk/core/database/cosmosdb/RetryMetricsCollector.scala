@@ -60,7 +60,6 @@ object RetryMetricsCollector extends AppenderBase[ILoggingEvent] with SLF4JLoggi
    *                     this.cumulativeRetryDelay,
    * exception);
    * ```
-   *
    */
   override def append(e: ILoggingEvent): Unit = {
     val msg = e.getMessage

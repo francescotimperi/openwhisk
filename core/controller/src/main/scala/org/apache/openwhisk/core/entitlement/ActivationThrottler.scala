@@ -31,8 +31,8 @@ import scala.concurrent.{ExecutionContext, Future}
  * @param loadBalancer contains active quotas
  * @param concurrencyLimit a calculated limit relative to the user using the system
  */
-class ActivationThrottler(loadBalancer: LoadBalancer, concurrencyLimit: Identity => Int)(
-  implicit logging: Logging,
+class ActivationThrottler(loadBalancer: LoadBalancer, concurrencyLimit: Identity => Int)(implicit
+  logging: Logging,
   executionContext: ExecutionContext) {
 
   /**

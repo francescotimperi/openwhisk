@@ -155,9 +155,11 @@ protected[core] object EntityPath {
   @throws[IllegalArgumentException]
   private def apply(parts: Seq[String]): EntityPath = {
     require(parts != null && parts.nonEmpty, "path undefined")
-    require(parts.forall { s =>
-      s != null && EntityName.entityNameMatcher(s).matches
-    }, s"path contains invalid parts ${parts.toString}")
+    require(
+      parts.forall { s =>
+        s != null && EntityName.entityNameMatcher(s).matches
+      },
+      s"path contains invalid parts ${parts.toString}")
     new EntityPath(parts)
   }
 

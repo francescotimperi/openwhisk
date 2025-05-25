@@ -42,8 +42,8 @@ trait LoadBalancer {
    *         The future is guaranteed to complete within the declared action time limit
    *         plus a grace period (see activeAckTimeoutGrace).
    */
-  def publish(action: ExecutableWhiskActionMetaData, msg: ActivationMessage)(
-    implicit transid: TransactionId): Future[Future[Either[ActivationId, WhiskActivation]]]
+  def publish(action: ExecutableWhiskActionMetaData, msg: ActivationMessage)(implicit
+    transid: TransactionId): Future[Future[Either[ActivationId, WhiskActivation]]]
 
   /**
    * Returns a message indicating the health of the containers and/or container pool in general.
@@ -83,12 +83,14 @@ trait LoadBalancer {
 trait LoadBalancerProvider extends Spi {
   def requiredProperties: Map[String, String]
 
-  def instance(whiskConfig: WhiskConfig, instance: ControllerInstanceId)(implicit actorSystem: ActorSystem,
-                                                                         logging: Logging): LoadBalancer
+  def instance(whiskConfig: WhiskConfig, instance: ControllerInstanceId)(implicit
+    actorSystem: ActorSystem,
+    logging: Logging): LoadBalancer
 
   /** Return default FeedFactory */
-  def createFeedFactory(whiskConfig: WhiskConfig, instance: ControllerInstanceId)(implicit actorSystem: ActorSystem,
-                                                                                  logging: Logging): FeedFactory = {
+  def createFeedFactory(whiskConfig: WhiskConfig, instance: ControllerInstanceId)(implicit
+    actorSystem: ActorSystem,
+    logging: Logging): FeedFactory = {
 
     val activeAckTopic = s"${Controller.topicPrefix}completed${instance.asString}"
     val maxActiveAcksPerPoll = 128

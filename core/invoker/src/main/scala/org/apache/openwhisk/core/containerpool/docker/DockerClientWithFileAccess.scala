@@ -38,9 +38,11 @@ import org.apache.openwhisk.core.containerpool.ContainerAddress
 import scala.io.Source
 import scala.concurrent.duration.FiniteDuration
 
-class DockerClientWithFileAccess(dockerHost: Option[String] = None,
-                                 containersDirectory: File = Paths.get("containers").toFile)(
-  executionContext: ExecutionContext)(implicit log: Logging, as: ActorSystem)
+class DockerClientWithFileAccess(
+  dockerHost: Option[String] = None,
+  containersDirectory: File = Paths.get("containers").toFile)(executionContext: ExecutionContext)(implicit
+  log: Logging,
+  as: ActorSystem)
     extends DockerClient(dockerHost)(executionContext)
     with DockerApiWithFileAccess {
 
@@ -101,8 +103,9 @@ class DockerClientWithFileAccess(dockerHost: Option[String] = None,
   protected def configFileContents(configFile: File): Future[JsObject] = Future {
     blocking { // Needed due to synchronous file operations
       val source = Source.fromFile(configFile)
-      val config = try source.mkString
-      finally source.close()
+      val config =
+        try source.mkString
+        finally source.close()
       config.parseJson.asJsObject
     }
   }
@@ -128,10 +131,10 @@ class DockerClientWithFileAccess(dockerHost: Option[String] = None,
   }
 
   // See extended trait for description
-  override def inspectIPAddress(id: ContainerId, network: String)(
-    implicit transid: TransactionId): Future[ContainerAddress] = {
-    ipAddressFromFile(id, network).recoverWith {
-      case _ => super.inspectIPAddress(id, network)
+  override def inspectIPAddress(id: ContainerId, network: String)(implicit
+    transid: TransactionId): Future[ContainerAddress] = {
+    ipAddressFromFile(id, network).recoverWith { case _ =>
+      super.inspectIPAddress(id, network)
     }
   }
 
@@ -141,9 +144,10 @@ class DockerClientWithFileAccess(dockerHost: Option[String] = None,
       .recover { case _ => false }
 
   private val readChunkSize = 8192 // bytes
-  override def rawContainerLogs(containerId: ContainerId,
-                                fromPos: Long,
-                                pollInterval: Option[FiniteDuration]): AkkaSource[ByteString, Any] =
+  override def rawContainerLogs(
+    containerId: ContainerId,
+    fromPos: Long,
+    pollInterval: Option[FiniteDuration]): AkkaSource[ByteString, Any] =
     try {
       // If there is no waiting interval, we can end the stream early by reading just what is there from file.
       pollInterval match {
@@ -166,7 +170,8 @@ trait DockerApiWithFileAccess extends DockerApi {
    * @param pollInterval interval to poll for changes of the file
    * @return a source emitting chunks read from the log-file
    */
-  def rawContainerLogs(containerId: ContainerId,
-                       fromPos: Long,
-                       pollInterval: Option[FiniteDuration]): AkkaSource[ByteString, Any]
+  def rawContainerLogs(
+    containerId: ContainerId,
+    fromPos: Long,
+    pollInterval: Option[FiniteDuration]): AkkaSource[ByteString, Any]
 }

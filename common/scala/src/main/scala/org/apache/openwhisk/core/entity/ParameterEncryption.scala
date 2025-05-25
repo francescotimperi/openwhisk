@@ -30,9 +30,10 @@ import spray.json._
 import pureconfig.generic.auto._
 import spray.json._
 
-protected[core] case class ParameterStorageConfig(current: String = ParameterEncryption.NO_ENCRYPTION,
-                                                  aes128: Option[String] = None,
-                                                  aes256: Option[String] = None)
+protected[core] case class ParameterStorageConfig(
+  current: String = ParameterEncryption.NO_ENCRYPTION,
+  aes128: Option[String] = None,
+  aes256: Option[String] = None)
 
 protected[core] class ParameterEncryption(val default: Option[Encrypter], encryptors: Map[String, Encrypter]) {
 

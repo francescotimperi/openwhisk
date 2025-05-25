@@ -66,13 +66,13 @@ object FPCInvokerReactive extends InvokerProvider {
     new FPCInvokerReactive(config, instance, producer, poolConfig, limitsConfig)
 }
 
-class FPCInvokerReactive(config: WhiskConfig,
-                         instance: InvokerInstanceId,
-                         producer: MessageProducer,
-                         poolConfig: ContainerPoolConfig =
-                           loadConfigOrThrow[ContainerPoolConfig](ConfigKeys.containerPool),
-                         limitsConfig: IntraConcurrencyLimitConfig = loadConfigOrThrow[IntraConcurrencyLimitConfig](
-                           ConfigKeys.concurrencyLimit))(implicit actorSystem: ActorSystem, logging: Logging)
+class FPCInvokerReactive(
+  config: WhiskConfig,
+  instance: InvokerInstanceId,
+  producer: MessageProducer,
+  poolConfig: ContainerPoolConfig = loadConfigOrThrow[ContainerPoolConfig](ConfigKeys.containerPool),
+  limitsConfig: IntraConcurrencyLimitConfig = loadConfigOrThrow[IntraConcurrencyLimitConfig](
+    ConfigKeys.concurrencyLimit))(implicit actorSystem: ActorSystem, logging: Logging)
     extends InvokerCore {
 
   implicit val ec: ExecutionContext = actorSystem.dispatcher
@@ -181,13 +181,14 @@ class FPCInvokerReactive(config: WhiskConfig,
     activationStore.storeAfterCheck(activation, isBlocking, None, None, context)(tid, notifier = None, logging)
   }
 
-  private def healthActivationClientFactory(f: ActorRefFactory,
-                                            invocationNamespace: String,
-                                            fqn: FullyQualifiedEntityName,
-                                            rev: DocRevision,
-                                            schedulerHost: String,
-                                            rpcPort: Int,
-                                            containerId: ContainerId): ActorRef =
+  private def healthActivationClientFactory(
+    f: ActorRefFactory,
+    invocationNamespace: String,
+    fqn: FullyQualifiedEntityName,
+    rev: DocRevision,
+    schedulerHost: String,
+    rpcPort: Int,
+    containerId: ContainerId): ActorRef =
     f.actorOf(Props(HealthActivationServiceClient()))
 
   private def healthContainerProxyFactory(f: ActorRefFactory, healthManger: ActorRef): ActorRef = {
@@ -232,11 +233,10 @@ class FPCInvokerReactive(config: WhiskConfig,
           .withTls(grpcConfig.tls)
       Future {
         ActivationServiceClient(setting)
-      }.andThen {
-        case Failure(t) =>
-          logging.error(
-            this,
-            s"unable to create activation client for action ${fqn}: ${t} on original scheduler: ${schedulerHost}:${rpcPort}")
+      }.andThen { case Failure(t) =>
+        logging.error(
+          this,
+          s"unable to create activation client for action ${fqn}: ${t} on original scheduler: ${schedulerHost}:${rpcPort}")
       }
     } else {
       val leaderKey = queue(invocationNamespace, fqn, leader = true)
@@ -256,17 +256,17 @@ class FPCInvokerReactive(config: WhiskConfig,
 
               ActivationServiceClient(setting)
             }
-            .andThen {
-              case Failure(t) =>
-                logging.error(this, s"unable to create activation client for action ${fqn}: ${t}")
+            .andThen { case Failure(t) =>
+              logging.error(this, s"unable to create activation client for action ${fqn}: ${t}")
             }
         }
     }
 
   }
 
-  private def sendAckToScheduler(schedulerInstanceId: SchedulerInstanceId,
-                                 creationAckMessage: ContainerCreationAckMessage): Future[ResultMetadata] = {
+  private def sendAckToScheduler(
+    schedulerInstanceId: SchedulerInstanceId,
+    creationAckMessage: ContainerCreationAckMessage): Future[ResultMetadata] = {
     val topic = s"${Invoker.topicPrefix}creationAck${schedulerInstanceId.asString}"
     val reschedulable =
       creationAckMessage.error.map(ContainerCreationError.whiskErrors.contains(_)).getOrElse(false)
@@ -316,13 +316,14 @@ class FPCInvokerReactive(config: WhiskConfig,
   }
 
   /** Creates a ActivationClientProxy Actor when being called. */
-  private def clientProxyFactory(f: ActorRefFactory,
-                                 invocationNamespace: String,
-                                 fqn: FullyQualifiedEntityName,
-                                 rev: DocRevision,
-                                 schedulerHost: String,
-                                 rpcPort: Int,
-                                 containerId: ContainerId): ActorRef = {
+  private def clientProxyFactory(
+    f: ActorRefFactory,
+    invocationNamespace: String,
+    fqn: FullyQualifiedEntityName,
+    rev: DocRevision,
+    schedulerHost: String,
+    rpcPort: Int,
+    containerId: ContainerId): ActorRef = {
     implicit val transId = TransactionId.invokerNanny
     f.actorOf(
       ActivationClientProxy
@@ -330,11 +331,10 @@ class FPCInvokerReactive(config: WhiskConfig,
   }
 
   val prewarmingConfigs: List[PrewarmingConfig] = {
-    ExecManifest.runtimesManifest.stemcells.flatMap {
-      case (mf, cells) =>
-        cells.map { cell =>
-          PrewarmingConfig(cell.initialCount, new CodeExecAsString(mf, "", None), cell.memory)
-        }
+    ExecManifest.runtimesManifest.stemcells.flatMap { case (mf, cells) =>
+      cells.map { cell =>
+        PrewarmingConfig(cell.initialCount, new CodeExecAsString(mf, "", None), cell.memory)
+      }
     }.toList
   }
 
@@ -343,9 +343,10 @@ class FPCInvokerReactive(config: WhiskConfig,
       ContainerPoolV2
         .props(childFactory, invokerHealthManager, poolConfig, instance, prewarmingConfigs, sendAckToScheduler))
 
-  private def getLiveContainerCount(invocationNamespace: String,
-                                    fqn: FullyQualifiedEntityName,
-                                    revision: DocRevision): Future[Long] = {
+  private def getLiveContainerCount(
+    invocationNamespace: String,
+    fqn: FullyQualifiedEntityName,
+    revision: DocRevision): Future[Long] = {
     val namespacePrefix = containerPrefix(ContainerKeys.namespacePrefix, invocationNamespace, fqn, Some(revision))
     val inProgressPrefix = containerPrefix(ContainerKeys.inProgressPrefix, invocationNamespace, fqn, Some(revision))
     val warmedPrefix = containerPrefix(ContainerKeys.warmedPrefix, invocationNamespace, fqn, Some(revision))
@@ -406,7 +407,8 @@ class FPCInvokerReactive(config: WhiskConfig,
     TransactionId(TransactionId.generateTid()).serialize,
     InvokerHealthManager.healthActionIdentity.namespace.name.asString,
     WarmUp.warmUpAction.serialize,
-    DocRevision.empty.serialize) // a warm up fetch request which contains nothing
+    DocRevision.empty.serialize
+  ) // a warm up fetch request which contains nothing
 
   // warm up grpc connection with scheduler
   private def warmUpScheduler(scheduler: SchedulerEndpoints) = {
@@ -415,10 +417,9 @@ class FPCInvokerReactive(config: WhiskConfig,
         .connectToServiceAt(scheduler.host, scheduler.rpcPort)
         .withTls(grpcConfig.tls)
     val client = ActivationServiceClient(setting)
-    client.fetchActivation(warmUpFetchRequest).andThen {
-      case _ =>
-        logging.info(this, s"Warmed up scheduler $scheduler")
-        client.close()
+    client.fetchActivation(warmUpFetchRequest).andThen { case _ =>
+      logging.info(this, s"Warmed up scheduler $scheduler")
+      client.close()
     }
   }
 
@@ -426,27 +427,27 @@ class FPCInvokerReactive(config: WhiskConfig,
     implicit val transId = TransactionId.warmUp
     if (warmUpWatcher.isEmpty)
       warmUpWatcher = Some(etcdClient.watch(SchedulerKeys.prefix, true) { res: WatchUpdate =>
-        res.getEvents.asScala.foreach {
-          event =>
-            event.getType match {
-              case EventType.DELETE =>
-                val key = event.getPrevKv.getKey
-                warmedSchedulers.remove(key)
-              case EventType.PUT =>
-                val key = event.getKv.getKey
-                val value = event.getKv.getValue
-                SchedulerStates
-                  .parse(value)
-                  .map { state =>
-                    // warm up new scheduler
-                    warmedSchedulers.getOrElseUpdate(key, {
+        res.getEvents.asScala.foreach { event =>
+          event.getType match {
+            case EventType.DELETE =>
+              val key = event.getPrevKv.getKey
+              warmedSchedulers.remove(key)
+            case EventType.PUT =>
+              val key = event.getKv.getKey
+              val value = event.getKv.getValue
+              SchedulerStates
+                .parse(value)
+                .map { state =>
+                  // warm up new scheduler
+                  warmedSchedulers.getOrElseUpdate(
+                    key, {
                       logging.info(this, s"Warm up scheduler ${state.sid}")
                       warmUpScheduler(state.endpoints)
                       value
                     })
-                  }
-              case _ =>
-            }
+                }
+            case _ =>
+          }
         }
       })
 
@@ -461,9 +462,8 @@ class FPCInvokerReactive(config: WhiskConfig,
               .map { state =>
                 warmUpScheduler(state.endpoints)
               }
-              .recover {
-                case t =>
-                  logging.error(this, s"Unexpected error $t")
+              .recover { case t =>
+                logging.error(this, s"Unexpected error $t")
               }
 
             kv.getValue

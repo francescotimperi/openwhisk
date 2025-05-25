@@ -100,10 +100,12 @@ trait WhiskActivationsApi extends Directives with AuthenticatedRouteProvider wit
   /** Validated entity name as an ActivationId from the matched path segment. */
   protected override def entityname(n: String) = {
     val activationId = ActivationId.parse(n)
-    validate(activationId.isSuccess, activationId match {
-      case Failure(t: IllegalArgumentException) => t.getMessage
-      case _                                    => Messages.activationIdIllegal
-    }) & extract(_ => n)
+    validate(
+      activationId.isSuccess,
+      activationId match {
+        case Failure(t: IllegalArgumentException) => t.getMessage
+        case _                                    => Messages.activationIdIllegal
+      }) & extract(_ => n)
   }
 
   /**
@@ -122,8 +124,8 @@ trait WhiskActivationsApi extends Directives with AuthenticatedRouteProvider wit
   }
 
   /** Dispatches resource to the proper handler depending on context. */
-  protected override def dispatchOp(user: Identity, op: Privilege, resource: Resource)(
-    implicit transid: TransactionId) = {
+  protected override def dispatchOp(user: Identity, op: Privilege, resource: Resource)(implicit
+    transid: TransactionId) = {
     extractRequest { request =>
       val context = UserContext(user, request)
 
@@ -189,8 +191,8 @@ trait WhiskActivationsApi extends Directives with AuthenticatedRouteProvider wit
    * - 404 Not Found
    * - 500 Internal Server Error
    */
-  private def fetch(context: UserContext, namespace: EntityPath, activationId: ActivationId)(
-    implicit transid: TransactionId) = {
+  private def fetch(context: UserContext, namespace: EntityPath, activationId: ActivationId)(implicit
+    transid: TransactionId) = {
     val docid = DocId(WhiskEntity.qualifiedName(namespace, activationId))
     pathEndOrSingleSlash {
       getEntity(
@@ -227,11 +229,12 @@ trait WhiskActivationsApi extends Directives with AuthenticatedRouteProvider wit
       activationStore.get(ActivationId(docid.asString), context),
       docid,
       disableStoreResultConfig,
-      (namespace: String,
-       activationId: ActivationId,
-       start: Option[Instant],
-       end: Option[Instant],
-       logs: Option[ActivationLogs]) =>
+      (
+        namespace: String,
+        activationId: ActivationId,
+        start: Option[Instant],
+        end: Option[Instant],
+        logs: Option[ActivationLogs]) =>
         logStore.fetchLogs(namespace, activationId, start, end, logs, context).map(_.toJsonObject))
   }
 }

@@ -59,11 +59,12 @@ case class EsQueryMust(matches: Vector[EsQueryBoolMatch], range: Vector[EsQueryR
 case class EsQueryMatch(field: String, value: String, matchType: Option[EsMatch] = None) extends EsQueryMethod
 case class EsQueryTerm(key: String, value: String) extends EsQueryMethod
 case class EsQueryString(queryString: String) extends EsQueryMethod
-case class EsQuery(query: EsQueryMethod,
-                   sort: Option[EsQueryOrder] = None,
-                   size: Option[Int] = None,
-                   from: Int = 0,
-                   aggs: Option[EsQueryAggs] = None)
+case class EsQuery(
+  query: EsQueryMethod,
+  sort: Option[EsQueryOrder] = None,
+  size: Option[Int] = None,
+  from: Int = 0,
+  aggs: Option[EsQueryAggs] = None)
 
 // Schema of ES query results
 case class EsSearchHit(source: JsObject)
@@ -150,7 +151,8 @@ class ElasticSearchRestClient(
   host: String,
   port: Int,
   httpFlow: Option[Flow[(HttpRequest, Promise[HttpResponse]), (Try[HttpResponse], Promise[HttpResponse]), Any]] = None)(
-  implicit system: ActorSystem,
+  implicit
+  system: ActorSystem,
   ec: ExecutionContext)
     extends PoolingRestClient(protocol, host, port, 16 * 1024, httpFlow)(system, ec) {
 
@@ -166,8 +168,9 @@ class ElasticSearchRestClient(
     requestJson[JsObject](mkRequest(GET, Uri(index), headers = baseHeaders ++ headers))
   }
 
-  def search[T: RootJsonReader](index: String,
-                                payload: EsQuery = EsQuery(EsQueryAll()),
-                                headers: List[HttpHeader] = List.empty): Future[Either[StatusCode, T]] =
+  def search[T: RootJsonReader](
+    index: String,
+    payload: EsQuery = EsQuery(EsQueryAll()),
+    headers: List[HttpHeader] = List.empty): Future[Either[StatusCode, T]] =
     requestJson[T](mkJsonRequest(POST, Uri(index), payload.toJson.asJsObject, baseHeaders ++ headers))
 }

@@ -50,12 +50,14 @@ class PackageCollection(entityStore: EntityStore)(implicit logging: Logging) ext
    * A published package makes all its assets public regardless of their shared bit.
    * All assets that are not in an explicit package are private because the default package is private.
    */
-  protected[core] override def implicitRights(user: Identity,
-                                              namespaces: Set[String],
-                                              right: Privilege,
-                                              resource: Resource)(implicit ep: EntitlementProvider,
-                                                                  ec: ExecutionContext,
-                                                                  transid: TransactionId): Future[Boolean] = {
+  protected[core] override def implicitRights(
+    user: Identity,
+    namespaces: Set[String],
+    right: Privilege,
+    resource: Resource)(implicit
+    ep: EntitlementProvider,
+    ec: ExecutionContext,
+    transid: TransactionId): Future[Boolean] = {
     resource.entity map { pkgname =>
       val isOwner = namespaces.contains(resource.namespace.root.asString)
       right match {
@@ -81,8 +83,8 @@ class PackageCollection(entityStore: EntityStore)(implicit logging: Logging) ext
    * @param isOwner indicates if the resource is owned by the subject requesting authorization
    * @param docid the package (or binding) document id
    */
-  private def checkPackageReadPermission(namespaces: Set[String], isOwner: Boolean, doc: DocId)(
-    implicit ec: ExecutionContext,
+  private def checkPackageReadPermission(namespaces: Set[String], isOwner: Boolean, doc: DocId)(implicit
+    ec: ExecutionContext,
     transid: TransactionId): Future[Boolean] = {
 
     val right = Privilege.READ

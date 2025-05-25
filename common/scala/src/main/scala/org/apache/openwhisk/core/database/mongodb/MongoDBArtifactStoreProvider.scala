@@ -53,17 +53,19 @@ object MongoDBClient {
 
 object MongoDBArtifactStoreProvider extends ArtifactStoreProvider {
 
-  def makeStore[D <: DocumentSerializer: ClassTag](useBatching: Boolean)(implicit jsonFormat: RootJsonFormat[D],
-                                                                         docReader: DocumentReader,
-                                                                         actorSystem: ActorSystem,
-                                                                         logging: Logging): ArtifactStore[D] = {
+  def makeStore[D <: DocumentSerializer: ClassTag](useBatching: Boolean)(implicit
+    jsonFormat: RootJsonFormat[D],
+    docReader: DocumentReader,
+    actorSystem: ActorSystem,
+    logging: Logging): ArtifactStore[D] = {
     val dbConfig = loadConfigOrThrow[MongoDBConfig](ConfigKeys.mongodb)
     makeArtifactStore(dbConfig, getAttachmentStore())
   }
 
-  def makeArtifactStore[D <: DocumentSerializer: ClassTag](dbConfig: MongoDBConfig,
-                                                           attachmentStore: Option[AttachmentStore])(
-    implicit jsonFormat: RootJsonFormat[D],
+  def makeArtifactStore[D <: DocumentSerializer: ClassTag](
+    dbConfig: MongoDBConfig,
+    attachmentStore: Option[AttachmentStore])(implicit
+    jsonFormat: RootJsonFormat[D],
     docReader: DocumentReader,
     actorSystem: ActorSystem,
     logging: Logging): ArtifactStore[D] = {
@@ -82,8 +84,9 @@ object MongoDBArtifactStoreProvider extends ArtifactStoreProvider {
       attachmentStore)
   }
 
-  private def handlerAndMapper[D](entityType: ClassTag[D])(implicit actorSystem: ActorSystem,
-                                                           logging: Logging): (DocumentHandler, MongoDBViewMapper) = {
+  private def handlerAndMapper[D](entityType: ClassTag[D])(implicit
+    actorSystem: ActorSystem,
+    logging: Logging): (DocumentHandler, MongoDBViewMapper) = {
     entityType.runtimeClass match {
       case x if x == classOf[WhiskEntity] =>
         (WhisksHandler, WhisksViewMapper)

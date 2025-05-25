@@ -80,9 +80,10 @@ protected[core] object ExecManifest {
   protected[entity] def runtimes(config: JsObject, runtimeManifestConfig: RuntimeManifestConfig): Try[Runtimes] = Try {
     val runtimes = config.fields
       .get("runtimes")
-      .map(_.convertTo[Map[String, Set[RuntimeManifest]]].map {
-        case (name, versions) =>
-          RuntimeFamily(name, versions.map { mf =>
+      .map(_.convertTo[Map[String, Set[RuntimeManifest]]].map { case (name, versions) =>
+        RuntimeFamily(
+          name,
+          versions.map { mf =>
             val img = ImageName(mf.image.name, mf.image.registry, mf.image.prefix, mf.image.tag)
             mf.copy(image = img)
           })
@@ -111,8 +112,9 @@ protected[core] object ExecManifest {
    *                                 this is useful for testing with local images that aren't published to the runtimes registry
    * @param localImagePrefix         image prefix for bypassPullForLocalImages
    */
-  protected[core] case class RuntimeManifestConfig(bypassPullForLocalImages: Option[Boolean] = None,
-                                                   localImagePrefix: Option[String] = None)
+  protected[core] case class RuntimeManifestConfig(
+    bypassPullForLocalImages: Option[Boolean] = None,
+    localImagePrefix: Option[String] = None)
 
   /**
    * A runtime manifest describes the "exec" runtime support.
@@ -126,14 +128,15 @@ protected[core] object ExecManifest {
    * @param image           optional image name, otherwise inferred via fixed mapping (remove colons and append 'action')
    * @param stemCells       optional list of stemCells to be initialized by invoker per kind
    */
-  protected[core] case class RuntimeManifest(kind: String,
-                                             image: ImageName,
-                                             deprecated: Option[Boolean] = None,
-                                             default: Option[Boolean] = None,
-                                             attached: Option[Attached] = None,
-                                             requireMain: Option[Boolean] = None,
-                                             sentinelledLogs: Option[Boolean] = None,
-                                             stemCells: Option[List[StemCell]] = None)
+  protected[core] case class RuntimeManifest(
+    kind: String,
+    image: ImageName,
+    deprecated: Option[Boolean] = None,
+    default: Option[Boolean] = None,
+    attached: Option[Attached] = None,
+    requireMain: Option[Boolean] = None,
+    sentinelledLogs: Option[Boolean] = None,
+    stemCells: Option[List[StemCell]] = None)
 
   /**
    * A stemcell configuration read from the manifest for a container image to be initialized by the container pool.
@@ -142,9 +145,10 @@ protected[core] object ExecManifest {
    * @param memory the max memory this stemcell will allocate
    * @param reactive the reactive prewarming prewarmed config, which is disabled by default
    */
-  protected[entity] case class StemCell(initialCount: Int,
-                                        memory: ByteSize,
-                                        reactive: Option[ReactivePrewarmingConfig] = None) {
+  protected[entity] case class StemCell(
+    initialCount: Int,
+    memory: ByteSize,
+    reactive: Option[ReactivePrewarmingConfig] = None) {
     require(initialCount > 0, "initialCount must be positive")
   }
 
@@ -157,11 +161,12 @@ protected[core] object ExecManifest {
    * @param threshold the executed activation number of cold start in previous one minute
    * @param increment increase per increment prewarmed number under per threshold activations
    */
-  protected[core] case class ReactivePrewarmingConfig(minCount: Int,
-                                                      maxCount: Int,
-                                                      ttl: FiniteDuration,
-                                                      threshold: Int,
-                                                      increment: Int) {
+  protected[core] case class ReactivePrewarmingConfig(
+    minCount: Int,
+    maxCount: Int,
+    ttl: FiniteDuration,
+    threshold: Int,
+    increment: Int) {
     require(
       minCount >= 0 && minCount <= maxCount,
       "minCount must be be greater than 0 and less than or equal to maxCount")
@@ -175,10 +180,11 @@ protected[core] object ExecManifest {
    * An image name for an action refers to the container image canonically as
    * "prefix/name[:tag]" e.g., "openwhisk/python3action:latest".
    */
-  protected[core] case class ImageName(name: String,
-                                       registry: Option[String] = None,
-                                       prefix: Option[String] = None,
-                                       tag: Option[String] = None) {
+  protected[core] case class ImageName(
+    name: String,
+    registry: Option[String] = None,
+    prefix: Option[String] = None,
+    tag: Option[String] = None) {
 
     /**
      * The actual name of the image for an action kind resolved by registry setting.
@@ -298,9 +304,10 @@ protected[core] object ExecManifest {
    * @param blackboxImages           set of blackbox container images
    * @param bypassPullForLocalImages container image prefix that is exempted from docker pull operations
    */
-  protected[core] case class Runtimes(runtimes: Set[RuntimeFamily],
-                                      blackboxImages: Set[ImageName],
-                                      bypassPullForLocalImages: Option[String]) {
+  protected[core] case class Runtimes(
+    runtimes: Set[RuntimeFamily],
+    blackboxImages: Set[ImageName],
+    bypassPullForLocalImages: Option[String]) {
 
     val knownContainerRuntimes: Set[String] = runtimes.flatMap(_.versions.map(_.kind))
 
@@ -320,15 +327,14 @@ protected[core] object ExecManifest {
     def toJson: JsObject = {
       runtimes
         .map { family =>
-          family.name -> family.versions.map {
-            case rt =>
-              JsObject(
-                "kind" -> rt.kind.toJson,
-                "image" -> rt.image.resolveImageName().toJson,
-                "deprecated" -> rt.deprecated.getOrElse(false).toJson,
-                "default" -> rt.default.getOrElse(false).toJson,
-                "attached" -> rt.attached.isDefined.toJson,
-                "requireMain" -> rt.requireMain.getOrElse(false).toJson)
+          family.name -> family.versions.map { case rt =>
+            JsObject(
+              "kind" -> rt.kind.toJson,
+              "image" -> rt.image.resolveImageName().toJson,
+              "deprecated" -> rt.deprecated.getOrElse(false).toJson,
+              "default" -> rt.default.getOrElse(false).toJson,
+              "attached" -> rt.attached.isDefined.toJson,
+              "requireMain" -> rt.requireMain.getOrElse(false).toJson)
           }
         }
         .toMap
@@ -350,8 +356,8 @@ protected[core] object ExecManifest {
      */
     def stemcells: Map[RuntimeManifest, List[StemCell]] = {
       manifests
-        .flatMap {
-          case (_, m) => m.stemCells.map(m -> _)
+        .flatMap { case (_, m) =>
+          m.stemCells.map(m -> _)
         }
         .filter(_._2.nonEmpty)
     }

@@ -48,26 +48,30 @@ import pureconfig.generic.auto._
 object QueueSize
 case class MemoryQueueKey(invocationNamespace: String, docInfo: DocInfo)
 case class MemoryQueueValue(queue: ActorRef, isLeader: Boolean)
-case class UpdateMemoryQueue(oldAction: DocInfo,
-                             newAction: FullyQualifiedEntityName,
-                             activationMessage: ActivationMessage)
-case class CreateNewQueue(activationMessage: ActivationMessage,
-                          action: FullyQualifiedEntityName,
-                          actionMetadata: WhiskActionMetaData)
+case class UpdateMemoryQueue(
+  oldAction: DocInfo,
+  newAction: FullyQualifiedEntityName,
+  activationMessage: ActivationMessage)
+case class CreateNewQueue(
+  activationMessage: ActivationMessage,
+  action: FullyQualifiedEntityName,
+  actionMetadata: WhiskActionMetaData)
 
-case class RecoverQueue(activationMessage: ActivationMessage,
-                        action: FullyQualifiedEntityName,
-                        actionMetadata: WhiskActionMetaData)
+case class RecoverQueue(
+  activationMessage: ActivationMessage,
+  action: FullyQualifiedEntityName,
+  actionMetadata: WhiskActionMetaData)
 
 case class QueueManagerConfig(maxRetriesToGetQueue: Int, maxSchedulingTime: FiniteDuration)
 
 class QueueManager(
   entityStore: ArtifactStore[WhiskEntity],
-  getWhiskActionMetaData: (ArtifactStore[WhiskEntity],
-                           DocId,
-                           DocRevision,
-                           Boolean,
-                           Boolean) => Future[WhiskActionMetaData],
+  getWhiskActionMetaData: (
+    ArtifactStore[WhiskEntity],
+    DocId,
+    DocRevision,
+    Boolean,
+    Boolean) => Future[WhiskActionMetaData],
   etcdClient: EtcdClient,
   schedulerEndpoints: SchedulerEndpoints,
   schedulerId: SchedulerInstanceId,
@@ -110,7 +114,8 @@ class QueueManager(
     // note: action sent from the pool balancer already includes version
     case request: CreateQueue =>
       val receiver = sender
-      QueuePool.get(MemoryQueueKey(request.invocationNamespace, request.fqn.toDocId.asDocInfo(request.revision))) match {
+      QueuePool.get(
+        MemoryQueueKey(request.invocationNamespace, request.fqn.toDocId.asDocInfo(request.revision))) match {
         case Some(_) =>
           logging.info(this, s"Queue already exist for ${request.invocationNamespace}/${request.fqn}")
           receiver ! CreateQueueResponse(request.invocationNamespace, request.fqn, success = true)
@@ -224,9 +229,8 @@ class QueueManager(
             logging.info(this, s"Endpoint inserted, key: $key, endpoints: $endpoints")
             actorSelectionMap.update(key, endpoints.getRemoteRef(QueueManager.actorName))
           }
-          .recover {
-            case t =>
-              logging.error(this, s"Unexpected error $t when put leaderKey: ${key}")
+          .recover { case t =>
+            logging.error(this, s"Unexpected error $t when put leaderKey: ${key}")
           }
       }
 
@@ -297,10 +301,9 @@ class QueueManager(
         feed ! MessageFeed.Processed
         Future.successful({})
       }
-      .recover {
-        case t: DeserializationException =>
-          feed ! MessageFeed.Processed
-          logging.warn(this, s"Failed to parse message to ActivationMessage, ${t.getMessage}")
+      .recover { case t: DeserializationException =>
+        feed ! MessageFeed.Processed
+        logging.warn(this, s"Failed to parse message to ActivationMessage, ${t.getMessage}")
       }
   }
 
@@ -313,9 +316,10 @@ class QueueManager(
     initRevisionMap.update(key, revision)
   }
 
-  private def recreateQueue(action: FullyQualifiedEntityName,
-                            msg: ActivationMessage,
-                            actionMetaData: WhiskActionMetaData): Unit = {
+  private def recreateQueue(
+    action: FullyQualifiedEntityName,
+    msg: ActivationMessage,
+    actionMetaData: WhiskActionMetaData): Unit = {
     logging.warn(this, s"recreate queue for ${msg.action}")(msg.transid)
     val queue = createAndStartQueue(msg.user.namespace.name.asString, action, msg.revision, actionMetaData)
     queue ! msg
@@ -360,18 +364,17 @@ class QueueManager(
             transid.failed(this, start, message)
         }
       }
-      .recover {
-        case t =>
-          transid.failed(
-            this,
-            start,
-            s"failed to fetch action ${msg.action} with rev: ${msg.revision}, error ${t.getMessage}")
-          completeErrorActivation(msg, t.getMessage)
+      .recover { case t =>
+        transid.failed(
+          this,
+          start,
+          s"failed to fetch action ${msg.action} with rev: ${msg.revision}, error ${t.getMessage}")
+        completeErrorActivation(msg, t.getMessage)
       }
   }
 
-  private def createNewQueue(newAction: FullyQualifiedEntityName, msg: ActivationMessage)(
-    implicit transid: TransactionId): Future[Any] = {
+  private def createNewQueue(newAction: FullyQualifiedEntityName, msg: ActivationMessage)(implicit
+    transid: TransactionId): Future[Any] = {
     val start = transid.started(this, LoggingMarkers.SCHEDULER_QUEUE_UPDATE("version-mismatch"))
 
     logging.info(this, s"Create a new queue for ${newAction}, rev: ${msg.revision}")
@@ -422,7 +425,8 @@ class QueueManager(
         s"[${msg.activationId}] the activation message has not been scheduled for ${queueManagerConfig.maxSchedulingTime.toSeconds} sec")
       completeErrorActivation(msg, "The activation has not been processed: too old activation is arrived.")
     } else {
-      QueuePool.get(MemoryQueueKey(msg.user.namespace.name.asString, msg.action.toDocId.asDocInfo(msg.revision))) match {
+      QueuePool.get(
+        MemoryQueueKey(msg.user.namespace.name.asString, msg.action.toDocId.asDocInfo(msg.revision))) match {
         case Some(memoryQueueValue) if memoryQueueValue.isLeader =>
           memoryQueueValue.queue ! msg
         case _ =>
@@ -471,8 +475,8 @@ class QueueManager(
     }
   }
 
-  private def sendActivationToRemoteQueue(key: String, msg: ActivationMessage)(
-    implicit transid: TransactionId): Future[Any] = {
+  private def sendActivationToRemoteQueue(key: String, msg: ActivationMessage)(implicit
+    transid: TransactionId): Future[Any] = {
     logging.info(this, s"[${msg.activationId}] send activation to remote queue, key: ${key} revision: ${msg.revision}")
 
     getQueueEndpoint(key) map { endPoint =>
@@ -486,18 +490,14 @@ class QueueManager(
           actorSelectionMap.update(key, actorSelection)
           actorSelection ! msg
         })
-        .recoverWith {
-          case t =>
-            logging.warn(this, s"[${msg.activationId}] failed to parse endpoints (${t.getMessage})")
-            completeErrorActivation(
-              msg,
-              "The activation has not been processed: failed to parse the scheduler endpoint.")
+        .recoverWith { case t =>
+          logging.warn(this, s"[${msg.activationId}] failed to parse endpoints (${t.getMessage})")
+          completeErrorActivation(msg, "The activation has not been processed: failed to parse the scheduler endpoint.")
         }
 
-    } recoverWith {
-      case t =>
-        logging.warn(this, s"[${msg.activationId}] activation has been dropped (${t.getMessage})")
-        completeErrorActivation(msg, "The activation has not been processed: failed to get the queue endpoint.")
+    } recoverWith { case t =>
+      logging.warn(this, s"[${msg.activationId}] activation has been dropped (${t.getMessage})")
+      completeErrorActivation(msg, "The activation has not been processed: failed to get the queue endpoint.")
     }
   }
 
@@ -512,11 +512,12 @@ class QueueManager(
     }
   }
 
-  private def retryFuture[T](maxRetries: Int = 13,
-                             retries: Int = 1,
-                             factor: Float = 2.0f,
-                             initWait: Int = 1,
-                             curWait: Int = 0)(fn: => Future[T]): Future[T] = {
+  private def retryFuture[T](
+    maxRetries: Int = 13,
+    retries: Int = 1,
+    factor: Float = 2.0f,
+    initWait: Int = 1,
+    curWait: Int = 0)(fn: => Future[T]): Future[T] = {
     fn recoverWith {
       case e if retries <= maxRetries =>
         val wait =
@@ -582,10 +583,11 @@ class QueueManager(
     }
   }
 
-  private def createAndStartQueue(invocationNamespace: String,
-                                  action: FullyQualifiedEntityName,
-                                  revision: DocRevision,
-                                  actionMetaData: WhiskActionMetaData): ActorRef = {
+  private def createAndStartQueue(
+    invocationNamespace: String,
+    action: FullyQualifiedEntityName,
+    revision: DocRevision,
+    actionMetaData: WhiskActionMetaData): ActorRef = {
     val queue =
       childFactory(context, invocationNamespace, action, revision, actionMetaData)
     queue ! Start
@@ -625,16 +627,16 @@ class QueueManager(
       activation.rootControllerIndex,
       activation.user.namespace.uuid,
       ackMsg)
-      .andThen {
-        case Failure(t) =>
-          logging.error(this, s"failed to send ack due to ${t}")
+      .andThen { case Failure(t) =>
+        logging.error(this, s"failed to send ack due to ${t}")
       }
     store(activation.transid, activationResponse, UserContext(activation.user))
   }
 
   /** Generates an activation with zero runtime. Usually used for error cases */
-  private def generateFallbackActivation(msg: ActivationMessage,
-                                         response: OriginActivationResponse): WhiskActivation = {
+  private def generateFallbackActivation(
+    msg: ActivationMessage,
+    response: OriginActivationResponse): WhiskActivation = {
     val now = Instant.now
     val causedBy = if (msg.causedBySequence) {
       Some(Parameters(WhiskActivation.causedByAnnotation, JsString(Exec.SEQUENCE)))
@@ -674,11 +676,12 @@ object QueueManager {
 
   def props(
     entityStore: ArtifactStore[WhiskEntity],
-    getWhiskActionMetaData: (ArtifactStore[WhiskEntity],
-                             DocId,
-                             DocRevision,
-                             Boolean,
-                             Boolean) => Future[WhiskActionMetaData],
+    getWhiskActionMetaData: (
+      ArtifactStore[WhiskEntity],
+      DocId,
+      DocRevision,
+      Boolean,
+      Boolean) => Future[WhiskActionMetaData],
     etcdClient: EtcdClient,
     schedulerEndpoints: SchedulerEndpoints,
     schedulerId: SchedulerInstanceId,
@@ -788,8 +791,9 @@ object QueuePool {
   private[scheduler] def keys = _queuePool.keys
 }
 
-case class CreateQueue(invocationNamespace: String,
-                       fqn: FullyQualifiedEntityName,
-                       revision: DocRevision,
-                       whiskActionMetaData: WhiskActionMetaData)
+case class CreateQueue(
+  invocationNamespace: String,
+  fqn: FullyQualifiedEntityName,
+  revision: DocRevision,
+  whiskActionMetaData: WhiskActionMetaData)
 case class CreateQueueResponse(invocationNamespace: String, fqn: FullyQualifiedEntityName, success: Boolean)

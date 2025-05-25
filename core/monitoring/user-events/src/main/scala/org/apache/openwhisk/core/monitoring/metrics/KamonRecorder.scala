@@ -59,9 +59,10 @@ object KamonRecorder extends MetricRecorder with KamonMetricNames with SLF4JLogg
     val memory = activation.memory.toString
     val namespace = activation.namespace
     val action = activation.action
-    activationMetrics.getOrElseUpdate(name, {
-      ActivationKamonMetrics(namespace, action, kind, memory, initiator)
-    })
+    activationMetrics.getOrElseUpdate(
+      name, {
+        ActivationKamonMetrics(namespace, action, kind, memory, initiator)
+      })
   }
 
   case class LimitKamonMetrics(namespace: String) {
@@ -78,11 +79,12 @@ object KamonRecorder extends MetricRecorder with KamonMetricNames with SLF4JLogg
     }
   }
 
-  case class ActivationKamonMetrics(namespace: String,
-                                    action: String,
-                                    kind: String,
-                                    memory: String,
-                                    initiator: String) {
+  case class ActivationKamonMetrics(
+    namespace: String,
+    action: String,
+    kind: String,
+    memory: String,
+    initiator: String) {
     private val activationTags =
       TagSet.from(
         Map(
@@ -123,12 +125,11 @@ object KamonRecorder extends MetricRecorder with KamonMetricNames with SLF4JLogg
       Kamon.counter(statusMetric).withTags(tags.withTag("status", a.status)).increment()
 
       a.size.foreach(responseSize.record(_))
-      a.userDefinedStatusCode.foreach(
-        value =>
-          Kamon
-            .counter(userDefinedStatusCodeMetric)
-            .withTags(tags.withTag("userDefinedStatusCode", value.toString))
-            .increment())
+      a.userDefinedStatusCode.foreach(value =>
+        Kamon
+          .counter(userDefinedStatusCodeMetric)
+          .withTags(tags.withTag("userDefinedStatusCode", value.toString))
+          .increment())
     }
   }
 }

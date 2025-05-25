@@ -28,8 +28,8 @@ import org.apache.openwhisk.core.service.{DeleteEvent, PutEvent, UnwatchEndpoint
 import scala.collection.concurrent.TrieMap
 import scala.concurrent.{ExecutionContext, Future}
 
-class ContainerCounter(invocationNamespace: String, etcdClient: EtcdClient, watcherService: ActorRef)(
-  implicit val actorSystem: ActorSystem,
+class ContainerCounter(invocationNamespace: String, etcdClient: EtcdClient, watcherService: ActorRef)(implicit
+  val actorSystem: ActorSystem,
   ec: ExecutionContext,
   logging: Logging) {
   private[queue] var existingContainerNumByNamespace: Int = 0
@@ -52,7 +52,7 @@ class ContainerCounter(invocationNamespace: String, etcdClient: EtcdClient, watc
       override def receive: Receive = {
         case operation: WatchEndpointOperation if operation.isPrefix =>
           if (countingKeys
-                .contains(operation.watchKey))
+              .contains(operation.watchKey))
             waitingForCountKeys += operation.watchKey
           else {
             countingKeys += operation.watchKey
@@ -78,12 +78,9 @@ class ContainerCounter(invocationNamespace: String, etcdClient: EtcdClient, watc
         }
         watcher ! ReadyToGetCount(key)
       }
-      .recover {
-        case t: Throwable =>
-          logging.error(
-            this,
-            s"failed to get the number of existing containers for ${invocationNamespace} due to ${t}.")
-          watcher ! ReadyToGetCount(key)
+      .recover { case t: Throwable =>
+        logging.error(this, s"failed to get the number of existing containers for ${invocationNamespace} due to ${t}.")
+        watcher ! ReadyToGetCount(key)
       }
   }
 
@@ -109,9 +106,10 @@ class ContainerCounter(invocationNamespace: String, etcdClient: EtcdClient, watc
 
 object NamespaceContainerCount {
   private[queue] val instances = TrieMap[String, ContainerCounter]()
-  def apply(namespace: String, etcdClient: EtcdClient, watcherService: ActorRef)(implicit actorSystem: ActorSystem,
-                                                                                 ec: ExecutionContext,
-                                                                                 logging: Logging): ContainerCounter = {
+  def apply(namespace: String, etcdClient: EtcdClient, watcherService: ActorRef)(implicit
+    actorSystem: ActorSystem,
+    ec: ExecutionContext,
+    logging: Logging): ContainerCounter = {
     instances
       .getOrElseUpdate(namespace, new ContainerCounter(namespace, etcdClient, watcherService))
       .increaseReference()

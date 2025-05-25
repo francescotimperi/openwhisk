@@ -35,11 +35,12 @@ import org.apache.openwhisk.core.database.DocumentFactory
  * WhiskRulePut is a restricted WhiskRule view that eschews properties
  * that are auto-assigned or derived from URI: namespace, name, status.
  */
-case class WhiskRulePut(trigger: Option[FullyQualifiedEntityName] = None,
-                        action: Option[FullyQualifiedEntityName] = None,
-                        version: Option[SemVer] = None,
-                        publish: Option[Boolean] = None,
-                        annotations: Option[Parameters] = None) {
+case class WhiskRulePut(
+  trigger: Option[FullyQualifiedEntityName] = None,
+  action: Option[FullyQualifiedEntityName] = None,
+  version: Option[SemVer] = None,
+  publish: Option[Boolean] = None,
+  annotations: Option[Parameters] = None) {
 
   /**
    * Resolves the trigger and action name if they contains the default namespace.
@@ -70,14 +71,15 @@ case class WhiskRulePut(trigger: Option[FullyQualifiedEntityName] = None,
  * @param updated the timestamp when the rule is updated
  * @throws IllegalArgumentException if any argument is undefined
  */
-case class WhiskRule(namespace: EntityPath,
-                     override val name: EntityName,
-                     trigger: FullyQualifiedEntityName,
-                     action: FullyQualifiedEntityName,
-                     version: SemVer = SemVer(),
-                     publish: Boolean = false,
-                     annotations: Parameters = Parameters(),
-                     override val updated: Instant = WhiskEntity.currentMillis())
+case class WhiskRule(
+  namespace: EntityPath,
+  override val name: EntityName,
+  trigger: FullyQualifiedEntityName,
+  action: FullyQualifiedEntityName,
+  version: SemVer = SemVer(),
+  publish: Boolean = false,
+  annotations: Parameters = Parameters(),
+  override val updated: Instant = WhiskEntity.currentMillis())
     extends WhiskEntity(name, "rule") {
 
   def withStatus(s: Status) =
@@ -100,15 +102,16 @@ case class WhiskRule(namespace: EntityPath,
  * @param publish true to share the action or false otherwise
  * @param annotations the set of annotations to attribute to the rule
  */
-case class WhiskRuleResponse(namespace: EntityPath,
-                             name: EntityName,
-                             status: Status,
-                             trigger: FullyQualifiedEntityName,
-                             action: FullyQualifiedEntityName,
-                             version: SemVer = SemVer(),
-                             publish: Boolean = false,
-                             annotations: Parameters = Parameters(),
-                             updated: Instant) {
+case class WhiskRuleResponse(
+  namespace: EntityPath,
+  name: EntityName,
+  status: Status,
+  trigger: FullyQualifiedEntityName,
+  action: FullyQualifiedEntityName,
+  version: SemVer = SemVer(),
+  publish: Boolean = false,
+  annotations: Parameters = Parameters(),
+  updated: Instant) {
 
   def toWhiskRule = WhiskRule(namespace, name, trigger, action, version, publish, annotations)
 }
@@ -226,7 +229,8 @@ object WhiskRule extends DocumentFactory[WhiskRule] with WhiskEntityQueries[Whis
               case Failure(t) => deserializationError(t.getMessage)
             }
           }
-          val fields = value.asJsObject.fields + ("action" -> refs(0).toDocId.toJson) + ("trigger" -> refs(1).toDocId.toJson)
+          val fields =
+            value.asJsObject.fields + ("action" -> refs(0).toDocId.toJson) + ("trigger" -> refs(1).toDocId.toJson)
           caseClassSerdes.read(JsObject(fields))
       } match {
         case Success(r) => r

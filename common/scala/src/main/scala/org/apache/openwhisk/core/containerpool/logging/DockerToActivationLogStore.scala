@@ -67,12 +67,13 @@ class DockerToActivationLogStore(system: ActorSystem) extends LogStore {
   override val containerParameters = Map("--log-driver" -> Set("json-file"))
 
   /* As logs are already part of the activation record, just return that bit of it */
-  override def fetchLogs(namespace: String,
-                         activationId: ActivationId,
-                         start: Option[Instant],
-                         end: Option[Instant],
-                         activationLogs: Option[ActivationLogs],
-                         context: UserContext): Future[ActivationLogs] =
+  override def fetchLogs(
+    namespace: String,
+    activationId: ActivationId,
+    start: Option[Instant],
+    end: Option[Instant],
+    activationLogs: Option[ActivationLogs],
+    context: UserContext): Future[ActivationLogs] =
     activationLogs match {
       case Some(logs) => Future.successful(logs)
       case None       => Future.failed(new RuntimeException(s"Activation logs not available for activation ${activationId}"))
@@ -105,11 +106,12 @@ class DockerToActivationLogStore(system: ActorSystem) extends LogStore {
    *
    * @return a vector of Strings with log lines in our own JSON format
    */
-  protected def logStream(transid: TransactionId,
-                          container: Container,
-                          logLimit: LogLimit,
-                          sentinelledLogs: Boolean,
-                          isDeveloperError: Boolean): Source[ByteString, Any] = {
+  protected def logStream(
+    transid: TransactionId,
+    container: Container,
+    logLimit: LogLimit,
+    sentinelledLogs: Boolean,
+    isDeveloperError: Boolean): Source[ByteString, Any] = {
 
     // Wait for a sentinel only if no container (developer) error occurred to avoid
     // that log collection continues if the action code still logs after developer error.
@@ -143,9 +145,10 @@ class DockerToActivationLogStore(system: ActorSystem) extends LogStore {
    * @param isDeveloperError did activation fail due to developer error?
    * @return true if log collecting failed, false otherwise
    */
-  protected def isLogCollectingError(actLogs: ActivationLogs,
-                                     logLimit: LogLimit,
-                                     isDeveloperError: Boolean): Boolean = {
+  protected def isLogCollectingError(
+    actLogs: ActivationLogs,
+    logLimit: LogLimit,
+    isDeveloperError: Boolean): Boolean = {
     val logs = actLogs.logs
     val logCollectingErrorMessages = Set(Messages.logFailure, Messages.truncateLogs(logLimit.asMegaBytes))
     val lastLine: Option[String] = logs.lastOption
@@ -168,11 +171,12 @@ class DockerToActivationLogStore(system: ActorSystem) extends LogStore {
     }
   }
 
-  override def collectLogs(transid: TransactionId,
-                           user: Identity,
-                           activation: WhiskActivation,
-                           container: Container,
-                           action: ExecutableWhiskAction): Future[ActivationLogs] = {
+  override def collectLogs(
+    transid: TransactionId,
+    user: Identity,
+    activation: WhiskActivation,
+    container: Container,
+    action: ExecutableWhiskAction): Future[ActivationLogs] = {
 
     val logLimit = action.limits.logs
     val isDeveloperError = activation.response.isContainerError // container error means developer error

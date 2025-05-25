@@ -27,12 +27,13 @@ import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import scala.math.{max, round}
 
-case class ContainerArgsConfig(network: String,
-                               dnsServers: Seq[String] = Seq.empty,
-                               dnsSearch: Seq[String] = Seq.empty,
-                               dnsOptions: Seq[String] = Seq.empty,
-                               extraEnvVars: Seq[String] = Seq.empty,
-                               extraArgs: Map[String, Set[String]] = Map.empty) {
+case class ContainerArgsConfig(
+  network: String,
+  dnsServers: Seq[String] = Seq.empty,
+  dnsSearch: Seq[String] = Seq.empty,
+  dnsOptions: Seq[String] = Seq.empty,
+  extraEnvVars: Seq[String] = Seq.empty,
+  extraArgs: Map[String, Set[String]] = Map.empty) {
 
   val extraEnvVarMap: Map[String, String] =
     extraEnvVars.flatMap {
@@ -44,19 +45,20 @@ case class ContainerArgsConfig(network: String,
     }.toMap
 }
 
-case class ContainerPoolConfig(userMemory: ByteSize,
-                               concurrentPeekFactor: Double,
-                               akkaClient: Boolean,
-                               prewarmExpirationCheckInitDelay: FiniteDuration,
-                               prewarmExpirationCheckInterval: FiniteDuration,
-                               prewarmExpirationCheckIntervalVariance: Option[FiniteDuration],
-                               prewarmExpirationLimit: Int,
-                               prewarmMaxRetryLimit: Int,
-                               prewarmPromotion: Boolean,
-                               memorySyncInterval: FiniteDuration,
-                               batchDeletionSize: Int,
-                               userCpus: Option[Double] = None,
-                               prewarmContainerCreationConfig: Option[PrewarmContainerCreationConfig] = None) {
+case class ContainerPoolConfig(
+  userMemory: ByteSize,
+  concurrentPeekFactor: Double,
+  akkaClient: Boolean,
+  prewarmExpirationCheckInitDelay: FiniteDuration,
+  prewarmExpirationCheckInterval: FiniteDuration,
+  prewarmExpirationCheckIntervalVariance: Option[FiniteDuration],
+  prewarmExpirationLimit: Int,
+  prewarmMaxRetryLimit: Int,
+  prewarmPromotion: Boolean,
+  memorySyncInterval: FiniteDuration,
+  batchDeletionSize: Int,
+  userCpus: Option[Double] = None,
+  prewarmContainerCreationConfig: Option[PrewarmContainerCreationConfig] = None) {
   require(
     concurrentPeekFactor > 0 && concurrentPeekFactor <= 1.0,
     s"concurrentPeekFactor must be > 0 and <= 1.0; was $concurrentPeekFactor")
@@ -81,7 +83,8 @@ case class ContainerPoolConfig(userMemory: ByteSize,
   def cpuLimit(reservedMemory: ByteSize): Option[Double] = {
     userCpus.map(c => {
       val containerCpus = c / (userMemory.toBytes / reservedMemory.toBytes)
-      val roundedContainerCpus = round(containerCpus * roundingMultiplier).toDouble / roundingMultiplier // Only use decimal precision of 5
+      val roundedContainerCpus =
+        round(containerCpus * roundingMultiplier).toDouble / roundingMultiplier // Only use decimal precision of 5
       max(roundedContainerCpus, minContainerCpus)
     })
   }
@@ -133,13 +136,14 @@ trait ContainerFactory {
     createContainer(tid, name, actionImage, userProvidedImage, memory, cpuShares, cpuLimit)
   }
 
-  def createContainer(tid: TransactionId,
-                      name: String,
-                      actionImage: ExecManifest.ImageName,
-                      userProvidedImage: Boolean,
-                      memory: ByteSize,
-                      cpuShares: Int,
-                      cpuLimit: Option[Double])(implicit config: WhiskConfig, logging: Logging): Future[Container]
+  def createContainer(
+    tid: TransactionId,
+    name: String,
+    actionImage: ExecManifest.ImageName,
+    userProvidedImage: Boolean,
+    memory: ByteSize,
+    cpuShares: Int,
+    cpuLimit: Option[Double])(implicit config: WhiskConfig, logging: Logging): Future[Container]
 
   /** perform any initialization */
   def init(): Unit
@@ -157,9 +161,10 @@ object ContainerFactory {
   def containerNamePrefix(instanceId: InvokerInstanceId): String =
     s"wsk${instanceId.uniqueName.getOrElse("")}${instanceId.toInt}".filter(isAllowed)
 
-  def resolveRegistryConfig(userProvidedImage: Boolean,
-                            runtimesRegistryConfig: RuntimesRegistryConfig,
-                            userImagesRegistryConfig: RuntimesRegistryConfig): RuntimesRegistryConfig = {
+  def resolveRegistryConfig(
+    userProvidedImage: Boolean,
+    runtimesRegistryConfig: RuntimesRegistryConfig,
+    userImagesRegistryConfig: RuntimesRegistryConfig): RuntimesRegistryConfig = {
     if (userProvidedImage) userImagesRegistryConfig else runtimesRegistryConfig
   }
 }
@@ -169,9 +174,10 @@ object ContainerFactory {
  * All impls should use the parameters specified as additional args to "docker run" commands
  */
 trait ContainerFactoryProvider extends Spi {
-  def instance(actorSystem: ActorSystem,
-               logging: Logging,
-               config: WhiskConfig,
-               instance: InvokerInstanceId,
-               parameters: Map[String, Set[String]]): ContainerFactory
+  def instance(
+    actorSystem: ActorSystem,
+    logging: Logging,
+    config: WhiskConfig,
+    instance: InvokerInstanceId,
+    parameters: Map[String, Set[String]]): ContainerFactory
 }

@@ -51,8 +51,8 @@ object CacheInvalidationMessage extends DefaultJsonProtocol {
   implicit val serdes = jsonFormat(CacheInvalidationMessage.apply _, "key", "instanceId")
 }
 
-class RemoteCacheInvalidation(config: WhiskConfig, component: String, instance: ControllerInstanceId)(
-  implicit logging: Logging,
+class RemoteCacheInvalidation(config: WhiskConfig, component: String, instance: ControllerInstanceId)(implicit
+  logging: Logging,
   as: ActorSystem) {
   import RemoteCacheInvalidation._
   implicit private val ec = as.dispatchers.lookup("dispatchers.kafka-dispatcher")

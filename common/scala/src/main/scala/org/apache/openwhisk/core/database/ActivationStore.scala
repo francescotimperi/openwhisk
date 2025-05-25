@@ -64,20 +64,22 @@ trait ActivationStore {
    * @param notifier cache change notifier
    * @return Future containing DocInfo related to stored activation
    */
-  def storeAfterCheck(activation: WhiskActivation,
-                      isBlockingActivation: Boolean,
-                      blockingStoreLevel: Option[ActivationStoreLevel.Value],
-                      nonBlockingStoreLevel: Option[ActivationStoreLevel.Value],
-                      context: UserContext)(implicit transid: TransactionId,
-                                            notifier: Option[CacheChangeNotification],
-                                            logging: Logging): Future[DocInfo] = {
+  def storeAfterCheck(
+    activation: WhiskActivation,
+    isBlockingActivation: Boolean,
+    blockingStoreLevel: Option[ActivationStoreLevel.Value],
+    nonBlockingStoreLevel: Option[ActivationStoreLevel.Value],
+    context: UserContext)(implicit
+    transid: TransactionId,
+    notifier: Option[CacheChangeNotification],
+    logging: Logging): Future[DocInfo] = {
     if (context.user.limits.storeActivations.getOrElse(true) &&
-        shouldStoreActivation(
-          activation.response,
-          isBlockingActivation,
-          transid.meta.extraLogging,
-          blockingStoreLevel.getOrElse(storeBlockingResultLevelConfig),
-          nonBlockingStoreLevel.getOrElse(storeNonBlockingResultLevelConfig))) {
+      shouldStoreActivation(
+        activation.response,
+        isBlockingActivation,
+        transid.meta.extraLogging,
+        blockingStoreLevel.getOrElse(storeBlockingResultLevelConfig),
+        nonBlockingStoreLevel.getOrElse(storeNonBlockingResultLevelConfig))) {
 
       store(activation, context)
     } else {
@@ -100,8 +102,8 @@ trait ActivationStore {
    * @param notifier cache change notifier
    * @return Future containing DocInfo related to stored activation
    */
-  def store(activation: WhiskActivation, context: UserContext)(
-    implicit transid: TransactionId,
+  def store(activation: WhiskActivation, context: UserContext)(implicit
+    transid: TransactionId,
     notifier: Option[CacheChangeNotification]): Future[DocInfo]
 
   /**
@@ -123,8 +125,8 @@ trait ActivationStore {
    * @param notifier cache change notifier
    * @return Future containing a Boolean value indication whether the activation was deleted
    */
-  def delete(activationId: ActivationId, context: UserContext)(
-    implicit transid: TransactionId,
+  def delete(activationId: ActivationId, context: UserContext)(implicit
+    transid: TransactionId,
     notifier: Option[CacheChangeNotification]): Future[Boolean]
 
   /**
@@ -139,12 +141,13 @@ trait ActivationStore {
    * @param transid transaction ID for request
    * @return Future containing number of activations returned from query in JSON format
    */
-  def countActivationsInNamespace(namespace: EntityPath,
-                                  name: Option[EntityPath] = None,
-                                  skip: Int,
-                                  since: Option[Instant] = None,
-                                  upto: Option[Instant] = None,
-                                  context: UserContext)(implicit transid: TransactionId): Future[JsObject]
+  def countActivationsInNamespace(
+    namespace: EntityPath,
+    name: Option[EntityPath] = None,
+    skip: Int,
+    since: Option[Instant] = None,
+    upto: Option[Instant] = None,
+    context: UserContext)(implicit transid: TransactionId): Future[JsObject]
 
   /**
    * Returns activations corresponding to provided entity name.
@@ -209,11 +212,12 @@ trait ActivationStore {
    * @param nonBlockingStoreLevel level of activation status to store for blocking invocations
    * @return Should the activation be stored to the database
    */
-  private def shouldStoreActivation(activationResponse: ActivationResponse,
-                                    isBlocking: Boolean,
-                                    debugMode: Boolean,
-                                    blockingStoreLevel: ActivationStoreLevel.Value,
-                                    nonBlockingStoreLevel: ActivationStoreLevel.Value): Boolean = {
+  private def shouldStoreActivation(
+    activationResponse: ActivationResponse,
+    isBlocking: Boolean,
+    debugMode: Boolean,
+    blockingStoreLevel: ActivationStoreLevel.Value,
+    nonBlockingStoreLevel: ActivationStoreLevel.Value): Boolean = {
     def shouldStoreOnLevel(storageLevel: ActivationStoreLevel.Value): Boolean = {
       storageLevel match {
         case ActivationStoreLevel.STORE_ALWAYS   => true

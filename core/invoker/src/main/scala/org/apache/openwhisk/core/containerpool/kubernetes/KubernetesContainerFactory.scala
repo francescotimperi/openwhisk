@@ -94,10 +94,11 @@ object KubernetesContainerFactoryProvider extends ContainerFactoryProvider {
   val release = loadConfigOrThrow[String]("whisk.helm.release")
   val runtimeDeleteTimeout = loadConfigOrThrow[FiniteDuration]("whisk.runtime.delete.timeout")
 
-  override def instance(actorSystem: ActorSystem,
-                        logging: Logging,
-                        config: WhiskConfig,
-                        instance: InvokerInstanceId,
-                        parameters: Map[String, Set[String]]): ContainerFactory =
+  override def instance(
+    actorSystem: ActorSystem,
+    logging: Logging,
+    config: WhiskConfig,
+    instance: InvokerInstanceId,
+    parameters: Map[String, Set[String]]): ContainerFactory =
     new KubernetesContainerFactory(s"invoker${instance.toInt}", config)(actorSystem, actorSystem.dispatcher, logging)
 }

@@ -70,13 +70,13 @@ class LatencySimulation extends Simulation {
       .string(StandardCharsets.UTF_8), "latencyTest_python", ""),
     "swift:default" -> (ClasspathPackagedResource("swiftAction.swift", getClass.getResource("/data/swiftAction.swift"))
       .string(StandardCharsets.UTF_8), "latencyTest_swift", ""),
-    "java:default" -> (Base64.getEncoder.encodeToString(ClasspathPackagedResource(
-      "javaAction.jar",
-      getClass.getResource("/data/javaAction.jar")).bytes), "latencyTest_java", "JavaAction"))
+    "java:default" -> (Base64.getEncoder.encodeToString(
+      ClasspathPackagedResource(
+        "javaAction.jar",
+        getClass.getResource("/data/javaAction.jar")).bytes), "latencyTest_java", "JavaAction"))
     .filterNot(e => excludedKinds.contains(e._1))
-    .map {
-      case (kind, (code, name, main)) =>
-        (kind, code, name, main)
+    .map { case (kind, (code, name, main)) =>
+      (kind, code, name, main)
     }
     .toSeq
 

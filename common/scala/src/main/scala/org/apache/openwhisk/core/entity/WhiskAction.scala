@@ -37,11 +37,12 @@ import org.apache.openwhisk.core.entity.types.EntityStore
  * ActionLimitsOption mirrors ActionLimits but makes both the timeout and memory
  * limit optional so that it is convenient to override just one limit at a time.
  */
-case class ActionLimitsOption(timeout: Option[TimeLimit],
-                              memory: Option[MemoryLimit],
-                              logs: Option[LogLimit],
-                              concurrency: Option[IntraConcurrencyLimit],
-                              instances: Option[InstanceConcurrencyLimit] = None)
+case class ActionLimitsOption(
+  timeout: Option[TimeLimit],
+  memory: Option[MemoryLimit],
+  logs: Option[LogLimit],
+  concurrency: Option[IntraConcurrencyLimit],
+  instances: Option[InstanceConcurrencyLimit] = None)
 
 /**
  * WhiskActionPut is a restricted WhiskAction view that eschews properties
@@ -49,13 +50,14 @@ case class ActionLimitsOption(timeout: Option[TimeLimit],
  * also replaces limits with an optional counterpart for convenience of
  * overriding only one value at a time.
  */
-case class WhiskActionPut(exec: Option[Exec] = None,
-                          parameters: Option[Parameters] = None,
-                          limits: Option[ActionLimitsOption] = None,
-                          version: Option[SemVer] = None,
-                          publish: Option[Boolean] = None,
-                          annotations: Option[Parameters] = None,
-                          delAnnotations: Option[Array[String]] = None) {
+case class WhiskActionPut(
+  exec: Option[Exec] = None,
+  parameters: Option[Parameters] = None,
+  limits: Option[ActionLimitsOption] = None,
+  version: Option[SemVer] = None,
+  publish: Option[Boolean] = None,
+  annotations: Option[Parameters] = None,
+  delAnnotations: Option[Array[String]] = None) {
 
   protected[core] def replace(exec: Exec) = {
     WhiskActionPut(Some(exec), parameters, limits, version, publish, annotations)
@@ -126,15 +128,16 @@ abstract class WhiskActionLikeMetaData(override val name: EntityName) extends Wh
  * @param updated the timestamp when the action is updated
  * @throws IllegalArgumentException if any argument is undefined
  */
-case class WhiskAction(namespace: EntityPath,
-                       override val name: EntityName,
-                       exec: Exec,
-                       parameters: Parameters = Parameters(),
-                       limits: ActionLimits = ActionLimits(),
-                       version: SemVer = SemVer(),
-                       publish: Boolean = false,
-                       annotations: Parameters = Parameters(),
-                       override val updated: Instant = WhiskEntity.currentMillis())
+case class WhiskAction(
+  namespace: EntityPath,
+  override val name: EntityName,
+  exec: Exec,
+  parameters: Parameters = Parameters(),
+  limits: ActionLimits = ActionLimits(),
+  version: SemVer = SemVer(),
+  publish: Boolean = false,
+  annotations: Parameters = Parameters(),
+  override val updated: Instant = WhiskEntity.currentMillis())
     extends WhiskActionLike(name) {
 
   require(exec != null, "exec undefined")
@@ -192,16 +195,17 @@ case class WhiskAction(namespace: EntityPath,
   }
 }
 
-case class WhiskActionMetaData(namespace: EntityPath,
-                               override val name: EntityName,
-                               exec: ExecMetaDataBase,
-                               parameters: Parameters = Parameters(),
-                               limits: ActionLimits = ActionLimits(),
-                               version: SemVer = SemVer(),
-                               publish: Boolean = false,
-                               annotations: Parameters = Parameters(),
-                               override val updated: Instant = WhiskEntity.currentMillis(),
-                               binding: Option[EntityPath] = None)
+case class WhiskActionMetaData(
+  namespace: EntityPath,
+  override val name: EntityName,
+  exec: ExecMetaDataBase,
+  parameters: Parameters = Parameters(),
+  limits: ActionLimits = ActionLimits(),
+  version: SemVer = SemVer(),
+  publish: Boolean = false,
+  annotations: Parameters = Parameters(),
+  override val updated: Instant = WhiskEntity.currentMillis(),
+  binding: Option[EntityPath] = None)
     extends WhiskActionLikeMetaData(name) {
 
   require(exec != null, "exec undefined")
@@ -269,15 +273,16 @@ case class WhiskActionMetaData(namespace: EntityPath,
  * @param binding the path of the package binding if any
  * @throws IllegalArgumentException if any argument is undefined
  */
-case class ExecutableWhiskAction(namespace: EntityPath,
-                                 override val name: EntityName,
-                                 exec: CodeExec[_],
-                                 parameters: Parameters = Parameters(),
-                                 limits: ActionLimits = ActionLimits(),
-                                 version: SemVer = SemVer(),
-                                 publish: Boolean = false,
-                                 annotations: Parameters = Parameters(),
-                                 binding: Option[EntityPath] = None)
+case class ExecutableWhiskAction(
+  namespace: EntityPath,
+  override val name: EntityName,
+  exec: CodeExec[_],
+  parameters: Parameters = Parameters(),
+  limits: ActionLimits = ActionLimits(),
+  version: SemVer = SemVer(),
+  publish: Boolean = false,
+  annotations: Parameters = Parameters(),
+  binding: Option[EntityPath] = None)
     extends WhiskActionLike(name) {
 
   require(exec != null, "exec undefined")
@@ -314,15 +319,16 @@ case class ExecutableWhiskAction(namespace: EntityPath,
       .revision[WhiskAction](rev)
 }
 
-case class ExecutableWhiskActionMetaData(namespace: EntityPath,
-                                         override val name: EntityName,
-                                         exec: ExecMetaData,
-                                         parameters: Parameters = Parameters(),
-                                         limits: ActionLimits = ActionLimits(),
-                                         version: SemVer = SemVer(),
-                                         publish: Boolean = false,
-                                         annotations: Parameters = Parameters(),
-                                         binding: Option[EntityPath] = None)
+case class ExecutableWhiskActionMetaData(
+  namespace: EntityPath,
+  override val name: EntityName,
+  exec: ExecMetaData,
+  parameters: Parameters = Parameters(),
+  limits: ActionLimits = ActionLimits(),
+  version: SemVer = SemVer(),
+  publish: Boolean = false,
+  annotations: Parameters = Parameters(),
+  binding: Option[EntityPath] = None)
     extends WhiskActionLikeMetaData(name) {
 
   require(exec != null, "exec undefined")
@@ -362,8 +368,8 @@ object WhiskAction extends DocumentFactory[WhiskAction] with WhiskEntityQueries[
     "updated")
 
   // overridden to store attached code
-  override def put[A >: WhiskAction](db: ArtifactStore[A], doc: WhiskAction, old: Option[WhiskAction])(
-    implicit transid: TransactionId,
+  override def put[A >: WhiskAction](db: ArtifactStore[A], doc: WhiskAction, old: Option[WhiskAction])(implicit
+    transid: TransactionId,
     notifier: Option[CacheChangeNotification]): Future[DocInfo] = {
 
     def putWithAttachment(code: String, binary: Boolean, exec: AttachedCode) = {
@@ -415,12 +421,13 @@ object WhiskAction extends DocumentFactory[WhiskAction] with WhiskEntityQueries[
   }
 
   // overridden to retrieve attached code
-  override def get[A >: WhiskAction](db: ArtifactStore[A],
-                                     doc: DocId,
-                                     rev: DocRevision = DocRevision.empty,
-                                     fromCache: Boolean,
-                                     ignoreMissingAttachment: Boolean = false)(
-    implicit transid: TransactionId,
+  override def get[A >: WhiskAction](
+    db: ArtifactStore[A],
+    doc: DocId,
+    rev: DocRevision = DocRevision.empty,
+    fromCache: Boolean,
+    ignoreMissingAttachment: Boolean = false)(implicit
+    transid: TransactionId,
     mw: Manifest[WhiskAction]): Future[WhiskAction] = {
 
     implicit val ec = db.executionContext
@@ -430,12 +437,17 @@ object WhiskAction extends DocumentFactory[WhiskAction] with WhiskEntityQueries[
         val boas = new ByteArrayOutputStream()
         val wrapped = if (binary) Base64.getEncoder().wrap(boas) else boas
 
-        getAttachment[A](db, action, attached, wrapped, Some { a: WhiskAction =>
-          wrapped.close()
-          val newAction = a.copy(exec = exec.inline(boas.toByteArray))
-          newAction.revision(a.rev)
-          newAction
-        }).recover({
+        getAttachment[A](
+          db,
+          action,
+          attached,
+          wrapped,
+          Some { a: WhiskAction =>
+            wrapped.close()
+            val newAction = a.copy(exec = exec.inline(boas.toByteArray))
+            newAction.revision(a.rev)
+            newAction
+          }).recover({
           case _: NoDocumentException if ignoreMissingAttachment =>
             action
         })
@@ -487,8 +499,8 @@ object WhiskAction extends DocumentFactory[WhiskAction] with WhiskEntityQueries[
     }
   }
 
-  override def del[Wsuper >: WhiskAction](db: ArtifactStore[Wsuper], doc: DocInfo)(
-    implicit transid: TransactionId,
+  override def del[Wsuper >: WhiskAction](db: ArtifactStore[Wsuper], doc: DocInfo)(implicit
+    transid: TransactionId,
     notifier: Option[CacheChangeNotification]): Future[Boolean] = {
     Try {
       require(db != null, "db undefined")
@@ -511,8 +523,8 @@ object WhiskAction extends DocumentFactory[WhiskAction] with WhiskEntityQueries[
    * If it's a binding, rewrite the fully qualified name of the action using the actual package path name.
    * If it's the actual package, use its name directly as the package path name.
    */
-  def resolveAction(db: EntityStore, fullyQualifiedActionName: FullyQualifiedEntityName)(
-    implicit ec: ExecutionContext,
+  def resolveAction(db: EntityStore, fullyQualifiedActionName: FullyQualifiedEntityName)(implicit
+    ec: ExecutionContext,
     transid: TransactionId): Future[FullyQualifiedEntityName] = {
     // first check that there is a package to be resolved
     val entityPath = fullyQualifiedActionName.path
@@ -536,8 +548,8 @@ object WhiskAction extends DocumentFactory[WhiskAction] with WhiskEntityQueries[
    * If it's the actual package, use its name directly as the package path name.
    * While traversing the package bindings, merge the parameters.
    */
-  def resolveActionAndMergeParameters(entityStore: EntityStore, fullyQualifiedName: FullyQualifiedEntityName)(
-    implicit ec: ExecutionContext,
+  def resolveActionAndMergeParameters(entityStore: EntityStore, fullyQualifiedName: FullyQualifiedEntityName)(implicit
+    ec: ExecutionContext,
     transid: TransactionId): Future[WhiskAction] = {
     // first check that there is a package to be resolved
     val entityPath = fullyQualifiedName.path
@@ -590,8 +602,8 @@ object WhiskActionMetaData
    * If it's a binding, rewrite the fully qualified name of the action using the actual package path name.
    * If it's the actual package, use its name directly as the package path name.
    */
-  def resolveAction(db: EntityStore, fullyQualifiedActionName: FullyQualifiedEntityName)(
-    implicit ec: ExecutionContext,
+  def resolveAction(db: EntityStore, fullyQualifiedActionName: FullyQualifiedEntityName)(implicit
+    ec: ExecutionContext,
     transid: TransactionId): Future[FullyQualifiedEntityName] = {
     // first check that there is a package to be resolved
     val entityPath = fullyQualifiedActionName.path
@@ -615,8 +627,8 @@ object WhiskActionMetaData
    * If it's the actual package, use its name directly as the package path name.
    * While traversing the package bindings, merge the parameters.
    */
-  def resolveActionAndMergeParameters(entityStore: EntityStore, fullyQualifiedName: FullyQualifiedEntityName)(
-    implicit ec: ExecutionContext,
+  def resolveActionAndMergeParameters(entityStore: EntityStore, fullyQualifiedName: FullyQualifiedEntityName)(implicit
+    ec: ExecutionContext,
     transid: TransactionId): Future[WhiskActionMetaData] = {
     // first check that there is a package to be resolved
     val entityPath = fullyQualifiedName.path

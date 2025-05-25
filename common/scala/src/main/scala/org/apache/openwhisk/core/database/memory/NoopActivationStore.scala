@@ -43,26 +43,27 @@ object NoopActivationStore extends ActivationStore with WhiskInstants {
     start = Instant.now.inMills,
     end = Instant.now.inMills)
 
-  override def store(activation: WhiskActivation, context: UserContext)(
-    implicit transid: TransactionId,
+  override def store(activation: WhiskActivation, context: UserContext)(implicit
+    transid: TransactionId,
     notifier: Option[CacheChangeNotification]): Future[DocInfo] = Future.successful(emptyInfo)
 
-  override def get(activationId: ActivationId, context: UserContext)(
-    implicit transid: TransactionId): Future[WhiskActivation] = {
+  override def get(activationId: ActivationId, context: UserContext)(implicit
+    transid: TransactionId): Future[WhiskActivation] = {
     val activation = dummyActivation.copy(activationId = activationId)
     Future.successful(activation)
   }
 
-  override def delete(activationId: ActivationId, context: UserContext)(
-    implicit transid: TransactionId,
+  override def delete(activationId: ActivationId, context: UserContext)(implicit
+    transid: TransactionId,
     notifier: Option[CacheChangeNotification]): Future[Boolean] = Future.successful(true)
 
-  override def countActivationsInNamespace(namespace: EntityPath,
-                                           name: Option[EntityPath],
-                                           skip: Int,
-                                           since: Option[Instant],
-                                           upto: Option[Instant],
-                                           context: UserContext)(implicit transid: TransactionId): Future[JsObject] =
+  override def countActivationsInNamespace(
+    namespace: EntityPath,
+    name: Option[EntityPath],
+    skip: Int,
+    since: Option[Instant],
+    upto: Option[Instant],
+    context: UserContext)(implicit transid: TransactionId): Future[JsObject] =
     Future.successful(emptyCount)
 
   override def listActivationsMatchingName(

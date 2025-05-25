@@ -56,21 +56,22 @@ import org.apache.openwhisk.core.database.UserContext
 
 import scala.concurrent.duration.FiniteDuration
 
-case class SplunkLogStoreConfig(host: String,
-                                port: Int,
-                                username: String,
-                                password: String,
-                                index: String,
-                                logTimestampField: String,
-                                logStreamField: String,
-                                logMessageField: String,
-                                namespaceField: String,
-                                activationIdField: String,
-                                queryConstraints: String,
-                                finalizeMaxTime: FiniteDuration,
-                                earliestTimeOffset: FiniteDuration,
-                                queryTimestampOffset: FiniteDuration,
-                                disableSNI: Boolean)
+case class SplunkLogStoreConfig(
+  host: String,
+  port: Int,
+  username: String,
+  password: String,
+  index: String,
+  logTimestampField: String,
+  logStreamField: String,
+  logMessageField: String,
+  namespaceField: String,
+  activationIdField: String,
+  queryConstraints: String,
+  finalizeMaxTime: FiniteDuration,
+  earliestTimeOffset: FiniteDuration,
+  queryTimestampOffset: FiniteDuration,
+  disableSNI: Boolean)
 case class SplunkResponse(results: Vector[JsObject])
 object SplunkResponseJsonProtocol extends DefaultJsonProtocol {
   implicit val orderFormat = jsonFormat1(SplunkResponse)
@@ -91,7 +92,8 @@ class SplunkLogStore(
   implicit val ec = as.dispatcher
   private val logging = new AkkaLogging(actorSystem.log)
 
-  private val splunkApi = Path / "services" / "search" / "jobs" //see http://docs.splunk.com/Documentation/Splunk/6.6.3/RESTREF/RESTsearch#search.2Fjobs
+  private val splunkApi =
+    Path / "services" / "search" / "jobs" //see http://docs.splunk.com/Documentation/Splunk/6.6.3/RESTREF/RESTsearch#search.2Fjobs
 
   import SplunkResponseJsonProtocol._
 
@@ -115,12 +117,13 @@ class SplunkLogStore(
         ConnectionContext.httpsClient(createInsecureSslEngine _)
       else Http().defaultClientHttpsContext)
 
-  override def fetchLogs(namespace: String,
-                         activationId: ActivationId,
-                         start: Option[Instant],
-                         end: Option[Instant],
-                         logs: Option[ActivationLogs],
-                         context: UserContext): Future[ActivationLogs] = {
+  override def fetchLogs(
+    namespace: String,
+    activationId: ActivationId,
+    start: Option[Instant],
+    end: Option[Instant],
+    logs: Option[ActivationLogs],
+    context: UserContext): Future[ActivationLogs] = {
 
     //example curl request:
     //    curl -u  username:password -k https://splunkhost:port/services/search/jobs -d exec_mode=oneshot -d output_mode=json -d "search=search index=someindex | search namespace=guest | search activation_id=a930e5ae4ad4455c8f2505d665aad282 | spath=log_message | table log_message" -d "earliest_time=2017-08-29T12:00:00" -d "latest_time=2017-10-29T12:00:00"
@@ -141,7 +144,9 @@ class SplunkLogStore(
           .toString, //assume that activation start/end are UTC zone, and splunk events are the same
         "latest_time" -> end
           .getOrElse(Instant.now())
-          .plusSeconds(splunkConfig.queryTimestampOffset.toSeconds) //add 5s to avoid a timerange of 0 on short-lived activations
+          .plusSeconds(
+            splunkConfig.queryTimestampOffset.toSeconds
+          ) //add 5s to avoid a timerange of 0 on short-lived activations
           .toString,
         "max_time" -> splunkConfig.finalizeMaxTime.toSeconds.toString //max time for the search query to run in seconds
       )).toEntity
@@ -155,24 +160,24 @@ class SplunkLogStore(
         logging.debug(this, s"splunk API response ${response}")
         Unmarshal(response.entity)
           .to[SplunkResponse]
-          .map(
-            r =>
-              ActivationLogs(
-                r.results
-                  .map(js => Try(toLogLine(js)))
-                  .map {
-                    case Success(s) => s
-                    case Failure(t) =>
-                      logging.debug(
-                        this,
-                        s"The log message might have been too large " +
-                          s"for '${splunkConfig.index}' Splunk index and can't be retrieved, ${t.getMessage}")
-                      s"The log message can't be retrieved, ${t.getMessage}"
-                  }))
+          .map(r =>
+            ActivationLogs(
+              r.results
+                .map(js => Try(toLogLine(js)))
+                .map {
+                  case Success(s) => s
+                  case Failure(t) =>
+                    logging.debug(
+                      this,
+                      s"The log message might have been too large " +
+                        s"for '${splunkConfig.index}' Splunk index and can't be retrieved, ${t.getMessage}")
+                    s"The log message can't be retrieved, ${t.getMessage}"
+                }))
       })
   }
 
-  private def toLogLine(l: JsObject) = //format same as org.apache.openwhisk.core.containerpool.logging.LogLine.toFormattedString
+  private def toLogLine(
+    l: JsObject) = //format same as org.apache.openwhisk.core.containerpool.logging.LogLine.toFormattedString
     f"${l.fields(splunkConfig.logTimestampField).convertTo[String]}%-30s ${l
       .fields(splunkConfig.logStreamField)
       .convertTo[String]}: ${l.fields(splunkConfig.logMessageField).convertTo[String].trim}"

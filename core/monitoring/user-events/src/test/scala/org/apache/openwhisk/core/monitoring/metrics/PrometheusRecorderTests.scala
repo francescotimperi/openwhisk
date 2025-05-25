@@ -63,7 +63,11 @@ class PrometheusRecorderTests extends KafkaSpecBase with BeforeAndAfterEach with
     consumer.shutdown().futureValue
     counterTotal(activationMetric, namespaceDemo, actionWithCustomPackage) shouldBe 1
     counter(coldStartMetric, namespaceDemo, actionWithCustomPackage) shouldBe 1
-    counterStatus(statusMetric, namespaceDemo, actionWithCustomPackage, ActivationResponse.statusDeveloperError) shouldBe 1
+    counterStatus(
+      statusMetric,
+      namespaceDemo,
+      actionWithCustomPackage,
+      ActivationResponse.statusDeveloperError) shouldBe 1
 
     histogramCount(waitTimeMetric, namespaceDemo, actionWithCustomPackage) shouldBe 1
     histogramSum(waitTimeMetric, namespaceDemo, actionWithCustomPackage) shouldBe (0.03 +- 0.001)

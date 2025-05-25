@@ -51,8 +51,8 @@ case object GrantLease
 case class SetLease(lease: Lease)
 case class SetWatcher(worker: Cancellable)
 
-class LeaseKeepAliveService(etcdClient: EtcdClient, instanceId: InstanceId, watcherService: ActorRef)(
-  implicit logging: Logging,
+class LeaseKeepAliveService(etcdClient: EtcdClient, instanceId: InstanceId, watcherService: ActorRef)(implicit
+  logging: Logging,
   actorSystem: ActorSystem)
     extends FSM[KeepAliveServiceState, KeepAliveServiceData]
     with Stash {
@@ -171,8 +171,8 @@ class LeaseKeepAliveService(etcdClient: EtcdClient, instanceId: InstanceId, watc
 }
 
 object LeaseKeepAliveService {
-  def props(etcdClient: EtcdClient, instanceId: InstanceId, watcherService: ActorRef)(
-    implicit logging: Logging,
+  def props(etcdClient: EtcdClient, instanceId: InstanceId, watcherService: ActorRef)(implicit
+    logging: Logging,
     actorSystem: ActorSystem): Props = {
     Props(new LeaseKeepAliveService(etcdClient, instanceId, watcherService))
       .withDispatcher("dispatchers.lease-service-dispatcher")

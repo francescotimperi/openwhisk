@@ -46,9 +46,10 @@ case class OpenWhiskActionBuilderBase(requestName: Expression[String]) {
   }
 }
 
-case class OpenWhiskActionBuilderWithNamespace(private val uuid: Expression[String],
-                                               private val key: Expression[String],
-                                               private val namespace: String = "_")(implicit private val http: Http) {
+case class OpenWhiskActionBuilderWithNamespace(
+  private val uuid: Expression[String],
+  private val key: Expression[String],
+  private val namespace: String = "_")(implicit private val http: Http) {
 
   /**
    * Specify on which namespace you want to perform any action.
@@ -74,10 +75,11 @@ case class OpenWhiskActionBuilderWithNamespace(private val uuid: Expression[Stri
   }
 }
 
-case class OpenWhiskActionBuilderWithAction(private val uuid: Expression[String],
-                                            private val key: Expression[String],
-                                            private val namespace: String,
-                                            private val action: String)(implicit private val http: Http) {
+case class OpenWhiskActionBuilderWithAction(
+  private val uuid: Expression[String],
+  private val key: Expression[String],
+  private val namespace: String,
+  private val action: String)(implicit private val http: Http) {
   private val path: Expression[String] = s"/api/v1/namespaces/$namespace/actions/$action"
 
   /** Fetch the action from OpenWhisk */

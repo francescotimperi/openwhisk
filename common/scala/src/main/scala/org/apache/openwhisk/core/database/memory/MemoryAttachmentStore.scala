@@ -37,8 +37,9 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 
 object MemoryAttachmentStoreProvider extends AttachmentStoreProvider {
-  override def makeStore[D <: DocumentSerializer: ClassTag]()(implicit actorSystem: ActorSystem,
-                                                              logging: Logging): AttachmentStore =
+  override def makeStore[D <: DocumentSerializer: ClassTag]()(implicit
+    actorSystem: ActorSystem,
+    logging: Logging): AttachmentStore =
     new MemoryAttachmentStore(implicitly[ClassTag[D]].runtimeClass.getSimpleName.toLowerCase)
 }
 
@@ -86,8 +87,8 @@ class MemoryAttachmentStore(dbName: String)(implicit system: ActorSystem, loggin
   /**
    * Retrieves a saved attachment, streaming it into the provided Sink.
    */
-  override protected[core] def readAttachment[T](docId: DocId, name: String, sink: Sink[ByteString, Future[T]])(
-    implicit transid: TransactionId): Future[T] = {
+  override protected[core] def readAttachment[T](docId: DocId, name: String, sink: Sink[ByteString, Future[T]])(implicit
+    transid: TransactionId): Future[T] = {
 
     val start =
       transid.started(
@@ -124,8 +125,8 @@ class MemoryAttachmentStore(dbName: String)(implicit system: ActorSystem, loggin
     Future.successful(true)
   }
 
-  override protected[core] def deleteAttachment(docId: DocId, name: String)(
-    implicit transid: TransactionId): Future[Boolean] = {
+  override protected[core] def deleteAttachment(docId: DocId, name: String)(implicit
+    transid: TransactionId): Future[Boolean] = {
     val start = transid.started(this, DATABASE_ATT_DELETE, s"[ATT_DELETE] uploading attachment of document '$docId'")
     attachments.remove(attachmentKey(docId, name))
     transid.finished(this, start, s"[ATT_DELETE] completed: delete attachment of document '$docId'")

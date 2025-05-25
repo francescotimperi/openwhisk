@@ -36,7 +36,8 @@ class OpenWhiskEventsTests extends KafkaSpecBase {
   it should "start working http server" in {
     val httpPort = freePort()
     val globalConfig = system.settings.config
-    val config = ConfigFactory.parseString(s"""
+    val config = ConfigFactory
+      .parseString(s"""
            | akka.kafka.consumer.kafka-clients {
            |  bootstrap.servers = "localhost:$kafkaPort"
            | }
@@ -54,7 +55,8 @@ class OpenWhiskEventsTests extends KafkaSpecBase {
            |    }
            |  }
            | }
-         """.stripMargin).withFallback(globalConfig)
+         """.stripMargin)
+      .withFallback(globalConfig)
     CollectorRegistry.defaultRegistry.clear()
     val binding = OpenWhiskEvents.start(config).futureValue
     val res = get("localhost", httpPort, "/ping")

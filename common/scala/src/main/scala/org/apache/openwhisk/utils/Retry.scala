@@ -32,10 +32,11 @@ object retry {
    * @return the result of fn iff it is successful
    * @throws Throwable exception from fn (or an illegal argument exception if N is < 1)
    */
-  def apply[T](fn: => T,
-               N: Int = 3,
-               waitBeforeRetry: Option[Duration] = Some(50.milliseconds),
-               retryMessage: Option[String] = None): T = {
+  def apply[T](
+    fn: => T,
+    N: Int = 3,
+    waitBeforeRetry: Option[Duration] = Some(50.milliseconds),
+    retryMessage: Option[String] = None): T = {
     require(N >= 1, "maximum number of fn applications must be greater than 1")
 
     try fn

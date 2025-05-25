@@ -27,11 +27,12 @@ import spray.json._
  * WhiskTriggerPut is a restricted WhiskTrigger view that eschews properties
  * that are auto-assigned or derived from URI: namespace and name.
  */
-case class WhiskTriggerPut(parameters: Option[Parameters] = None,
-                           limits: Option[TriggerLimits] = None,
-                           version: Option[SemVer] = None,
-                           publish: Option[Boolean] = None,
-                           annotations: Option[Parameters] = None)
+case class WhiskTriggerPut(
+  parameters: Option[Parameters] = None,
+  limits: Option[TriggerLimits] = None,
+  version: Option[SemVer] = None,
+  publish: Option[Boolean] = None,
+  annotations: Option[Parameters] = None)
 
 /**
  * Representation of a rule to be stored inside a trigger. Contains all
@@ -61,15 +62,16 @@ case class ReducedRule(action: FullyQualifiedEntityName, status: Status)
  * @param updated the timestamp when the trigger is updated
  * @throws IllegalArgumentException if any argument is undefined
  */
-case class WhiskTrigger(namespace: EntityPath,
-                        override val name: EntityName,
-                        parameters: Parameters = Parameters(),
-                        limits: TriggerLimits = TriggerLimits(),
-                        version: SemVer = SemVer(),
-                        publish: Boolean = false,
-                        annotations: Parameters = Parameters(),
-                        rules: Option[Map[FullyQualifiedEntityName, ReducedRule]] = None,
-                        override val updated: Instant = WhiskEntity.currentMillis())
+case class WhiskTrigger(
+  namespace: EntityPath,
+  override val name: EntityName,
+  parameters: Parameters = Parameters(),
+  limits: TriggerLimits = TriggerLimits(),
+  version: SemVer = SemVer(),
+  publish: Boolean = false,
+  annotations: Parameters = Parameters(),
+  rules: Option[Map[FullyQualifiedEntityName, ReducedRule]] = None,
+  override val updated: Instant = WhiskEntity.currentMillis())
     extends WhiskEntity(name, "trigger") {
 
   require(limits != null, "limits undefined")

@@ -35,8 +35,8 @@ private[database] object StoreUtils {
   private val digestAlgo = "SHA-256"
   private val encodedAlgoName = digestAlgo.toLowerCase.replaceAllLiterally("-", "")
 
-  def reportFailure[T](f: Future[T], start: StartMarker, failureMessage: Throwable => String)(
-    implicit transid: TransactionId,
+  def reportFailure[T](f: Future[T], start: StartMarker, failureMessage: Throwable => String)(implicit
+    transid: TransactionId,
     logging: Logging,
     ec: ExecutionContext): Future[T] = {
     f.failed.foreach {
@@ -56,15 +56,16 @@ private[database] object StoreUtils {
     require(doc.rev.rev != null, "doc revision must be specified")
   }
 
-  def deserialize[A <: DocumentAbstraction, DocumentAbstraction](doc: DocInfo, js: JsObject)(
-    implicit docReader: DocumentReader,
+  def deserialize[A <: DocumentAbstraction, DocumentAbstraction](doc: DocInfo, js: JsObject)(implicit
+    docReader: DocumentReader,
     ma: Manifest[A],
     jsonFormat: RootJsonFormat[DocumentAbstraction]): A = {
-    val asFormat = try {
-      docReader.read(ma, js)
-    } catch {
-      case _: Exception => jsonFormat.read(js)
-    }
+    val asFormat =
+      try {
+        docReader.read(ma, js)
+      } catch {
+        case _: Exception => jsonFormat.read(js)
+      }
 
     if (asFormat.getClass != ma.runtimeClass) {
       throw DocumentTypeMismatchException(
@@ -82,8 +83,8 @@ private[database] object StoreUtils {
     deserialized.asInstanceOf[WhiskDocument].revision(DocRevision(responseRev))
   }
 
-  def combinedSink[T](dest: Sink[ByteString, Future[T]])(
-    implicit ec: ExecutionContext): Sink[ByteString, Future[AttachmentUploadResult[T]]] = {
+  def combinedSink[T](dest: Sink[ByteString, Future[T]])(implicit
+    ec: ExecutionContext): Sink[ByteString, Future[AttachmentUploadResult[T]]] = {
     Sink.fromGraph(GraphDSL.create(digestSink(), lengthSink(), dest)(combineResult) {
       implicit builder => (dgs, ls, dests) =>
         import GraphDSL.Implicits._
@@ -113,15 +114,16 @@ private[database] object StoreUtils {
    * @param fieldsToRemove list of field names to remove
    * @return transformed json
    */
-  def transform(json: JsObject,
-                fieldsToAdd: Seq[(String, Option[JsValue])],
-                fieldsToRemove: Seq[String] = Seq.empty): JsObject = {
+  def transform(
+    json: JsObject,
+    fieldsToAdd: Seq[(String, Option[JsValue])],
+    fieldsToRemove: Seq[String] = Seq.empty): JsObject = {
     val fields = json.fields ++ fieldsToAdd.flatMap(f => f._2.map((f._1, _))) -- fieldsToRemove
     JsObject(fields)
   }
 
-  private def combineResult[T](digest: Future[String], length: Future[Long], upload: Future[T])(
-    implicit ec: ExecutionContext) = {
+  private def combineResult[T](digest: Future[String], length: Future[Long], upload: Future[T])(implicit
+    ec: ExecutionContext) = {
     for {
       d <- digest
       l <- length

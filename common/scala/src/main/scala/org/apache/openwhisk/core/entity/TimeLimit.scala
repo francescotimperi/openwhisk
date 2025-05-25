@@ -45,7 +45,7 @@ protected[entity] class TimeLimit private (val duration: FiniteDuration) extends
   protected[core] def millis = duration.toMillis.toInt
   override def toString = duration.toString
 
-  /** It checks the namespace duration limit setting value  */
+  /** It checks the namespace duration limit setting value */
   @throws[ActionTimeLimitException]
   protected[core] def checkNamespaceLimit(user: Identity): Unit = {
     val durationMax = user.limits.allowedMaxActionTimeout
@@ -68,13 +68,14 @@ case class TimeLimitConfig(max: FiniteDuration, min: FiniteDuration, std: Finite
 
 protected[core] object TimeLimit extends ArgNormalizer[TimeLimit] {
   val config = loadConfigOrThrow[TimeLimitConfig](ConfigKeys.timeLimit)
-  val namespaceDefaultConfig = try {
-    loadConfigOrThrow[NamespaceTimeLimitConfig](ConfigKeys.namespaceTimeLimit)
-  } catch {
-    case _: Throwable =>
-      // Supports backwards compatibility for openwhisk that do not use the namespace default limit
-      NamespaceTimeLimitConfig(config.max, config.min)
-  }
+  val namespaceDefaultConfig =
+    try {
+      loadConfigOrThrow[NamespaceTimeLimitConfig](ConfigKeys.namespaceTimeLimit)
+    } catch {
+      case _: Throwable =>
+        // Supports backwards compatibility for openwhisk that do not use the namespace default limit
+        NamespaceTimeLimitConfig(config.max, config.min)
+    }
   val timeLimitFieldName = "duration"
 
   /**

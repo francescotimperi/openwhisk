@@ -48,7 +48,7 @@ protected[core] class LogLimit private (val megabytes: Int) extends AnyVal {
 
   def toByteSize: ByteSize = ByteSize(megabytes, SizeUnits.MB)
 
-  /** It checks the namespace memory limit setting value  */
+  /** It checks the namespace memory limit setting value */
   @throws[ActionLogLimitException]
   protected[core] def checkNamespaceLimit(user: Identity): Unit = {
     val logMax = user.limits.allowedMaxActionLogs
@@ -68,13 +68,14 @@ protected[core] class LogLimit private (val megabytes: Int) extends AnyVal {
 
 protected[core] object LogLimit extends ArgNormalizer[LogLimit] {
   val config = loadConfigOrThrow[MemoryLimitConfig](ConfigKeys.logLimit)
-  val namespaceDefaultConfig = try {
-    loadConfigOrThrow[NamespaceMemoryLimitConfig](ConfigKeys.namespaceLogLimit)
-  } catch {
-    case _: Throwable =>
-      // Supports backwards compatibility for openwhisk that do not use the namespace default limit
-      NamespaceMemoryLimitConfig(config.min, config.max)
-  }
+  val namespaceDefaultConfig =
+    try {
+      loadConfigOrThrow[NamespaceMemoryLimitConfig](ConfigKeys.namespaceLogLimit)
+    } catch {
+      case _: Throwable =>
+        // Supports backwards compatibility for openwhisk that do not use the namespace default limit
+        NamespaceMemoryLimitConfig(config.min, config.max)
+    }
   val logLimitFieldName = "log"
 
   /**

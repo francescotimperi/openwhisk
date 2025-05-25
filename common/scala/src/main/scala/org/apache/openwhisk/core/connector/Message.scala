@@ -50,18 +50,19 @@ trait Message {
 
 case class ResultMetadata(topic: String, partition: Int, offset: Long)
 
-case class ActivationMessage(override val transid: TransactionId,
-                             action: FullyQualifiedEntityName,
-                             revision: DocRevision,
-                             user: Identity,
-                             activationId: ActivationId,
-                             rootControllerIndex: ControllerInstanceId,
-                             blocking: Boolean,
-                             content: Option[JsValue],
-                             initArgs: Set[String] = Set.empty,
-                             lockedArgs: Map[String, String] = Map.empty,
-                             cause: Option[ActivationId] = None,
-                             traceContext: Option[Map[String, String]] = None)
+case class ActivationMessage(
+  override val transid: TransactionId,
+  action: FullyQualifiedEntityName,
+  revision: DocRevision,
+  user: Identity,
+  activationId: ActivationId,
+  rootControllerIndex: ControllerInstanceId,
+  blocking: Boolean,
+  content: Option[JsValue],
+  initArgs: Set[String] = Set.empty,
+  lockedArgs: Map[String, String] = Map.empty,
+  cause: Option[ActivationId] = None,
+  traceContext: Option[Map[String, String]] = None)
     extends Message {
 
   override def serialize = ActivationMessage.serdes.write(this).compactPrint
@@ -118,10 +119,11 @@ abstract class AcknowledgementMessage(private val tid: TransactionId) extends Me
  * The constructor is private so that callers must use the more restrictive constructors which ensure the response is always
  * Right when this message is created.
  */
-case class CombinedCompletionAndResultMessage private (override val transid: TransactionId,
-                                                       response: Either[ActivationId, WhiskActivation],
-                                                       override val isSystemError: Option[Boolean],
-                                                       instance: InstanceId)
+case class CombinedCompletionAndResultMessage private (
+  override val transid: TransactionId,
+  response: Either[ActivationId, WhiskActivation],
+  override val isSystemError: Option[Boolean],
+  instance: InstanceId)
     extends AcknowledgementMessage(transid) {
   override def messageType = "combined"
 
@@ -144,10 +146,11 @@ case class CombinedCompletionAndResultMessage private (override val transid: Tra
  * phase notification to the load balancer where an invoker first sends a `ResultMessage` and later sends the
  * `CompletionMessage`.
  */
-case class CompletionMessage private (override val transid: TransactionId,
-                                      override val activationId: ActivationId,
-                                      override val isSystemError: Option[Boolean],
-                                      instance: InstanceId)
+case class CompletionMessage private (
+  override val transid: TransactionId,
+  override val activationId: ActivationId,
+  override val isSystemError: Option[Boolean],
+  instance: InstanceId)
     extends AcknowledgementMessage(transid) {
   override def messageType = "completion"
 
@@ -198,15 +201,17 @@ object ActivationMessage extends DefaultJsonProtocol {
 
 object CombinedCompletionAndResultMessage extends DefaultJsonProtocol {
   // this constructor is restricted to ensure the message is always created with certain invariants
-  private def apply(transid: TransactionId,
-                    activation: Either[ActivationId, WhiskActivation],
-                    isSystemError: Option[Boolean],
-                    instance: InstanceId): CombinedCompletionAndResultMessage =
+  private def apply(
+    transid: TransactionId,
+    activation: Either[ActivationId, WhiskActivation],
+    isSystemError: Option[Boolean],
+    instance: InstanceId): CombinedCompletionAndResultMessage =
     new CombinedCompletionAndResultMessage(transid, activation, isSystemError, instance)
 
-  def apply(transid: TransactionId,
-            activation: WhiskActivation,
-            instance: InstanceId): CombinedCompletionAndResultMessage =
+  def apply(
+    transid: TransactionId,
+    activation: WhiskActivation,
+    instance: InstanceId): CombinedCompletionAndResultMessage =
     new CombinedCompletionAndResultMessage(transid, Right(activation), Some(activation.response.isWhiskError), instance)
 
   implicit private val eitherSerdes = AcknowledgementMessage.eitherResponse
@@ -217,10 +222,11 @@ object CombinedCompletionAndResultMessage extends DefaultJsonProtocol {
 
 object CompletionMessage extends DefaultJsonProtocol {
   // this constructor is restricted to ensure the message is always created with certain invariants
-  private def apply(transid: TransactionId,
-                    activation: WhiskActivation,
-                    isSystemError: Option[Boolean],
-                    instance: InstanceId): CompletionMessage =
+  private def apply(
+    transid: TransactionId,
+    activation: WhiskActivation,
+    isSystemError: Option[Boolean],
+    instance: InstanceId): CompletionMessage =
     new CompletionMessage(transid, activation.activationId, Some(activation.response.isWhiskError), instance)
 
   def apply(transid: TransactionId, activation: WhiskActivation, instance: InstanceId): CompletionMessage = {
@@ -313,18 +319,19 @@ object EventMessageBody extends DefaultJsonProtocol {
   }
 }
 
-case class Activation(name: String,
-                      activationId: String,
-                      statusCode: Int,
-                      duration: Duration,
-                      waitTime: Duration,
-                      initTime: Duration,
-                      kind: String,
-                      conductor: Boolean,
-                      memory: Int,
-                      causedBy: Option[String],
-                      size: Option[Int] = None,
-                      userDefinedStatusCode: Option[Int] = None)
+case class Activation(
+  name: String,
+  activationId: String,
+  statusCode: Int,
+  duration: Duration,
+  waitTime: Duration,
+  initTime: Duration,
+  kind: String,
+  conductor: Boolean,
+  memory: Int,
+  causedBy: Option[String],
+  size: Option[Int] = None,
+  userDefinedStatusCode: Option[Int] = None)
     extends EventMessageBody {
   val typeName = Activation.typeName
 
@@ -387,8 +394,8 @@ object Activation extends DefaultJsonProtocol {
           .orElse(JsHelpers.getFieldPath(JsObject(fields), "statusCode"))
       case _ => None
     }
-    statusCode.map {
-      case value => Try(value.convertTo[BigInt].intValue).toOption.getOrElse(BadRequest.intValue)
+    statusCode.map { case value =>
+      Try(value.convertTo[BigInt].intValue).toOption.getOrElse(BadRequest.intValue)
     }
   }
 
@@ -438,13 +445,14 @@ object Metric extends DefaultJsonProtocol {
   implicit val metricFormat = jsonFormat(Metric.apply _, "metricName", "metricValue")
 }
 
-case class EventMessage(source: String,
-                        body: EventMessageBody,
-                        subject: Subject,
-                        namespace: String,
-                        userId: UUID,
-                        eventType: String,
-                        timestamp: Long = System.currentTimeMillis())
+case class EventMessage(
+  source: String,
+  body: EventMessageBody,
+  subject: Subject,
+  namespace: String,
+  userId: UUID,
+  eventType: String,
+  timestamp: Long = System.currentTimeMillis())
     extends Message {
   override def serialize = EventMessage.format.write(this).compactPrint
 }
@@ -462,12 +470,13 @@ object EventMessage extends DefaultJsonProtocol {
   def parse(msg: String) = Try(format.read(msg.parseJson))
 }
 
-case class InvokerResourceMessage(status: String,
-                                  freeMemory: Long,
-                                  busyMemory: Long,
-                                  inProgressMemory: Long,
-                                  tags: Seq[String],
-                                  dedicatedNamespaces: Seq[String])
+case class InvokerResourceMessage(
+  status: String,
+  freeMemory: Long,
+  busyMemory: Long,
+  inProgressMemory: Long,
+  tags: Seq[String],
+  dedicatedNamespaces: Seq[String])
     extends Message {
 
   /**
@@ -534,11 +543,12 @@ object InvokerResourceMessage extends DefaultJsonProtocol {
  */
 object GetState
 
-case class StatusData(invocationNamespace: String,
-                      fqn: String,
-                      waitingActivation: List[ActivationId],
-                      status: String,
-                      data: String)
+case class StatusData(
+  invocationNamespace: String,
+  fqn: String,
+  waitingActivation: List[ActivationId],
+  status: String,
+  data: String)
     extends Message {
 
   override def serialize: String = StatusData.serdes.write(this).compactPrint
@@ -551,16 +561,17 @@ object StatusData extends DefaultJsonProtocol {
     jsonFormat(StatusData.apply _, "invocationNamespace", "fqn", "waitingActivation", "status", "data")
 }
 
-case class ContainerCreationMessage(override val transid: TransactionId,
-                                    invocationNamespace: String,
-                                    action: FullyQualifiedEntityName,
-                                    revision: DocRevision,
-                                    whiskActionMetaData: WhiskActionMetaData,
-                                    rootSchedulerIndex: SchedulerInstanceId,
-                                    schedulerHost: String,
-                                    rpcPort: Int,
-                                    retryCount: Int = 0,
-                                    creationId: CreationId = CreationId.generate())
+case class ContainerCreationMessage(
+  override val transid: TransactionId,
+  invocationNamespace: String,
+  action: FullyQualifiedEntityName,
+  revision: DocRevision,
+  whiskActionMetaData: WhiskActionMetaData,
+  rootSchedulerIndex: SchedulerInstanceId,
+  schedulerHost: String,
+  rpcPort: Int,
+  retryCount: Int = 0,
+  creationId: CreationId = CreationId.generate())
     extends ContainerMessage(transid) {
 
   override def toJson: JsValue = ContainerCreationMessage.serdes.write(this)
@@ -588,11 +599,12 @@ object ContainerCreationMessage extends DefaultJsonProtocol {
       _: CreationId))
 }
 
-case class ContainerDeletionMessage(override val transid: TransactionId,
-                                    invocationNamespace: String,
-                                    action: FullyQualifiedEntityName,
-                                    revision: DocRevision,
-                                    whiskActionMetaData: WhiskActionMetaData)
+case class ContainerDeletionMessage(
+  override val transid: TransactionId,
+  invocationNamespace: String,
+  action: FullyQualifiedEntityName,
+  revision: DocRevision,
+  whiskActionMetaData: WhiskActionMetaData)
     extends ContainerMessage(transid) {
   override def toJson: JsValue = ContainerDeletionMessage.serdes.write(this)
 
@@ -724,18 +736,19 @@ object ContainerCreationError extends Enumeration {
   }
 }
 
-case class ContainerCreationAckMessage(override val transid: TransactionId,
-                                       creationId: CreationId,
-                                       invocationNamespace: String,
-                                       action: FullyQualifiedEntityName,
-                                       revision: DocRevision,
-                                       actionMetaData: WhiskActionMetaData,
-                                       rootInvokerIndex: InvokerInstanceId,
-                                       schedulerHost: String,
-                                       rpcPort: Int,
-                                       retryCount: Int = 0,
-                                       error: Option[ContainerCreationError] = None,
-                                       reason: Option[String] = None)
+case class ContainerCreationAckMessage(
+  override val transid: TransactionId,
+  creationId: CreationId,
+  invocationNamespace: String,
+  action: FullyQualifiedEntityName,
+  revision: DocRevision,
+  actionMetaData: WhiskActionMetaData,
+  rootInvokerIndex: InvokerInstanceId,
+  schedulerHost: String,
+  rpcPort: Int,
+  retryCount: Int = 0,
+  error: Option[ContainerCreationError] = None,
+  reason: Option[String] = None)
     extends Message {
 
   /**

@@ -38,10 +38,13 @@ import scala.concurrent.{ExecutionContextExecutor, Future, Promise}
 object RichListenableFuture {
   implicit def convertToFuture[T](lf: ListenableFuture[T])(implicit ece: ExecutionContextExecutor): Future[T] = {
     val p = Promise[T]()
-    Futures.addCallback(lf, new FutureCallback[T] {
-      def onFailure(t: Throwable): Unit = p failure t
-      def onSuccess(result: T): Unit = p success result
-    }, ece)
+    Futures.addCallback(
+      lf,
+      new FutureCallback[T] {
+        def onFailure(t: Throwable): Unit = p failure t
+        def onSuccess(result: T): Unit = p success result
+      },
+      ece)
     p.future
   }
 }
@@ -92,18 +95,16 @@ trait EtcdKeyValueApi extends KeyValueStore {
   }
 
   override def put(key: String, value: String): Future[PutResponse] =
-    client.getKvClient.put(key, value).async().recoverWith {
-      case t =>
-        Future.failed[PutResponse](getNestedException(t))
+    client.getKvClient.put(key, value).async().recoverWith { case t =>
+      Future.failed[PutResponse](getNestedException(t))
     }
 
   override def put(key: String, value: String, leaseId: Long): Future[PutResponse] =
     client.getKvClient
       .put(key, value, leaseId)
       .async()
-      .recoverWith {
-        case t =>
-          Future.failed[PutResponse](getNestedException(t))
+      .recoverWith { case t =>
+        Future.failed[PutResponse](getNestedException(t))
       }
 
   def put(key: String, value: Boolean): Future[PutResponse] = {
@@ -115,9 +116,8 @@ trait EtcdKeyValueApi extends KeyValueStore {
   }
 
   override def del(key: String): Future[DeleteRangeResponse] =
-    client.getKvClient.delete(key).async().recoverWith {
-      case t =>
-        Future.failed[DeleteRangeResponse](getNestedException(t))
+    client.getKvClient.delete(key).async().recoverWith { case t =>
+      Future.failed[DeleteRangeResponse](getNestedException(t))
     }
 
   override def putTxn[T](key: String, value: T, cmpVersion: Long, leaseId: Long): Future[TxnResponse] = {
@@ -130,9 +130,8 @@ trait EtcdKeyValueApi extends KeyValueStore {
         .put(key, value.toString, leaseId)
         .asRequest())
       .async()
-      .recoverWith {
-        case t =>
-          Future.failed[TxnResponse](getNestedException(t))
+      .recoverWith { case t =>
+        Future.failed[TxnResponse](getNestedException(t))
       }
   }
 
@@ -187,9 +186,10 @@ trait EtcdWatchApi {
   val threadpool = Executors.newFixedThreadPool(nThreads);
   protected[etcd] val client: Client
 
-  def watchAllKeys(next: WatchUpdate => Unit = (_: WatchUpdate) => {},
-                   error: Throwable => Unit = (_: Throwable) => {},
-                   completed: () => Unit = () => {}): Watch = {
+  def watchAllKeys(
+    next: WatchUpdate => Unit = (_: WatchUpdate) => {},
+    error: Throwable => Unit = (_: Throwable) => {},
+    completed: () => Unit = () => {}): Watch = {
     client.getKvClient
       .watch(KvClient.ALL_KEYS)
       .prevKv()
@@ -209,9 +209,10 @@ trait EtcdWatchApi {
       })
   }
 
-  def watch(key: String, isPrefix: Boolean = false)(next: WatchUpdate => Unit = (_: WatchUpdate) => {},
-                                                    error: Throwable => Unit = (_: Throwable) => {},
-                                                    completed: () => Unit = () => {}): Watch = {
+  def watch(key: String, isPrefix: Boolean = false)(
+    next: WatchUpdate => Unit = (_: WatchUpdate) => {},
+    error: Throwable => Unit = (_: Throwable) => {},
+    completed: () => Unit = () => {}): Watch = {
     val watchRequest = if (isPrefix) {
       client.getKvClient.watch(key).asPrefix().prevKv()
     } else {

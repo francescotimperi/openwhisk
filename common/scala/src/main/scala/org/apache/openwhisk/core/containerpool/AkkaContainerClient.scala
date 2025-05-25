@@ -133,12 +133,13 @@ protected class AkkaContainerClient(
       }
   }
   //returns a Future HttpResponse -> Int (where Int is the retryCount)
-  private def retryingRequest(req: Future[HttpRequest],
-                              timeout: FiniteDuration,
-                              retry: Boolean,
-                              reschedule: Boolean,
-                              endpoint: String,
-                              retryCount: Int = 0)(implicit tid: TransactionId): Future[(HttpResponse, Int)] = {
+  private def retryingRequest(
+    req: Future[HttpRequest],
+    timeout: FiniteDuration,
+    retry: Boolean,
+    reschedule: Boolean,
+    endpoint: String,
+    retryCount: Int = 0)(implicit tid: TransactionId): Future[(HttpResponse, Int)] = {
     val start = Instant.now
 
     request(req)
@@ -161,9 +162,10 @@ protected class AkkaContainerClient(
       }
   }
 
-  private def truncated(truncation: ByteSize,
-                        responseBytes: Source[ByteString, _],
-                        previouslyCaptured: ByteString = ByteString.empty): Future[String] = {
+  private def truncated(
+    truncation: ByteSize,
+    responseBytes: Source[ByteString, _],
+    previouslyCaptured: ByteString = ByteString.empty): Future[String] = {
     responseBytes.prefixAndTail(1).runWith(Sink.head).flatMap {
       case (Nil, tail) =>
         //ignore the tail (MUST CONSUME ENTIRE ENTITY!)
@@ -185,8 +187,8 @@ object AkkaContainerClient {
   private val queueSize = loadConfigOrThrow[Int]("akka.http.host-connection-pool.max-connections")
 
   /** A helper method to post one single request to a connection. Used for container tests. */
-  def post(host: String, port: Int, endPoint: String, content: JsValue, timeout: FiniteDuration)(
-    implicit logging: Logging,
+  def post(host: String, port: Int, endPoint: String, content: JsValue, timeout: FiniteDuration)(implicit
+    logging: Logging,
     as: ActorSystem,
     ec: ExecutionContext,
     tid: TransactionId): (Int, Option[JsObject]) = {
@@ -198,8 +200,8 @@ object AkkaContainerClient {
   }
 
   /** A helper method to post one single request to a connection. Used for container tests. */
-  def postForJsArray(host: String, port: Int, endPoint: String, content: JsValue, timeout: FiniteDuration)(
-    implicit logging: Logging,
+  def postForJsArray(host: String, port: Int, endPoint: String, content: JsValue, timeout: FiniteDuration)(implicit
+    logging: Logging,
     as: ActorSystem,
     ec: ExecutionContext,
     tid: TransactionId): (Int, Option[JsArray]) = {
@@ -212,19 +214,21 @@ object AkkaContainerClient {
 
   /** A helper method to post multiple concurrent requests to a single connection. Used for container tests. */
   def concurrentPost(host: String, port: Int, endPoint: String, contents: Seq[JsValue], timeout: FiniteDuration)(
-    implicit logging: Logging,
+    implicit
+    logging: Logging,
     tid: TransactionId,
     as: ActorSystem,
     ec: ExecutionContext): Seq[(Int, Option[JsObject])] = {
     val connection = new AkkaContainerClient(host, port, timeout, queueSize)
     val futureResults = contents.map { executeRequest(connection, endPoint, _) }
-    val results = Await.result(Future.sequence(futureResults), timeout + 10.seconds) //additional timeout to complete futures
+    val results =
+      Await.result(Future.sequence(futureResults), timeout + 10.seconds) //additional timeout to complete futures
     connection.close()
     results
   }
 
-  private def executeRequest(connection: AkkaContainerClient, endpoint: String, content: JsValue)(
-    implicit logging: Logging,
+  private def executeRequest(connection: AkkaContainerClient, endpoint: String, content: JsValue)(implicit
+    logging: Logging,
     as: ActorSystem,
     ec: ExecutionContext,
     tid: TransactionId): Future[(Int, Option[JsObject])] = {
@@ -248,8 +252,8 @@ object AkkaContainerClient {
     res
   }
 
-  private def executeRequestForJsArray(connection: AkkaContainerClient, endpoint: String, content: JsValue)(
-    implicit logging: Logging,
+  private def executeRequestForJsArray(connection: AkkaContainerClient, endpoint: String, content: JsValue)(implicit
+    logging: Logging,
     as: ActorSystem,
     ec: ExecutionContext,
     tid: TransactionId): Future[(Int, Option[JsArray])] = {

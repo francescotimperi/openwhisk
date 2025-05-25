@@ -28,30 +28,34 @@ import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
 
 // messages received by this actor
-case class WatchEndpoint(key: String,
-                         value: String,
-                         isPrefix: Boolean,
-                         name: String,
-                         listenEvents: Set[EtcdEvent] = Set.empty)
+case class WatchEndpoint(
+  key: String,
+  value: String,
+  isPrefix: Boolean,
+  name: String,
+  listenEvents: Set[EtcdEvent] = Set.empty)
 case class UnwatchEndpoint(watchKey: String, isPrefix: Boolean, watchName: String, needFeedback: Boolean = false)
 
 case object RestartWatcher
 
 // the watchKey is the string user want to watch, it can be a prefix, the key is a record's key in Etcd
 // so if `isPrefix = true`, the `watchKey != key`, else the `watchKey == key`
-sealed abstract class WatchEndpointOperation(val watchKey: String,
-                                             val key: String,
-                                             val value: String,
-                                             val isPrefix: Boolean)
-case class WatchEndpointRemoved(override val watchKey: String,
-                                override val key: String,
-                                override val value: String,
-                                override val isPrefix: Boolean)
+sealed abstract class WatchEndpointOperation(
+  val watchKey: String,
+  val key: String,
+  val value: String,
+  val isPrefix: Boolean)
+case class WatchEndpointRemoved(
+  override val watchKey: String,
+  override val key: String,
+  override val value: String,
+  override val isPrefix: Boolean)
     extends WatchEndpointOperation(watchKey, key, value, isPrefix)
-case class WatchEndpointInserted(override val watchKey: String,
-                                 override val key: String,
-                                 override val value: String,
-                                 override val isPrefix: Boolean)
+case class WatchEndpointInserted(
+  override val watchKey: String,
+  override val key: String,
+  override val value: String,
+  override val isPrefix: Boolean)
     extends WatchEndpointOperation(watchKey, key, value, isPrefix)
 case class WatcherClosed(key: String, isPrefix: Boolean)
 
@@ -112,7 +116,7 @@ class WatcherService(etcdClient: EtcdClient)(implicit logging: Logging, actorSys
             case msg =>
               logging.debug(this, s"watch event received: $msg.")
           }
-      },
+        },
       error => {
         logging.error(this, s"encountered error, restarting watcher service: $error")
         self ! RestartWatcher

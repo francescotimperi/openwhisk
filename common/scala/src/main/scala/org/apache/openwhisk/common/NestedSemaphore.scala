@@ -27,7 +27,8 @@ import scala.collection.concurrent.TrieMap
  * @tparam T
  */
 class NestedSemaphore[T](memoryPermits: Int) extends ForcibleSemaphore(memoryPermits) {
-  private val actionConcurrentSlotsMap = TrieMap.empty[T, ResizableSemaphore] //one key per action; resized per container
+  private val actionConcurrentSlotsMap =
+    TrieMap.empty[T, ResizableSemaphore] //one key per action; resized per container
 
   final def tryAcquireConcurrent(actionid: T, maxConcurrent: Int, memoryPermits: Int): Boolean = {
 
@@ -54,10 +55,11 @@ class NestedSemaphore[T](memoryPermits: Int) extends ForcibleSemaphore(memoryPer
    * @param force
    * @return
    */
-  private def tryOrForceAcquireConcurrent(actionid: T,
-                                          maxConcurrent: Int,
-                                          memoryPermits: Int,
-                                          force: Boolean): Boolean = {
+  private def tryOrForceAcquireConcurrent(
+    actionid: T,
+    maxConcurrent: Int,
+    memoryPermits: Int,
+    force: Boolean): Boolean = {
     val concurrentSlots = actionConcurrentSlotsMap
       .getOrElseUpdate(actionid, new ResizableSemaphore(0, maxConcurrent))
     if (concurrentSlots.tryAcquire(1)) {

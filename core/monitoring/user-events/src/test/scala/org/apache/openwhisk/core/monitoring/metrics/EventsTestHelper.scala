@@ -27,8 +27,8 @@ import pureconfig.generic.auto._
 
 trait EventsTestHelper {
 
-  protected def createConsumer(kport: Int, globalConfig: Config, recorder: MetricRecorder)(
-    implicit system: ActorSystem) = {
+  protected def createConsumer(kport: Int, globalConfig: Config, recorder: MetricRecorder)(implicit
+    system: ActorSystem) = {
     val settings = OpenWhiskEvents
       .eventConsumerSettings(OpenWhiskEvents.defaultConsumerConfig(globalConfig))
       .withBootstrapServers(s"localhost:$kport")

@@ -30,11 +30,12 @@ import scala.collection.concurrent.TrieMap
 import scala.concurrent.{ExecutionContext, Future}
 
 object StandaloneDockerContainerFactoryProvider extends ContainerFactoryProvider {
-  override def instance(actorSystem: ActorSystem,
-                        logging: Logging,
-                        config: WhiskConfig,
-                        instanceId: InvokerInstanceId,
-                        parameters: Map[String, Set[String]]): ContainerFactory = {
+  override def instance(
+    actorSystem: ActorSystem,
+    logging: Logging,
+    config: WhiskConfig,
+    instanceId: InvokerInstanceId,
+    parameters: Map[String, Set[String]]): ContainerFactory = {
     val client =
       if (SystemUtils.IS_OS_MAC) new DockerForMacClient()(actorSystem.dispatcher)(logging, actorSystem)
       else if (SystemUtils.IS_OS_WINDOWS) new DockerForWindowsClient()(actorSystem.dispatcher)(logging, actorSystem)
@@ -51,8 +52,8 @@ object StandaloneDockerContainerFactoryProvider extends ContainerFactoryProvider
 
 case class StandaloneDockerConfig(pullStandardImages: Boolean)
 
-class StandaloneDockerContainerFactory(instance: InvokerInstanceId, parameters: Map[String, Set[String]])(
-  implicit actorSystem: ActorSystem,
+class StandaloneDockerContainerFactory(instance: InvokerInstanceId, parameters: Map[String, Set[String]])(implicit
+  actorSystem: ActorSystem,
   ec: ExecutionContext,
   logging: Logging,
   docker: DockerApiWithFileAccess,
@@ -76,9 +77,9 @@ class StandaloneDockerContainerFactory(instance: InvokerInstanceId, parameters: 
     val imageName = actionImage.resolveImageName(Some(runtimesRegistryConfig.url))
     val pulled =
       if (!userProvidedImage
-          && factoryConfig.pullStandardImages
-          && !pulledImages.contains(imageName)
-          && actionImage.prefix.contains("openwhisk")) {
+        && factoryConfig.pullStandardImages
+        && !pulledImages.contains(imageName)
+        && actionImage.prefix.contains("openwhisk")) {
         docker.pull(imageName)(tid).map { _ =>
           logging.info(this, s"Pulled OpenWhisk provided image $imageName")
           pulledImages.put(imageName, true)
@@ -108,8 +109,8 @@ trait WindowsDockerClient {
   }
 }
 
-class DockerForWindowsClient(dockerHost: Option[String] = None)(executionContext: ExecutionContext)(
-  implicit log: Logging,
+class DockerForWindowsClient(dockerHost: Option[String] = None)(executionContext: ExecutionContext)(implicit
+  log: Logging,
   as: ActorSystem)
     extends DockerForMacClient(dockerHost)(executionContext)
     with WindowsDockerClient {

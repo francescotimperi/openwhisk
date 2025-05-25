@@ -151,15 +151,16 @@ protected[actions] trait SequenceActions {
   /**
    * Creates an activation for the sequence and writes it back to the datastore.
    */
-  private def completeSequenceActivation(seqActivationId: ActivationId,
-                                         futureSeqResult: Future[SequenceAccounting],
-                                         user: Identity,
-                                         action: WhiskActionMetaData,
-                                         topmost: Boolean,
-                                         blockingSequence: Boolean,
-                                         start: Instant,
-                                         cause: Option[ActivationId])(
-    implicit transid: TransactionId): Future[(Right[ActivationId, WhiskActivation], Int)] = {
+  private def completeSequenceActivation(
+    seqActivationId: ActivationId,
+    futureSeqResult: Future[SequenceAccounting],
+    user: Identity,
+    action: WhiskActionMetaData,
+    topmost: Boolean,
+    blockingSequence: Boolean,
+    start: Instant,
+    cause: Option[ActivationId])(implicit
+    transid: TransactionId): Future[(Right[ActivationId, WhiskActivation], Int)] = {
     val context = UserContext(user)
 
     // not topmost, no need to worry about terminating incoming request
@@ -195,20 +196,24 @@ protected[actions] trait SequenceActions {
   /**
    * Creates an activation for a sequence.
    */
-  private def makeSequenceActivation(user: Identity,
-                                     action: WhiskActionMetaData,
-                                     activationId: ActivationId,
-                                     accounting: SequenceAccounting,
-                                     topmost: Boolean,
-                                     cause: Option[ActivationId],
-                                     start: Instant,
-                                     end: Instant)(implicit transid: TransactionId): WhiskActivation = {
+  private def makeSequenceActivation(
+    user: Identity,
+    action: WhiskActionMetaData,
+    activationId: ActivationId,
+    accounting: SequenceAccounting,
+    topmost: Boolean,
+    cause: Option[ActivationId],
+    start: Instant,
+    end: Instant)(implicit transid: TransactionId): WhiskActivation = {
 
     // compute max memory
     val sequenceLimits = accounting.maxMemory map { maxMemoryAcrossActionsInSequence =>
       Parameters(
         WhiskActivation.limitsAnnotation,
-        ActionLimits(action.limits.timeout, MemoryLimit(maxMemoryAcrossActionsInSequence MB), action.limits.logs).toJson)
+        ActionLimits(
+          action.limits.timeout,
+          MemoryLimit(maxMemoryAcrossActionsInSequence MB),
+          action.limits.logs).toJson)
     }
 
     // set causedBy if not topmost sequence
@@ -235,7 +240,8 @@ protected[actions] trait SequenceActions {
       start = start,
       end = end,
       cause = if (topmost) None else cause, // propagate the cause for inner sequences, but undefined for topmost
-      response = accounting.previousResponse.getAndSet(null), // getAndSet(null) drops reference to the activation result
+      response =
+        accounting.previousResponse.getAndSet(null), // getAndSet(null) drops reference to the activation result
       logs = accounting.finalLogs,
       version = action.version,
       publish = false,
@@ -302,11 +308,10 @@ protected[actions] trait SequenceActions {
                   Future.failed(FailedSequenceActivation(accounting)) // terminates the fold
                 }
               }
-              .recoverWith {
-                case _: NoDocumentException =>
-                  val updatedAccount =
-                    accounting.fail(ActivationResponse.applicationError(sequenceComponentNotFound), None)
-                  Future.failed(FailedSequenceActivation(updatedAccount)) // terminates the fold
+              .recoverWith { case _: NoDocumentException =>
+                val updatedAccount =
+                  accounting.fail(ActivationResponse.applicationError(sequenceComponentNotFound), None)
+                Future.failed(FailedSequenceActivation(updatedAccount)) // terminates the fold
               }
           } else {
             val updatedAccount = accounting.fail(ActivationResponse.applicationError(sequenceIsTooLong), None)
@@ -335,11 +340,12 @@ protected[actions] trait SequenceActions {
    * @param cause the activation id of the first sequence containing this activations
    * @return a future which resolves with updated accounting for a sequence, including the last result, duration, and activation ids
    */
-  private def invokeNextAction(user: Identity,
-                               futureAction: Future[WhiskActionMetaData],
-                               accounting: SequenceAccounting,
-                               cause: Option[ActivationId],
-                               parentTid: TransactionId): Future[SequenceAccounting] = {
+  private def invokeNextAction(
+    user: Identity,
+    futureAction: Future[WhiskActionMetaData],
+    accounting: SequenceAccounting,
+    cause: Option[ActivationId],
+    parentTid: TransactionId): Future[SequenceAccounting] = {
     futureAction.flatMap { action =>
       implicit val transid: TransactionId = TransactionId.childOf(parentTid)
 
@@ -373,8 +379,8 @@ protected[actions] trait SequenceActions {
           // this is an invoke for an atomic action
           logging.debug(this, s"sequence invoking an enclosed atomic action $action")
           val timeout = action.limits.timeout.duration + 1.minute
-          invokeAction(user, action, inputPayload, waitForResponse = Some(timeout), cause) map {
-            case res => (res, accounting.atomicActionCnt + 1)
+          invokeAction(user, action, inputPayload, waitForResponse = Some(timeout), cause) map { case res =>
+            (res, accounting.atomicActionCnt + 1)
           }
       }
 
@@ -401,8 +407,9 @@ protected[actions] trait SequenceActions {
   }
 
   /** Replaces default namespaces in a vector of components from a sequence with appropriate namespace. */
-  private def resolveDefaultNamespace(components: Vector[FullyQualifiedEntityName],
-                                      user: Identity): Vector[FullyQualifiedEntityName] = {
+  private def resolveDefaultNamespace(
+    components: Vector[FullyQualifiedEntityName],
+    user: Identity): Vector[FullyQualifiedEntityName] = {
     // resolve any namespaces that may appears as "_" (the default namespace)
     components.map(c => FullyQualifiedEntityName(c.path.resolveNamespace(user.namespace), c.name))
   }
@@ -425,12 +432,13 @@ protected[actions] trait SequenceActions {
  *        components (needed to annotate the sequence with GB-s)
  * @param shortcircuit when true, stops the execution of the next component in the sequence
  */
-protected[actions] case class SequenceAccounting(atomicActionCnt: Int,
-                                                 previousResponse: AtomicReference[ActivationResponse],
-                                                 logs: mutable.Buffer[ActivationId],
-                                                 duration: Long = 0,
-                                                 maxMemory: Option[Int] = None,
-                                                 shortcircuit: Boolean = false) {
+protected[actions] case class SequenceAccounting(
+  atomicActionCnt: Int,
+  previousResponse: AtomicReference[ActivationResponse],
+  logs: mutable.Buffer[ActivationId],
+  duration: Long = 0,
+  maxMemory: Option[Int] = None,
+  shortcircuit: Boolean = false) {
 
   /** @return the ActivationLogs data structure for this sequence invocation */
   def finalLogs = ActivationLogs(logs.map(id => id.asString).toVector)
@@ -506,13 +514,14 @@ protected[actions] object SequenceAccounting {
   }
 
   // constructor for successful invocations, or error'ing ones (where shortcircuit = true)
-  def apply(prev: SequenceAccounting,
-            newCnt: Int,
-            incrDuration: Option[Long],
-            newResponse: ActivationResponse,
-            newActivationId: ActivationId,
-            newMemoryLimit: Option[Int],
-            shortcircuit: Boolean): SequenceAccounting = {
+  def apply(
+    prev: SequenceAccounting,
+    newCnt: Int,
+    incrDuration: Option[Long],
+    newResponse: ActivationResponse,
+    newActivationId: ActivationId,
+    newMemoryLimit: Option[Int],
+    shortcircuit: Boolean): SequenceAccounting = {
 
     // compute the new max memory
     val newMaxMemory = maxMemory(prev.maxMemory, newMemoryLimit)

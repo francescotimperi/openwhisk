@@ -32,11 +32,12 @@ object YARNComponentActor {
   case class RemoveContainer(component_instance_name: String)
 }
 
-class YARNComponentActor(actorSystem: ActorSystem,
-                         logging: Logging,
-                         yarnConfig: YARNConfig,
-                         serviceName: String,
-                         imageName: ImageName)
+class YARNComponentActor(
+  actorSystem: ActorSystem,
+  logging: Logging,
+  yarnConfig: YARNConfig,
+  serviceName: String,
+  imageName: ImageName)
     extends Actor {
 
   implicit val as: ActorSystem = actorSystem

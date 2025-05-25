@@ -28,12 +28,13 @@ import scala.sys.process.ProcessLogger
 import scala.util.Try
 import scala.sys.process._
 
-case class InstallRouteMgmt(workDir: File,
-                            authKey: String,
-                            apiHost: Uri,
-                            namespace: String,
-                            gatewayUrl: Uri,
-                            wsk: String)(implicit log: Logging) {
+case class InstallRouteMgmt(
+  workDir: File,
+  authKey: String,
+  apiHost: Uri,
+  namespace: String,
+  gatewayUrl: Uri,
+  wsk: String)(implicit log: Logging) {
   case class Action(name: String, desc: String)
   private val noopLogger = ProcessLogger(_ => ())
   private implicit val tid: TransactionId = TransactionId(systemPrefix + "apiMgmt")

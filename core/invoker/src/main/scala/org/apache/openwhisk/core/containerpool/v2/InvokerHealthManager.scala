@@ -36,10 +36,11 @@ import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-class InvokerHealthManager(instanceId: InvokerInstanceId,
-                           healthContainerProxyFactory: (ActorRefFactory, ActorRef) => ActorRef,
-                           dataManagementService: ActorRef,
-                           entityStore: ArtifactStore[WhiskEntity])(implicit actorSystem: ActorSystem, logging: Logging)
+class InvokerHealthManager(
+  instanceId: InvokerInstanceId,
+  healthContainerProxyFactory: (ActorRefFactory, ActorRef) => ActorRef,
+  dataManagementService: ActorRef,
+  entityStore: ArtifactStore[WhiskEntity])(implicit actorSystem: ActorSystem, logging: Logging)
     extends FSM[InvokerState, InvokerHealthData]
     with Stash {
 
@@ -81,10 +82,9 @@ class InvokerHealthManager(instanceId: InvokerInstanceId,
       stay
   }
 
-  when(Healthy) {
-    case Event(msg: FailureMessage, _) =>
-      logging.error(this, s"invoker${instanceId}, status:${stateName} got a failure message: ${msg}")
-      goto(Unhealthy)
+  when(Healthy) { case Event(msg: FailureMessage, _) =>
+    logging.error(this, s"invoker${instanceId}, status:${stateName} got a failure message: ${msg}")
+    goto(Unhealthy)
   }
 
   whenUnhandled {
@@ -303,8 +303,8 @@ object InvokerHealthManager {
       .flatMap { oldAction =>
         WhiskAction.put(db, action.revision(oldAction.rev), Some(oldAction))(tid, notifier = None)
       }
-      .recoverWith {
-        case _: NoDocumentException => WhiskAction.put(db, action, old = None)(tid, notifier = None)
+      .recoverWith { case _: NoDocumentException =>
+        WhiskAction.put(db, action, old = None)(tid, notifier = None)
       }
       .andThen {
         case Success(_) => logging.info(this, "test action for invoker health now exists")
@@ -312,8 +312,9 @@ object InvokerHealthManager {
       }
   }
 
-  private def createHealthActivation(entityStore: ArtifactStore[WhiskEntity],
-                                     docInfo: DocInfo)(implicit ec: ExecutionContext, logging: Logging) = {
+  private def createHealthActivation(entityStore: ArtifactStore[WhiskEntity], docInfo: DocInfo)(implicit
+    ec: ExecutionContext,
+    logging: Logging) = {
     implicit val transId = TransactionId.invokerHealth
 
     WhiskAction.get(entityStore, docInfo.id).onComplete {
@@ -332,8 +333,9 @@ object InvokerHealthManager {
     }
   }
 
-  def prepare(entityStore: ArtifactStore[WhiskEntity],
-              invokerInstanceId: InvokerInstanceId)(implicit ec: ExecutionContext, logging: Logging): Future[Unit] = {
+  def prepare(entityStore: ArtifactStore[WhiskEntity], invokerInstanceId: InvokerInstanceId)(implicit
+    ec: ExecutionContext,
+    logging: Logging): Future[Unit] = {
     InvokerHealthManager.healthAction(invokerInstanceId) match {
       case Some(action) =>
         createTestActionForInvokerHealth(entityStore, action)
@@ -344,10 +346,11 @@ object InvokerHealthManager {
     }
   }
 
-  def props(instanceId: InvokerInstanceId,
-            childFactory: (ActorRefFactory, ActorRef) => ActorRef,
-            dataManagementService: ActorRef,
-            entityStore: ArtifactStore[WhiskEntity])(implicit actorSystem: ActorSystem, logging: Logging): Props = {
+  def props(
+    instanceId: InvokerInstanceId,
+    childFactory: (ActorRefFactory, ActorRef) => ActorRef,
+    dataManagementService: ActorRef,
+    entityStore: ArtifactStore[WhiskEntity])(implicit actorSystem: ActorSystem, logging: Logging): Props = {
     Props(new InvokerHealthManager(instanceId, childFactory, dataManagementService, entityStore))
   }
 }
@@ -361,7 +364,8 @@ case class MemoryInfo(freeMemory: Long, busyMemory: Long, inProgressMemory: Long
 // Data stored in the Invoker
 sealed class InvokerHealthData
 
-case class InvokerInfo(buffer: RingBuffer[Boolean],
-                       memory: MemoryInfo = MemoryInfo(0, 0, 0),
-                       currentInvokerResource: Option[InvokerResourceMessage] = None)
+case class InvokerInfo(
+  buffer: RingBuffer[Boolean],
+  memory: MemoryInfo = MemoryInfo(0, 0, 0),
+  currentInvokerResource: Option[InvokerResourceMessage] = None)
     extends InvokerHealthData

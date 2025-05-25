@@ -55,10 +55,11 @@ case object AdjustPrewarmedContainer
  * @param prewarmConfig optional settings for container prewarming
  * @param poolConfig config for the ContainerPool
  */
-class ContainerPool(childFactory: ActorRefFactory => ActorRef,
-                    feed: ActorRef,
-                    prewarmConfig: List[PrewarmingConfig] = List.empty,
-                    poolConfig: ContainerPoolConfig)(implicit val logging: Logging)
+class ContainerPool(
+  childFactory: ActorRefFactory => ActorRef,
+  feed: ActorRef,
+  prewarmConfig: List[PrewarmingConfig] = List.empty,
+  poolConfig: ContainerPoolConfig)(implicit val logging: Logging)
     extends Actor {
   import ContainerPool.memoryConsumptionOf
 
@@ -138,7 +139,8 @@ class ContainerPool(childFactory: ActorRefFactory => ActorRef,
           // Schedule a job to a warm container
           ContainerPool
             .schedule(r.action, r.msg.user.namespace.name, freePool)
-            .map(container => (container, container._2.initingState)) //warmed, warming, and warmingCold always know their state
+            .map(container =>
+              (container, container._2.initingState)) //warmed, warming, and warmingCold always know their state
             .orElse(
               // There was no warm/warming/warmingCold container. Try to take a prewarm container or a cold container.
               // When take prewarm container, has no need to judge whether user memory is enough
@@ -155,7 +157,7 @@ class ContainerPool(childFactory: ActorRefFactory => ActorRef,
             .orElse(
               // Remove a container and create a new one for the given job
               ContainerPool
-              // Only free up the amount, that is really needed to free up
+                // Only free up the amount, that is really needed to free up
                 .remove(freePool, Math.min(r.action.limits.memory.megabytes, memoryConsumptionOf(freePool)).MB)
                 .map(removeContainer)
                 // If the list had at least one entry, enough containers were removed to start the new container. After
@@ -168,7 +170,7 @@ class ContainerPool(childFactory: ActorRefFactory => ActorRef,
                       val container = (createContainer(memory), "recreated")
                       incrementColdStartCount(kind, memory)
                       container
-                  }))
+                    }))
 
         createdContainer match {
           case Some(((actor, data), containerState)) =>
@@ -416,20 +418,19 @@ class ContainerPool(childFactory: ActorRefFactory => ActorRef,
         case (_, PreWarmedData(_, `kind`, `memory`, _, _)) => true
         case _                                             => false
       }
-      .map {
-        case (ref, data) =>
-          // Move the container to the usual pool
-          freePool = freePool + (ref -> data)
-          prewarmedPool = prewarmedPool - ref
-          // Create a new prewarm container
-          // NOTE: prewarming ignores the action code in exec, but this is dangerous as the field is accessible to the
-          // factory
+      .map { case (ref, data) =>
+        // Move the container to the usual pool
+        freePool = freePool + (ref -> data)
+        prewarmedPool = prewarmedPool - ref
+        // Create a new prewarm container
+        // NOTE: prewarming ignores the action code in exec, but this is dangerous as the field is accessible to the
+        // factory
 
-          //get the appropriate ttl from prewarm configs
-          val ttl =
-            prewarmConfig.find(pc => pc.memoryLimit == memory && pc.exec.kind == kind).flatMap(_.reactive.map(_.ttl))
-          prewarmContainer(action.exec, memory, ttl)
-          (ref, data)
+        //get the appropriate ttl from prewarm configs
+        val ttl =
+          prewarmConfig.find(pc => pc.memoryLimit == memory && pc.exec.kind == kind).flatMap(_.reactive.map(_.ttl))
+        prewarmContainer(action.exec, memory, ttl)
+        (ref, data)
       }
   }
 
@@ -447,9 +448,10 @@ class ContainerPool(childFactory: ActorRefFactory => ActorRef,
    * @param memory The amount of memory to check.
    * @return true, if there is enough space for the given amount of memory.
    */
-  def hasPoolSpaceFor[A](pool: Map[A, ContainerData],
-                         prewarmStartingPool: Map[A, (String, ByteSize)],
-                         memory: ByteSize): Boolean = {
+  def hasPoolSpaceFor[A](
+    pool: Map[A, ContainerData],
+    prewarmStartingPool: Map[A, (String, ByteSize)],
+    memory: ByteSize): Boolean = {
     memoryConsumptionOf(pool) + prewarmStartingPool.map(_._2._2.toMB).sum + memory.toMB <= poolConfig.userMemory.toMB
   }
 
@@ -506,9 +508,10 @@ object ContainerPool {
    * @param idles a map of idle containers, awaiting work
    * @return a container if one found
    */
-  protected[containerpool] def schedule[A](action: ExecutableWhiskAction,
-                                           invocationNamespace: EntityName,
-                                           idles: Map[A, ContainerData]): Option[(A, ContainerData)] = {
+  protected[containerpool] def schedule[A](
+    action: ExecutableWhiskAction,
+    invocationNamespace: EntityName,
+    idles: Map[A, ContainerData]): Option[(A, ContainerData)] = {
     idles
       .find {
         case (_, c @ WarmedData(_, `invocationNamespace`, `action`, _, _, _)) if c.hasCapacity() => true
@@ -540,9 +543,10 @@ object ContainerPool {
    * @return a list of containers to be removed iff found
    */
   @tailrec
-  protected[containerpool] def remove[A](pool: Map[A, ContainerData],
-                                         memory: ByteSize,
-                                         toRemove: List[A] = List.empty): List[A] = {
+  protected[containerpool] def remove[A](
+    pool: Map[A, ContainerData],
+    memory: ByteSize,
+    toRemove: List[A] = List.empty): List[A] = {
     // Try to find a Free container that does NOT have any active activations AND is initialized with any OTHER action
     val freeContainers = pool.collect {
       // Only warm containers will be removed. Prewarmed containers will stay always.
@@ -577,9 +581,10 @@ object ContainerPool {
    * @param logging
    * @return a list of expired actor
    */
-  def removeExpired[A](poolConfig: ContainerPoolConfig,
-                       prewarmConfig: List[PrewarmingConfig],
-                       prewarmedPool: Map[A, PreWarmedData])(implicit logging: Logging): List[A] = {
+  def removeExpired[A](
+    poolConfig: ContainerPoolConfig,
+    prewarmConfig: List[PrewarmingConfig],
+    prewarmedPool: Map[A, PreWarmedData])(implicit logging: Logging): List[A] = {
     val now = Deadline.now
     val expireds = prewarmConfig
       .flatMap { config =>
@@ -632,13 +637,14 @@ object ContainerPool {
    * @param logging
    * @return the current number and increased number for the kind in the Map
    */
-  def increasePrewarms(init: Boolean,
-                       scheduled: Boolean,
-                       coldStartCount: Map[ColdStartKey, Int],
-                       prewarmConfig: List[PrewarmingConfig],
-                       prewarmedPool: Map[ActorRef, PreWarmedData],
-                       prewarmStartingPool: Map[ActorRef, (String, ByteSize)])(
-    implicit logging: Logging): Map[PrewarmingConfig, (Int, Int)] = {
+  def increasePrewarms(
+    init: Boolean,
+    scheduled: Boolean,
+    coldStartCount: Map[ColdStartKey, Int],
+    prewarmConfig: List[PrewarmingConfig],
+    prewarmedPool: Map[ActorRef, PreWarmedData],
+    prewarmStartingPool: Map[ActorRef, (String, ByteSize)])(implicit
+    logging: Logging): Map[PrewarmingConfig, (Int, Int)] = {
     prewarmConfig.map { config =>
       val kind = config.exec.kind
       val memory = config.memoryLimit
@@ -659,7 +665,10 @@ object ContainerPool {
           if (scheduled) {
             // scheduled/reactive config backfill
             config.reactive
-              .map(c => getReactiveCold(coldStartCount, c, kind, memory).getOrElse(c.minCount)) //reactive -> desired is either cold start driven, or minCount
+              .map(c =>
+                getReactiveCold(coldStartCount, c, kind, memory).getOrElse(
+                  c.minCount
+                )) //reactive -> desired is either cold start driven, or minCount
               .getOrElse(config.initialCount) //not reactive -> desired is always initial count
           } else {
             // normal backfill after removal - make sure at least minCount or initialCount is started
@@ -670,7 +679,8 @@ object ContainerPool {
       if (currentCount < desiredCount) {
         logging.info(
           this,
-          s"found ${currentCount} started and ${startingCount} starting; ${if (init) "initing" else "backfilling"} ${desiredCount - currentCount} pre-warms to desired count: ${desiredCount} for kind:${config.exec.kind} mem:${config.memoryLimit.toString}")(
+          s"found ${currentCount} started and ${startingCount} starting; ${if (init) "initing"
+          else "backfilling"} ${desiredCount - currentCount} pre-warms to desired count: ${desiredCount} for kind:${config.exec.kind} mem:${config.memoryLimit.toString}")(
           TransactionId.invokerWarmup)
       }
       (config, (currentCount, desiredCount))
@@ -686,10 +696,11 @@ object ContainerPool {
    * @param memory
    * @return the required prewarmed container number
    */
-  def getReactiveCold(coldStartCount: Map[ColdStartKey, Int],
-                      config: ReactivePrewarmingConfig,
-                      kind: String,
-                      memory: ByteSize): Option[Int] = {
+  def getReactiveCold(
+    coldStartCount: Map[ColdStartKey, Int],
+    config: ReactivePrewarmingConfig,
+    kind: String,
+    memory: ByteSize): Option[Int] = {
     coldStartCount.get(ColdStartKey(kind, memory)).map { value =>
       // Let's assume that threshold is `2`, increment is `1` in runtimes.json
       // if cold start number in previous minute is `2`, requireCount is `2/2 * 1 = 1`
@@ -698,15 +709,17 @@ object ContainerPool {
     }
   }
 
-  def props(factory: ActorRefFactory => ActorRef,
-            poolConfig: ContainerPoolConfig,
-            feed: ActorRef,
-            prewarmConfig: List[PrewarmingConfig] = List.empty)(implicit logging: Logging) =
+  def props(
+    factory: ActorRefFactory => ActorRef,
+    poolConfig: ContainerPoolConfig,
+    feed: ActorRef,
+    prewarmConfig: List[PrewarmingConfig] = List.empty)(implicit logging: Logging) =
     Props(new ContainerPool(factory, feed, prewarmConfig, poolConfig))
 }
 
 /** Contains settings needed to perform container prewarming. */
-case class PrewarmingConfig(initialCount: Int,
-                            exec: CodeExec[_],
-                            memoryLimit: ByteSize,
-                            reactive: Option[ReactivePrewarmingConfig] = None)
+case class PrewarmingConfig(
+  initialCount: Int,
+  exec: CodeExec[_],
+  memoryLimit: ByteSize,
+  reactive: Option[ReactivePrewarmingConfig] = None)

@@ -122,9 +122,10 @@ trait AttachedCode {
   def attach(attached: Attached): Exec
 }
 
-protected[core] case class CodeExecAsString(manifest: RuntimeManifest,
-                                            override val code: String,
-                                            override val entryPoint: Option[String])
+protected[core] case class CodeExecAsString(
+  manifest: RuntimeManifest,
+  override val code: String,
+  override val entryPoint: Option[String])
     extends CodeExec[String] {
   override val kind = manifest.kind
   override val image = manifest.image
@@ -135,9 +136,10 @@ protected[core] case class CodeExecAsString(manifest: RuntimeManifest,
   override def codeAsJson = JsString(code)
 }
 
-protected[core] case class CodeExecMetaDataAsString(manifest: RuntimeManifest,
-                                                    override val binary: Boolean = false,
-                                                    override val entryPoint: Option[String])
+protected[core] case class CodeExecMetaDataAsString(
+  manifest: RuntimeManifest,
+  override val binary: Boolean = false,
+  override val entryPoint: Option[String])
     extends ExecMetaData {
   override val kind = manifest.kind
   override val image = manifest.image
@@ -145,10 +147,11 @@ protected[core] case class CodeExecMetaDataAsString(manifest: RuntimeManifest,
   override val pull = false
 }
 
-protected[core] case class CodeExecAsAttachment(manifest: RuntimeManifest,
-                                                override val code: Attachment[String],
-                                                override val entryPoint: Option[String],
-                                                override val binary: Boolean = false)
+protected[core] case class CodeExecAsAttachment(
+  manifest: RuntimeManifest,
+  override val code: Attachment[String],
+  override val entryPoint: Option[String],
+  override val binary: Boolean = false)
     extends CodeExec[Attachment[String]]
     with AttachedCode {
   override val kind = manifest.kind
@@ -168,9 +171,10 @@ protected[core] case class CodeExecAsAttachment(manifest: RuntimeManifest,
   }
 }
 
-protected[core] case class CodeExecMetaDataAsAttachment(manifest: RuntimeManifest,
-                                                        override val binary: Boolean = false,
-                                                        override val entryPoint: Option[String])
+protected[core] case class CodeExecMetaDataAsAttachment(
+  manifest: RuntimeManifest,
+  override val binary: Boolean = false,
+  override val entryPoint: Option[String])
     extends ExecMetaData {
   override val kind = manifest.kind
   override val image = manifest.image
@@ -182,11 +186,12 @@ protected[core] case class CodeExecMetaDataAsAttachment(manifest: RuntimeManifes
  * @param image the image name
  * @param code an optional script or zip archive (as base64 encoded) string
  */
-protected[core] case class BlackBoxExec(override val image: ImageName,
-                                        override val code: Option[Attachment[String]],
-                                        override val entryPoint: Option[String],
-                                        val native: Boolean,
-                                        override val binary: Boolean)
+protected[core] case class BlackBoxExec(
+  override val image: ImageName,
+  override val code: Option[Attachment[String]],
+  override val entryPoint: Option[String],
+  val native: Boolean,
+  override val binary: Boolean)
     extends CodeExec[Option[Attachment[String]]]
     with AttachedCode {
   override val kind = Exec.BLACKBOX
@@ -206,10 +211,11 @@ protected[core] case class BlackBoxExec(override val image: ImageName,
   }
 }
 
-protected[core] case class BlackBoxExecMetaData(override val image: ImageName,
-                                                override val entryPoint: Option[String],
-                                                val native: Boolean,
-                                                override val binary: Boolean = false)
+protected[core] case class BlackBoxExecMetaData(
+  override val image: ImageName,
+  override val entryPoint: Option[String],
+  val native: Boolean,
+  override val binary: Boolean = false)
     extends ExecMetaData {
   override val kind = ExecMetaDataBase.BLACKBOX
   override val deprecated = false
@@ -355,7 +361,8 @@ object Exec extends ArgNormalizer[Exec] with DefaultJsonProtocol {
     }
   }
 
-  val isBase64Pattern = new Regex("^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$").pattern
+  val isBase64Pattern = new Regex(
+    "^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$").pattern
 
   def isBinaryCode(code: String): Boolean = {
     if (code != null) {

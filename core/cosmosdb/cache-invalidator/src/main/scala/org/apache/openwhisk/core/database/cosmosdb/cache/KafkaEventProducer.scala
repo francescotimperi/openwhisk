@@ -31,18 +31,18 @@ import org.apache.openwhisk.connector.kafka.KamonMetricsReporter
 import scala.collection.immutable.Seq
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
-case class KafkaEventProducer(settings: ProducerSettings[String, String],
-                              topic: String,
-                              eventProducerConfig: EventProducerConfig)(implicit system: ActorSystem, log: Logging)
+case class KafkaEventProducer(
+  settings: ProducerSettings[String, String],
+  topic: String,
+  eventProducerConfig: EventProducerConfig)(implicit system: ActorSystem, log: Logging)
     extends EventProducer {
   private implicit val executionContext: ExecutionContext = system.dispatcher
 
   private val (queue, stream) = Source
     .queue[(Seq[String], Promise[Done])](eventProducerConfig.bufferSize, OverflowStrategy.fail) //TODO Use backpressure
-    .map {
-      case (msgs, p) =>
-        log.info(this, s"Sending ${msgs.size} messages to kafka.")
-        ProducerMessage.multi(msgs.map(newRecord), p)
+    .map { case (msgs, p) =>
+      log.info(this, s"Sending ${msgs.size} messages to kafka.")
+      ProducerMessage.multi(msgs.map(newRecord), p)
     }
     .via(Producer.flexiFlow(producerSettings))
     .map {
@@ -52,10 +52,9 @@ case class KafkaEventProducer(settings: ProducerSettings[String, String],
       case _ =>
       //As we use multi mode only other modes need not be handled
     }
-    .recover {
-      case t: Throwable =>
-        //this will happen in case of shutdown while items are still queued, i.e. if producer cannot connect
-        throw (t)
+    .recover { case t: Throwable =>
+      //this will happen in case of shutdown while items are still queued, i.e. if producer cannot connect
+      throw (t)
     }
     .toMat(Sink.ignore)(Keep.both)
     .run()

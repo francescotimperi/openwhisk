@@ -107,11 +107,18 @@ trait WhiskTriggersApi extends WhiskCollectionAPI {
   override def create(user: Identity, entityName: FullyQualifiedEntityName)(implicit transid: TransactionId) = {
     parameter('overwrite ? false) { overwrite =>
       entity(as[WhiskTriggerPut]) { content =>
-        putEntity(WhiskTrigger, entityStore, entityName.toDocId, overwrite, update(content) _, () => {
-          create(content, entityName)
-        }, postProcess = Some { trigger =>
-          completeAsTriggerResponse(trigger)
-        })
+        putEntity(
+          WhiskTrigger,
+          entityStore,
+          entityName.toDocId,
+          overwrite,
+          update(content) _,
+          () => {
+            create(content, entityName)
+          },
+          postProcess = Some { trigger =>
+            completeAsTriggerResponse(trigger)
+          })
       }
     }
   }
@@ -125,14 +132,15 @@ trait WhiskTriggersApi extends WhiskCollectionAPI {
    * - 404 Not Found
    * - 500 Internal Server Error
    */
-  override def activate(user: Identity, entityName: FullyQualifiedEntityName, env: Option[Parameters])(
-    implicit transid: TransactionId) = {
+  override def activate(user: Identity, entityName: FullyQualifiedEntityName, env: Option[Parameters])(implicit
+    transid: TransactionId) = {
     extractRequest { request =>
       val context = UserContext(user, request)
 
       entity(as[Option[JsObject]]) { payload =>
-        getEntity(WhiskTrigger.get(entityStore, entityName.toDocId), Some {
-          trigger: WhiskTrigger =>
+        getEntity(
+          WhiskTrigger.get(entityStore, entityName.toDocId),
+          Some { trigger: WhiskTrigger =>
             // List of active rules associated with the trigger
             val activeRules: Map[FullyQualifiedEntityName, ReducedRule] =
               trigger.rules.map(_.filter(_._2.status == Status.ACTIVE)).getOrElse(Map.empty)
@@ -141,7 +149,8 @@ trait WhiskTriggersApi extends WhiskCollectionAPI {
               val triggerActivationId = activationIdFactory.make()
               logging.info(this, s"[POST] trigger activation id: ${triggerActivationId}")
               val triggerActivation = WhiskActivation(
-                namespace = user.namespace.name.toPath, // all activations should end up in the one space regardless trigger.namespace
+                namespace =
+                  user.namespace.name.toPath, // all activations should end up in the one space regardless trigger.namespace
                 entityName.name,
                 user.subject,
                 triggerActivationId,
@@ -166,10 +175,9 @@ trait WhiskTriggersApi extends WhiskCollectionAPI {
 
               activateRules(user, args, trigger.rules.getOrElse(Map.empty))
                 .map(results => triggerActivation.withLogs(ActivationLogs(results.map(_.toJson.compactPrint).toVector)))
-                .recover {
-                  case e =>
-                    logging.error(this, s"Failed to write action activation results to trigger activation: $e")
-                    triggerActivation
+                .recover { case e =>
+                  logging.error(this, s"Failed to write action activation results to trigger activation: $e")
+                  triggerActivation
                 }
                 .map { activation =>
                   activationStore.storeAfterCheck(activation, false, None, None, context)
@@ -185,7 +193,7 @@ trait WhiskTriggersApi extends WhiskCollectionAPI {
                   s"[POST] trigger without an active rule was activated; no trigger activation record created for $entityName")
               complete(NoContent)
             }
-        })
+          })
       }
     }
   }
@@ -218,11 +226,13 @@ trait WhiskTriggersApi extends WhiskCollectionAPI {
    * - 404 Not Found
    * - 500 Internal Server Error
    */
-  override def fetch(user: Identity, entityName: FullyQualifiedEntityName, env: Option[Parameters])(
-    implicit transid: TransactionId) = {
-    getEntity(WhiskTrigger.get(entityStore, entityName.toDocId), Some { trigger =>
-      completeAsTriggerResponse(trigger)
-    })
+  override def fetch(user: Identity, entityName: FullyQualifiedEntityName, env: Option[Parameters])(implicit
+    transid: TransactionId) = {
+    getEntity(
+      WhiskTrigger.get(entityStore, entityName.toDocId),
+      Some { trigger =>
+        completeAsTriggerResponse(trigger)
+      })
   }
 
   /**
@@ -253,8 +263,8 @@ trait WhiskTriggersApi extends WhiskCollectionAPI {
   }
 
   /** Creates a WhiskTrigger from PUT content, generating default values where necessary. */
-  private def create(content: WhiskTriggerPut, triggerName: FullyQualifiedEntityName)(
-    implicit transid: TransactionId): Future[WhiskTrigger] = {
+  private def create(content: WhiskTriggerPut, triggerName: FullyQualifiedEntityName)(implicit
+    transid: TransactionId): Future[WhiskTrigger] = {
     val newTrigger = WhiskTrigger(
       triggerName.path,
       triggerName.name,
@@ -267,8 +277,8 @@ trait WhiskTriggersApi extends WhiskCollectionAPI {
   }
 
   /** Updates a WhiskTrigger from PUT content, merging old trigger where necessary. */
-  private def update(content: WhiskTriggerPut)(trigger: WhiskTrigger)(
-    implicit transid: TransactionId): Future[WhiskTrigger] = {
+  private def update(content: WhiskTriggerPut)(trigger: WhiskTrigger)(implicit
+    transid: TransactionId): Future[WhiskTrigger] = {
     val newTrigger = WhiskTrigger(
       trigger.namespace,
       trigger.name,
@@ -320,10 +330,11 @@ trait WhiskTriggersApi extends WhiskCollectionAPI {
   /**
    * Iterates through each rule and invoking each active rule's mapped action.
    */
-  private def activateRules(user: Identity,
-                            args: JsObject,
-                            rulesToActivate: Map[FullyQualifiedEntityName, ReducedRule])(
-    implicit transid: TransactionId): Future[Iterable[RuleActivationResult]] = {
+  private def activateRules(
+    user: Identity,
+    args: JsObject,
+    rulesToActivate: Map[FullyQualifiedEntityName, ReducedRule])(implicit
+    transid: TransactionId): Future[Iterable[RuleActivationResult]] = {
     val ruleResults = rulesToActivate.map {
       case (ruleName, rule) if (rule.status != Status.ACTIVE) =>
         Future.successful {
@@ -369,14 +380,13 @@ trait WhiskTriggersApi extends WhiskCollectionAPI {
                 }
             }
           }
-          .recover {
-            case t =>
-              logging.error(this, s"trigger-fired action '${rule.action}' failed to invoke with $t")
-              RuleActivationResult(
-                ActivationResponse.WhiskError,
-                ruleName,
-                rule.action,
-                Left(InternalServerError.defaultMessage))
+          .recover { case t =>
+            logging.error(this, s"trigger-fired action '${rule.action}' failed to invoke with $t")
+            RuleActivationResult(
+              ActivationResponse.WhiskError,
+              ruleName,
+              rule.action,
+              Left(InternalServerError.defaultMessage))
           }
     }
 
@@ -391,8 +401,8 @@ trait WhiskTriggersApi extends WhiskCollectionAPI {
    * @param args the arguments to post to the action
    * @return a future with the HTTP response from the action activation
    */
-  private def postActivation(user: Identity, rule: ReducedRule, args: JsObject)(
-    implicit transid: TransactionId): Future[HttpResponse] = {
+  private def postActivation(user: Identity, rule: ReducedRule, args: JsObject)(implicit
+    transid: TransactionId): Future[HttpResponse] = {
     // Build the url to invoke an action mapped to the rule
     val actionUrl = baseControllerPath / rule.action.path.root.asString / "actions"
 
@@ -414,10 +424,11 @@ trait WhiskTriggersApi extends WhiskCollectionAPI {
   }
 
   /** Contains the result of invoking a rule */
-  case class RuleActivationResult(statusCode: Int,
-                                  ruleName: FullyQualifiedEntityName,
-                                  actionName: FullyQualifiedEntityName,
-                                  response: Either[String, ActivationId]) {
+  case class RuleActivationResult(
+    statusCode: Int,
+    ruleName: FullyQualifiedEntityName,
+    actionName: FullyQualifiedEntityName,
+    response: Either[String, ActivationId]) {
     def toJson: JsObject =
       JsObject(
         Map(

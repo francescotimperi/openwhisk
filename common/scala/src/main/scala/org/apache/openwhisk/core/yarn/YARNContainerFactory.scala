@@ -36,33 +36,35 @@ import scala.concurrent.{blocking, ExecutionContext, Future}
 import scala.concurrent.duration._
 import YARNJsonProtocol._
 
-case class YARNConfig(masterUrl: String,
-                      yarnLinkLogMessage: Boolean,
-                      serviceName: String,
-                      authType: String,
-                      kerberosPrincipal: String,
-                      kerberosKeytab: String,
-                      queue: String,
-                      memory: String,
-                      cpus: Int)
+case class YARNConfig(
+  masterUrl: String,
+  yarnLinkLogMessage: Boolean,
+  serviceName: String,
+  authType: String,
+  kerberosPrincipal: String,
+  kerberosKeytab: String,
+  queue: String,
+  memory: String,
+  cpus: Int)
 
 object YARNContainerFactoryProvider extends ContainerFactoryProvider {
-  override def instance(actorSystem: ActorSystem,
-                        logging: Logging,
-                        config: WhiskConfig,
-                        instance: InvokerInstanceId,
-                        parameters: Map[String, Set[String]]): ContainerFactory =
+  override def instance(
+    actorSystem: ActorSystem,
+    logging: Logging,
+    config: WhiskConfig,
+    instance: InvokerInstanceId,
+    parameters: Map[String, Set[String]]): ContainerFactory =
     new YARNContainerFactory(actorSystem, logging, config, instance, parameters)
 }
 
-class YARNContainerFactory(actorSystem: ActorSystem,
-                           logging: Logging,
-                           config: WhiskConfig,
-                           instance: InvokerInstanceId,
-                           parameters: Map[String, Set[String]],
-                           containerArgs: ContainerArgsConfig =
-                             loadConfigOrThrow[ContainerArgsConfig](ConfigKeys.containerArgs),
-                           yarnConfig: YARNConfig = loadConfigOrThrow[YARNConfig](ConfigKeys.yarn))
+class YARNContainerFactory(
+  actorSystem: ActorSystem,
+  logging: Logging,
+  config: WhiskConfig,
+  instance: InvokerInstanceId,
+  parameters: Map[String, Set[String]],
+  containerArgs: ContainerArgsConfig = loadConfigOrThrow[ContainerArgsConfig](ConfigKeys.containerArgs),
+  yarnConfig: YARNConfig = loadConfigOrThrow[YARNConfig](ConfigKeys.yarn))
     extends ContainerFactory {
 
   val images: Set[ImageName] = ExecManifest.runtimesManifest.runtimes.flatMap(a => a.versions.map(b => b.image))
@@ -87,22 +89,20 @@ class YARNContainerFactory(actorSystem: ActorSystem,
 
   override def init(): Unit = {
     yarnComponentActors = images
-      .map(
-        i =>
-          (
-            i,
-            actorSystem.actorOf(
-              Props(new YARNComponentActor(actorSystem, logging, yarnConfig, serviceName, i)),
-              name = s"YARNComponentActor-${i.name}")))
+      .map(i =>
+        (
+          i,
+          actorSystem.actorOf(
+            Props(new YARNComponentActor(actorSystem, logging, yarnConfig, serviceName, i)),
+            name = s"YARNComponentActor-${i.name}")))
       .toMap
     YARNContainerInfoActors = images
-      .map(
-        i =>
-          (
-            i,
-            actorSystem.actorOf(
-              Props(new YARNContainerInfoActor(actorSystem, logging, yarnConfig, serviceName, i)),
-              name = s"YARNComponentInfoActor-${i.name}")))
+      .map(i =>
+        (
+          i,
+          actorSystem.actorOf(
+            Props(new YARNContainerInfoActor(actorSystem, logging, yarnConfig, serviceName, i)),
+            name = s"YARNComponentInfoActor-${i.name}")))
       .toMap
     blocking {
       implicit val timeout: Timeout = Timeout(serviceStartTimeoutMS.milliseconds)
@@ -133,24 +133,23 @@ class YARNContainerFactory(actorSystem: ActorSystem,
   }
   override def cleanup(): Unit = {
     removeService()
-    yarnComponentActors foreach { case (k, v)     => actorSystem.stop(v) }
+    yarnComponentActors foreach { case (k, v) => actorSystem.stop(v) }
     YARNContainerInfoActors foreach { case (k, v) => actorSystem.stop(v) }
   }
   def createService(): Unit = {
     logging.info(this, "Creating Service with images: " + images.map(i => i.resolveImageName()).mkString(", "))
 
     val componentList = images
-      .map(
-        i =>
-          ComponentDefinition(
-            i.name.replace('.', '-'), //name must be [a-z][a-z0-9-]*
-            Some(0), //start with zero containers
-            Some(runCommand),
-            Option.empty,
-            Some(ArtifactDefinition(i.resolveImageName(), "DOCKER")),
-            Some(ResourceDefinition(yarnConfig.cpus, yarnConfig.memory)),
-            Some(ConfigurationDefinition(Map(("YARN_CONTAINER_RUNTIME_DOCKER_RUN_OVERRIDE_DISABLE", "true")))),
-            List[String]()))
+      .map(i =>
+        ComponentDefinition(
+          i.name.replace('.', '-'), //name must be [a-z][a-z0-9-]*
+          Some(0), //start with zero containers
+          Some(runCommand),
+          Option.empty,
+          Some(ArtifactDefinition(i.resolveImageName(), "DOCKER")),
+          Some(ResourceDefinition(yarnConfig.cpus, yarnConfig.memory)),
+          Some(ConfigurationDefinition(Map(("YARN_CONTAINER_RUNTIME_DOCKER_RUN_OVERRIDE_DISABLE", "true")))),
+          List[String]()))
       .toList
 
     //Add kerberos def if necessary

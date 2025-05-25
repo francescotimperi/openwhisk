@@ -81,12 +81,13 @@ protected[controller] sealed class WebApiDirectives(prefix: String = "__ow_") {
   protected final def fields(f: String) = s"$prefix$f"
 }
 
-private case class Context(propertyMap: WebApiDirectives,
-                           method: HttpMethod,
-                           headers: Seq[HttpHeader],
-                           path: String,
-                           query: Query,
-                           body: Option[JsValue] = None) {
+private case class Context(
+  propertyMap: WebApiDirectives,
+  method: HttpMethod,
+  headers: Seq[HttpHeader],
+  path: String,
+  query: Query,
+  body: Option[JsValue] = None) {
   val queryAsMap = query.toMap
 
   // returns true iff the attached query and body parameters contain a property
@@ -180,8 +181,9 @@ protected[core] object WhiskWebActionsApi extends Directives {
    * @param extension  the supported media types for action response
    * @param transcoder the HTTP decoder and terminator for the extension
    */
-  protected case class MediaExtension(extension: String,
-                                      transcoder: (JsValue, TransactionId, WebApiDirectives) => Route) {
+  protected case class MediaExtension(
+    extension: String,
+    transcoder: (JsValue, TransactionId, WebApiDirectives) => Route) {
     val extensionLength = extension.length
   }
 
@@ -239,8 +241,8 @@ protected[core] object WhiskWebActionsApi extends Directives {
       val JsObject(fields) = result
       val headers = fields.get("headers").map {
         case JsObject(hs) =>
-          hs.flatMap {
-            case (k, v) => headersFromJson(k, v)
+          hs.flatMap { case (k, v) =>
+            headersFromJson(k, v)
           }.toList
 
         case _ => throw new Throwable("Invalid header")
@@ -295,9 +297,10 @@ protected[core] object WhiskWebActionsApi extends Directives {
    * valid, construct a failure with appropriate message.
    * If the content-type header is missing, then return the supplied defaultType
    */
-  private def findContentTypeInHeader(headers: List[RawHeader],
-                                      transid: TransactionId,
-                                      defaultType: MediaType): Try[MediaType] = {
+  private def findContentTypeInHeader(
+    headers: List[RawHeader],
+    transid: TransactionId,
+    defaultType: MediaType): Try[MediaType] = {
     headers.find(_.lowercaseName == `Content-Type`.lowercaseName) match {
       case Some(header) =>
         MediaType.parse(header.value) match {
@@ -312,10 +315,11 @@ protected[core] object WhiskWebActionsApi extends Directives {
     mt == `application/json` || mt.value.endsWith("+json")
   }
 
-  private def interpretHttpResponseAsJson(code: StatusCode,
-                                          headers: List[RawHeader],
-                                          js: JsValue,
-                                          transid: TransactionId) = {
+  private def interpretHttpResponseAsJson(
+    code: StatusCode,
+    headers: List[RawHeader],
+    js: JsValue,
+    transid: TransactionId) = {
     findContentTypeInHeader(headers, transid, `application/json`) match {
       // use the default akka-http response marshaler for standard application/json
       case Success(mediaType) if mediaType == `application/json` =>
@@ -474,10 +478,11 @@ trait WhiskWebActionsApi
     authenticationProvider.identityByNamespace(namespace)(transid, actorSystem, authStore)
   }
 
-  private def handleMatch(namespaceSegment: String,
-                          pkgSegment: String,
-                          actionNameWithExtension: String,
-                          onBehalfOf: Option[Identity])(implicit transid: TransactionId) = {
+  private def handleMatch(
+    namespaceSegment: String,
+    pkgSegment: String,
+    actionNameWithExtension: String,
+    onBehalfOf: Option[Identity])(implicit transid: TransactionId) = {
 
     def fullyQualifiedActionName(actionName: String) = {
       val namespace = EntityName(namespaceSegment)
@@ -576,13 +581,14 @@ trait WhiskWebActionsApi
     }
   }
 
-  private def extractEntityAndProcessRequest(authorizedToProceed: Boolean,
-                                             actionOwnerIdentity: Identity,
-                                             action: WhiskActionMetaData,
-                                             extension: MediaExtension,
-                                             onBehalfOf: Option[Identity],
-                                             context: Context,
-                                             httpEntity: HttpEntity)(implicit transid: TransactionId) = {
+  private def extractEntityAndProcessRequest(
+    authorizedToProceed: Boolean,
+    actionOwnerIdentity: Identity,
+    action: WhiskActionMetaData,
+    extension: MediaExtension,
+    onBehalfOf: Option[Identity],
+    context: Context,
+    httpEntity: HttpEntity)(implicit transid: TransactionId) = {
 
     def process(body: Option[JsValue], isRawHttpAction: Boolean) = {
       processRequest(actionOwnerIdentity, action, extension, onBehalfOf, context.withBody(body), isRawHttpAction)
@@ -631,12 +637,13 @@ trait WhiskWebActionsApi
     }
   }
 
-  private def processRequest(actionOwnerIdentity: Identity,
-                             action: WhiskActionMetaData,
-                             responseType: MediaExtension,
-                             onBehalfOf: Option[Identity],
-                             context: Context,
-                             isRawHttpAction: Boolean)(implicit transid: TransactionId) = {
+  private def processRequest(
+    actionOwnerIdentity: Identity,
+    action: WhiskActionMetaData,
+    responseType: MediaExtension,
+    onBehalfOf: Option[Identity],
+    context: Context,
+    isRawHttpAction: Boolean)(implicit transid: TransactionId) = {
 
     def queuedActivation = {
       // checks (1) if any of the query or body parameters override final action parameters
@@ -647,7 +654,7 @@ trait WhiskWebActionsApi
       // since these are system properties, the action should not define them, and if it does,
       // they will be overwritten
       if (isRawHttpAction || context
-            .overrides(webApiDirectives.reservedProperties ++ action.immutableParameters)) {
+          .overrides(webApiDirectives.reservedProperties ++ action.immutableParameters)) {
         val content = context.toActionArgument(onBehalfOf, isRawHttpAction)
         invokeAction(actionOwnerIdentity, action, Some(JsObject(content)), maxWaitForWebActionResult, cause = None)
       } else {
@@ -658,8 +665,9 @@ trait WhiskWebActionsApi
     completeRequest(queuedActivation, responseType)
   }
 
-  private def completeRequest(queuedActivation: Future[Either[ActivationId, WhiskActivation]],
-                              responseType: MediaExtension)(implicit transid: TransactionId) = {
+  private def completeRequest(
+    queuedActivation: Future[Either[ActivationId, WhiskActivation]],
+    responseType: MediaExtension)(implicit transid: TransactionId) = {
     onComplete(queuedActivation) {
       case Success(Right(activation)) =>
         respondWithActivationIdHeader(activation.activationId) {
@@ -714,8 +722,8 @@ trait WhiskWebActionsApi
    *
    * @return future action document or NotFound rejection
    */
-  private def actionLookup(actionName: FullyQualifiedEntityName)(
-    implicit transid: TransactionId): Future[WhiskActionMetaData] = {
+  private def actionLookup(actionName: FullyQualifiedEntityName)(implicit
+    transid: TransactionId): Future[WhiskActionMetaData] = {
     WhiskActionMetaData.resolveActionAndMergeParameters(entityStore, actionName) recoverWith {
       case _: ArtifactStoreException | DeserializationException(_, _, _) =>
         Future.failed(RejectRequest(NotFound))
@@ -739,8 +747,8 @@ trait WhiskWebActionsApi
    * Checks if an action is exported (i.e., carries the required annotation).
    * This function does not check if web action requires authentication.
    */
-  private def confirmExportedAction(actionLookup: Future[WhiskActionMetaData])(
-    implicit transid: TransactionId): Future[WhiskActionMetaData] = {
+  private def confirmExportedAction(actionLookup: Future[WhiskActionMetaData])(implicit
+    transid: TransactionId): Future[WhiskActionMetaData] = {
     actionLookup flatMap { action =>
       val isExported = action.annotations.getAs[Boolean](Annotations.WebActionAnnotationName).getOrElse(false)
 
@@ -757,8 +765,8 @@ trait WhiskWebActionsApi
   /**
    * Checks if an action is executable.
    */
-  private def checkEntitlement(identity: Identity, action: WhiskActionMetaData)(
-    implicit transid: TransactionId): Future[Unit] = {
+  private def checkEntitlement(identity: Identity, action: WhiskActionMetaData)(implicit
+    transid: TransactionId): Future[Unit] = {
 
     val fqn = action.fullyQualifiedName(false)
     val resource = Resource(fqn.path, collection, Some(fqn.name.asString))
@@ -778,9 +786,10 @@ trait WhiskWebActionsApi
    *         Some(false) if web annotation includes require-whisk-auth and the request does not include the header `X-Require-Whisk-Auth`
    *         Some(false) if web annotation includes require-whisk-auth and its value does not match the request header `X-Require-Whisk-Auth` value
    */
-  private def confirmAuthenticated(annotations: Parameters,
-                                   reqHeaders: Seq[HttpHeader],
-                                   authenticatedUser: Option[Identity]): Option[Boolean] = {
+  private def confirmAuthenticated(
+    annotations: Parameters,
+    reqHeaders: Seq[HttpHeader],
+    authenticatedUser: Option[Identity]): Option[Boolean] = {
     def checkAuthHeader(expected: String): Boolean = {
       reqHeaders.find(_.is(WhiskAction.requireWhiskAuthHeader)).map(_.value == expected).getOrElse(false)
     }

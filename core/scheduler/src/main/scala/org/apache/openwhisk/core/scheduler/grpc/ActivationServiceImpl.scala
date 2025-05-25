@@ -85,17 +85,16 @@ class ActivationServiceImpl()(implicit actorSystem: ActorSystem, logging: Loggin
               .map { response =>
                 FetchResponse(response.serialize)
               }
-              .recover {
-                case t: Throwable =>
-                  logging.error(
-                    this,
-                    s"Failed to get message from QueueManager container: ${request.containerId}, fqn: ${request.fqn}, rev: ${request.rev}, alive: ${request.alive}, lastDuration: ${request.lastDuration}, error: ${t.getMessage}")
-                  FetchResponse(ActivationResponse(Left(NoActivationMessage())).serialize)
+              .recover { case t: Throwable =>
+                logging.error(
+                  this,
+                  s"Failed to get message from QueueManager container: ${request.containerId}, fqn: ${request.fqn}, rev: ${request.rev}, alive: ${request.alive}, lastDuration: ${request.lastDuration}, error: ${t.getMessage}")
+                FetchResponse(ActivationResponse(Left(NoActivationMessage())).serialize)
               }
           case None =>
             if (QueuePool.keys.exists { mkey =>
-                  mkey.invocationNamespace == request.invocationNamespace && mkey.docInfo.id == key.id
-                })
+                mkey.invocationNamespace == request.invocationNamespace && mkey.docInfo.id == key.id
+              })
               Future.successful(FetchResponse(ActivationResponse(Left(ActionMismatch())).serialize))
             else
               Future.successful(FetchResponse(ActivationResponse(Left(NoMemoryQueue())).serialize))
@@ -116,12 +115,13 @@ object ActivationServiceImpl {
     new ActivationServiceImpl()
 }
 
-case class GetActivation(transactionId: TransactionId,
-                         action: FullyQualifiedEntityName,
-                         containerId: String,
-                         warmed: Boolean,
-                         lastDuration: Option[Long],
-                         alive: Boolean = true)
+case class GetActivation(
+  transactionId: TransactionId,
+  action: FullyQualifiedEntityName,
+  containerId: String,
+  warmed: Boolean,
+  lastDuration: Option[Long],
+  alive: Boolean = true)
 case class ActivationResponse(message: Either[MemoryQueueError, ActivationMessage]) extends Message {
   override def serialize = ActivationResponse.serdes.write(this).compactPrint
 }

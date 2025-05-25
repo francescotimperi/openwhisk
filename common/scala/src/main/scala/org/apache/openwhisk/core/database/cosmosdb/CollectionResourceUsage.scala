@@ -21,11 +21,12 @@ import org.apache.commons.io.FileUtils
 import org.apache.openwhisk.core.entity.ByteSize
 import org.apache.openwhisk.core.entity.SizeUnits.KB
 
-case class CollectionResourceUsage(documentsSize: Option[ByteSize],
-                                   collectionSize: Option[ByteSize],
-                                   documentsCount: Option[Long],
-                                   indexingProgress: Option[Int],
-                                   documentsSizeQuota: Option[ByteSize]) {
+case class CollectionResourceUsage(
+  documentsSize: Option[ByteSize],
+  collectionSize: Option[ByteSize],
+  documentsCount: Option[Long],
+  indexingProgress: Option[Int],
+  documentsSizeQuota: Option[ByteSize]) {
   def indexSize: Option[ByteSize] = {
     for {
       ds <- documentsSize

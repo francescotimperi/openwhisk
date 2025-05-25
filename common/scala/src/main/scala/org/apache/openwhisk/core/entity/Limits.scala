@@ -48,11 +48,12 @@ protected[entity] abstract class Limits {
  * @param concurrency the limit on concurrently processed activations per container, assured to be non-null because it is a value
  * @param instances the limit in which an action can scale up to within the confines of the namespace's concurrency limit
  */
-protected[core] case class ActionLimits(timeout: TimeLimit = TimeLimit(),
-                                        memory: MemoryLimit = MemoryLimit(),
-                                        logs: LogLimit = LogLimit(),
-                                        concurrency: IntraConcurrencyLimit = IntraConcurrencyLimit(),
-                                        instances: Option[InstanceConcurrencyLimit] = None)
+protected[core] case class ActionLimits(
+  timeout: TimeLimit = TimeLimit(),
+  memory: MemoryLimit = MemoryLimit(),
+  logs: LogLimit = LogLimit(),
+  concurrency: IntraConcurrencyLimit = IntraConcurrencyLimit(),
+  instances: Option[InstanceConcurrencyLimit] = None)
     extends Limits {
   override protected[entity] def toJson = ActionLimits.serdes.write(this)
 
@@ -85,7 +86,9 @@ protected[core] object ActionLimits extends ArgNormalizer[ActionLimits] with Def
       val time = TimeLimit.serdes.read(obj.getOrElse("timeout", deserializationError("'timeout' is missing")))
       val memory = MemoryLimit.serdes.read(obj.getOrElse("memory", deserializationError("'memory' is missing")))
       val logs = obj.get("logs") map { LogLimit.serdes.read } getOrElse LogLimit()
-      val concurrency = obj.get("concurrency") map { IntraConcurrencyLimit.serdes.read } getOrElse IntraConcurrencyLimit()
+      val concurrency = obj.get("concurrency") map {
+        IntraConcurrencyLimit.serdes.read
+      } getOrElse IntraConcurrencyLimit()
       val instances = obj.get("instances") map { InstanceConcurrencyLimit.serdes.read }
       ActionLimits(time, memory, logs, concurrency, instances)
     }

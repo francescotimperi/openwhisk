@@ -30,10 +30,11 @@ import com.amazonaws.services.cloudfront.util.SignerUtils.Protocol
 
 import scala.concurrent.duration._
 
-case class CloudFrontConfig(domainName: String,
-                            keyPairId: String,
-                            privateKey: String,
-                            timeout: FiniteDuration = 10.minutes)
+case class CloudFrontConfig(
+  domainName: String,
+  keyPairId: String,
+  privateKey: String,
+  timeout: FiniteDuration = 10.minutes)
 
 case class CloudFrontSigner(config: CloudFrontConfig) extends UrlSigner {
   private val privateKey = createPrivateKey(config.privateKey)

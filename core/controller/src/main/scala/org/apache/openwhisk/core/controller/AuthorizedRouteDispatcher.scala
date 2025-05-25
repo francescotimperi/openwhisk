@@ -68,8 +68,8 @@ trait BasicAuthorizedRouteProvider extends Directives {
   import RestApiCommons.jsonDefaultResponsePrinter
 
   /** Checks entitlement and dispatches to handler if authorized. */
-  protected def authorizeAndDispatch(method: HttpMethod, user: Identity, resource: Resource)(
-    implicit transid: TransactionId): RequestContext => Future[RouteResult] = {
+  protected def authorizeAndDispatch(method: HttpMethod, user: Identity, resource: Resource)(implicit
+    transid: TransactionId): RequestContext => Future[RouteResult] = {
     val right = collection.determineRight(method, resource.entity)
 
     onComplete(entitlementProvider.check(user, right, resource)) {
@@ -92,8 +92,8 @@ trait BasicAuthorizedRouteProvider extends Directives {
     }
   }
 
-  protected def handleEntitlementFailure(failure: Throwable)(
-    implicit transid: TransactionId): RequestContext => Future[RouteResult] = {
+  protected def handleEntitlementFailure(failure: Throwable)(implicit
+    transid: TransactionId): RequestContext => Future[RouteResult] = {
     failure match {
       case (r: RejectRequest) => terminate(r.code, r.message)
       case t                  => terminate(InternalServerError)
@@ -101,8 +101,8 @@ trait BasicAuthorizedRouteProvider extends Directives {
   }
 
   /** Dispatches resource to the proper handler depending on context. */
-  protected def dispatchOp(user: Identity, op: Privilege, resource: Resource)(
-    implicit transid: TransactionId): RequestContext => Future[RouteResult]
+  protected def dispatchOp(user: Identity, op: Privilege, resource: Resource)(implicit
+    transid: TransactionId): RequestContext => Future[RouteResult]
 
   /** Extracts namespace for user from the matched path segment. */
   protected def namespace(user: Identity, ns: String) = {

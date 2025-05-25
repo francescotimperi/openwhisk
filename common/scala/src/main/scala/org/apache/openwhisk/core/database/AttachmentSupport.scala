@@ -72,9 +72,10 @@ trait AttachmentSupport[DocumentAbstraction <: DocumentSerializer] extends Defau
    * Either - Left(byteString) containing all the bytes from the source or Right(Source[ByteString, _])
    * if the source is large
    */
-  protected[database] def inlineOrAttach(docStream: Source[ByteString, _],
-                                         previousPrefix: ByteString = ByteString.empty)(
-    implicit system: ActorSystem): Future[Either[ByteString, Source[ByteString, _]]] = {
+  protected[database] def inlineOrAttach(
+    docStream: Source[ByteString, _],
+    previousPrefix: ByteString = ByteString.empty)(implicit
+    system: ActorSystem): Future[Either[ByteString, Source[ByteString, _]]] = {
     implicit val ec = executionContext
     docStream.prefixAndTail(1).runWith(Sink.head).flatMap {
       case (Nil, _) =>
@@ -136,13 +137,14 @@ trait AttachmentSupport[DocumentAbstraction <: DocumentSerializer] extends Defau
    * @param attachmentStore attachmentStore where attachment needs to be stored
    * @return a tuple of updated document info and attachment metadata
    */
-  protected[database] def attachToExternalStore[A <: DocumentAbstraction](doc: A,
-                                                                          update: (A, Attached) => A,
-                                                                          contentType: ContentType,
-                                                                          docStream: Source[ByteString, _],
-                                                                          oldAttachment: Option[Attached],
-                                                                          attachmentStore: AttachmentStore)(
-    implicit transid: TransactionId,
+  protected[database] def attachToExternalStore[A <: DocumentAbstraction](
+    doc: A,
+    update: (A, Attached) => A,
+    contentType: ContentType,
+    docStream: Source[ByteString, _],
+    oldAttachment: Option[Attached],
+    attachmentStore: AttachmentStore)(implicit
+    transid: TransactionId,
     actorSystem: ActorSystem): Future[(DocInfo, Attached)] = {
 
     val asJson = doc.toDocumentRecord

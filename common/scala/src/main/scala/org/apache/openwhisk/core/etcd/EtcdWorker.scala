@@ -40,9 +40,10 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Success
 
-class EtcdWorker(etcdClient: EtcdClient, leaseService: ActorRef)(implicit val ec: ExecutionContext,
-                                                                 actorSystem: ActorSystem,
-                                                                 logging: Logging)
+class EtcdWorker(etcdClient: EtcdClient, leaseService: ActorRef)(implicit
+  val ec: ExecutionContext,
+  actorSystem: ActorSystem,
+  logging: Logging)
     extends Actor
     with Timers {
 
@@ -68,10 +69,9 @@ class EtcdWorker(etcdClient: EtcdClient, leaseService: ActorRef)(implicit val ec
         case Some(l) =>
           etcdClient
             .electLeader(request.key, request.value, l)
-            .andThen {
-              case Success(msg) =>
-                request.recipient ! ElectionResult(msg)
-                dataManagementService ! FinishWork(request.key)
+            .andThen { case Success(msg) =>
+              request.recipient ! ElectionResult(msg)
+              dataManagementService ! FinishWork(request.key)
             }
             .recover {
               // if there is no lease, reissue it and retry immediately
@@ -94,9 +94,8 @@ class EtcdWorker(etcdClient: EtcdClient, leaseService: ActorRef)(implicit val ec
         case Some(l) =>
           etcdClient
             .put(request.key, request.value, l.id)
-            .andThen {
-              case Success(_) =>
-                dataManagementService ! FinishWork(request.key)
+            .andThen { case Success(_) =>
+              dataManagementService ! FinishWork(request.key)
             }
             .recover {
               // if there is no lease, reissue it and retry immediately
@@ -150,9 +149,8 @@ class EtcdWorker(etcdClient: EtcdClient, leaseService: ActorRef)(implicit val ec
     case msg: WatcherClosed =>
       etcdClient
         .del(msg.key)
-        .andThen {
-          case Success(_) =>
-            dataManagementService ! FinishWork(msg.key)
+        .andThen { case Success(_) =>
+          dataManagementService ! FinishWork(msg.key)
         }
         .recover {
           // if there is no lease, reissue it and retry immediately
@@ -175,9 +173,10 @@ class EtcdWorker(etcdClient: EtcdClient, leaseService: ActorRef)(implicit val ec
 object EtcdWorker {
   case class GetLeaseAndRetry(request: Any, log: String, clearLease: Boolean = true, skipLeaseRefresh: Boolean = false)
 
-  def props(etcdClient: EtcdClient, leaseService: ActorRef)(implicit ec: ExecutionContext,
-                                                            actorSystem: ActorSystem,
-                                                            logging: Logging): Props = {
+  def props(etcdClient: EtcdClient, leaseService: ActorRef)(implicit
+    ec: ExecutionContext,
+    actorSystem: ActorSystem,
+    logging: Logging): Props = {
     Props(new EtcdWorker(etcdClient, leaseService))
   }
 }

@@ -82,11 +82,12 @@ case class RunningData(schedulerActor: ActorRef, droppingActor: ActorRef) extend
 case class ThrottledData(schedulerActor: ActorRef, droppingActor: ActorRef) extends MemoryQueueData() {
   override def toString = "ThrottledData"
 }
-case class FlushingData(schedulerActor: ActorRef,
-                        droppingActor: ActorRef,
-                        error: ContainerCreationError,
-                        reason: String,
-                        activeDuringFlush: Boolean = false)
+case class FlushingData(
+  schedulerActor: ActorRef,
+  droppingActor: ActorRef,
+  error: ContainerCreationError,
+  reason: String,
+  activeDuringFlush: Boolean = false)
     extends MemoryQueueData() {
   override def toString = s"ThrottledData(error: $error, reason: $reason, activeDuringFlush: $activeDuringFlush)"
 }
@@ -119,32 +120,34 @@ case class DecisionResults(required: RequiredAction, num: Int)
 
 case class TimeSeriesActivationEntry(timestamp: Instant, msg: ActivationMessage)
 
-class MemoryQueue(private val etcdClient: EtcdClient,
-                  private val durationChecker: DurationChecker,
-                  private val action: FullyQualifiedEntityName,
-                  messagingProducer: MessageProducer,
-                  schedulingConfig: SchedulingConfig,
-                  invocationNamespace: String,
-                  revision: DocRevision,
-                  endpoints: SchedulerEndpoints,
-                  actionMetaData: WhiskActionMetaData,
-                  dataManagementService: ActorRef,
-                  watcherService: ActorRef,
-                  containerManager: ActorRef,
-                  decisionMaker: ActorRef,
-                  schedulerId: SchedulerInstanceId,
-                  ack: ActiveAck,
-                  store: (TransactionId, WhiskActivation, UserContext) => Future[Any],
-                  getUserLimit: String => Future[Int],
-                  checkToDropStaleActivation: (Clock,
-                                               Queue[TimeSeriesActivationEntry],
-                                               Long,
-                                               AtomicLong,
-                                               String,
-                                               WhiskActionMetaData,
-                                               MemoryQueueState,
-                                               ActorRef) => Unit,
-                  queueConfig: QueueConfig)(implicit logging: Logging, clock: Clock)
+class MemoryQueue(
+  private val etcdClient: EtcdClient,
+  private val durationChecker: DurationChecker,
+  private val action: FullyQualifiedEntityName,
+  messagingProducer: MessageProducer,
+  schedulingConfig: SchedulingConfig,
+  invocationNamespace: String,
+  revision: DocRevision,
+  endpoints: SchedulerEndpoints,
+  actionMetaData: WhiskActionMetaData,
+  dataManagementService: ActorRef,
+  watcherService: ActorRef,
+  containerManager: ActorRef,
+  decisionMaker: ActorRef,
+  schedulerId: SchedulerInstanceId,
+  ack: ActiveAck,
+  store: (TransactionId, WhiskActivation, UserContext) => Future[Any],
+  getUserLimit: String => Future[Int],
+  checkToDropStaleActivation: (
+    Clock,
+    Queue[TimeSeriesActivationEntry],
+    Long,
+    AtomicLong,
+    String,
+    WhiskActionMetaData,
+    MemoryQueueState,
+    ActorRef) => Unit,
+  queueConfig: QueueConfig)(implicit logging: Logging, clock: Clock)
     extends FSM[MemoryQueueState, MemoryQueueData]
     with Stash {
 
@@ -481,7 +484,12 @@ class MemoryQueue(private val etcdClient: EtcdClient,
             this,
             s"[$invocationNamespace:$action:$stateName] This queue is shutdown by `/disable` api, do nothing here.")
         case _ =>
-          dataManagementService ! RegisterInitialData(leaderKey, value, failoverEnabled = false, Some(self)) // the watcher is already setup
+          dataManagementService ! RegisterInitialData(
+            leaderKey,
+            value,
+            failoverEnabled = false,
+            Some(self)
+          ) // the watcher is already setup
       }
       stay
 
@@ -578,8 +586,8 @@ class MemoryQueue(private val etcdClient: EtcdClient,
 
     case Event(DropOld, _) =>
       if (queue.nonEmpty && Duration
-            .between(queue.head.timestamp, clock.now())
-            .compareTo(Duration.ofMillis(actionRetentionTimeout)) >= 0) {
+          .between(queue.head.timestamp, clock.now())
+          .compareTo(Duration.ofMillis(actionRetentionTimeout)) >= 0) {
         logging.error(
           this,
           s"[$invocationNamespace:$action:$stateName] Drop some stale activations for $revision, existing container is ${containers.size}, inProgress container is ${creationIds.size}, state data: $stateData, in is $in, current: ${queue.size}.")
@@ -684,13 +692,12 @@ class MemoryQueue(private val etcdClient: EtcdClient,
     case Removed -> _       => cancelTimer("RemovedQueue") //Removed state is a sink so shouldn't be able to hit this.
   }
 
-  onTermination {
-    case _ =>
-      // logscheduler must be canceled when FSM is terminated
-      logScheduler.cancel()
+  onTermination { case _ =>
+    // logscheduler must be canceled when FSM is terminated
+    logScheduler.cancel()
 
-      // the lifecycle of DecisionMaker conforms to the one of MemoryQueue
-      actorSystem.stop(decisionMaker)
+    // the lifecycle of DecisionMaker conforms to the one of MemoryQueue
+    actorSystem.stop(decisionMaker)
   }
 
   initialize()
@@ -831,9 +838,10 @@ class MemoryQueue(private val etcdClient: EtcdClient,
     dataManagementService ! RegisterData(namespaceThrottlingKey, true.toString, failoverEnabled = false)
   }
 
-  private def completeErrorActivation(activation: ActivationMessage,
-                                      message: String,
-                                      isWhiskError: Boolean): Future[Any] = {
+  private def completeErrorActivation(
+    activation: ActivationMessage,
+    message: String,
+    isWhiskError: Boolean): Future[Any] = {
     logging.error(
       this,
       s"[$invocationNamespace:$action:$stateName] complete activation ${activation.activationId} with error $message")(
@@ -879,14 +887,12 @@ class MemoryQueue(private val etcdClient: EtcdClient,
       activation.rootControllerIndex,
       activation.user.namespace.uuid,
       ackMsg)
-      .andThen {
-        case Failure(t) =>
-          logging.error(this, s"[$invocationNamespace:$action:$stateName] failed to send ack due to $t")
+      .andThen { case Failure(t) =>
+        logging.error(this, s"[$invocationNamespace:$action:$stateName] failed to send ack due to $t")
       }
     store(activation.transid, activationResponse, UserContext(activation.user))
-      .andThen {
-        case Failure(t) =>
-          logging.error(this, s"[$invocationNamespace:$action:$stateName] failed to store activation due to $t")
+      .andThen { case Failure(t) =>
+        logging.error(this, s"[$invocationNamespace:$action:$stateName] failed to store activation due to $t")
       }
   }
 
@@ -992,8 +998,8 @@ class MemoryQueue(private val etcdClient: EtcdClient,
   @tailrec
   private def getStaleActivationNum(count: Int, queue: Queue[TimeSeriesActivationEntry]): Int = {
     if (queue.isEmpty || Duration
-          .between(queue.head.timestamp, clock.now())
-          .compareTo(StaleDuration) < 0) count
+        .between(queue.head.timestamp, clock.now())
+        .compareTo(StaleDuration) < 0) count
     else
       getStaleActivationNum(count + 1, queue.tail)
   }
@@ -1150,23 +1156,24 @@ class MemoryQueue(private val etcdClient: EtcdClient,
 object MemoryQueue {
   private[queue] val queueConfig = loadConfigOrThrow[QueueConfig](ConfigKeys.schedulerQueue)
 
-  def props(etcdClient: EtcdClient,
-            durationChecker: DurationChecker,
-            fqn: FullyQualifiedEntityName,
-            messagingProducer: MessageProducer,
-            schedulingConfig: SchedulingConfig,
-            invocationNamespace: String,
-            revision: DocRevision,
-            endpoints: SchedulerEndpoints,
-            actionMetaData: WhiskActionMetaData,
-            dataManagementService: ActorRef,
-            watcherService: ActorRef,
-            containerManager: ActorRef,
-            decisionMaker: ActorRef,
-            schedulerId: SchedulerInstanceId,
-            ack: ActiveAck,
-            store: (TransactionId, WhiskActivation, UserContext) => Future[Any],
-            getUserLimit: String => Future[Int])(implicit logging: Logging): Props = {
+  def props(
+    etcdClient: EtcdClient,
+    durationChecker: DurationChecker,
+    fqn: FullyQualifiedEntityName,
+    messagingProducer: MessageProducer,
+    schedulingConfig: SchedulingConfig,
+    invocationNamespace: String,
+    revision: DocRevision,
+    endpoints: SchedulerEndpoints,
+    actionMetaData: WhiskActionMetaData,
+    dataManagementService: ActorRef,
+    watcherService: ActorRef,
+    containerManager: ActorRef,
+    decisionMaker: ActorRef,
+    schedulerId: SchedulerInstanceId,
+    ack: ActiveAck,
+    store: (TransactionId, WhiskActivation, UserContext) => Future[Any],
+    getUserLimit: String => Future[Int])(implicit logging: Logging): Props = {
     implicit val clock: Clock = SystemClock
     Props(
       new MemoryQueue(
@@ -1206,22 +1213,23 @@ object MemoryQueue {
     }
   }
 
-  def checkToDropStaleActivation(clock: Clock,
-                                 queue: Queue[TimeSeriesActivationEntry],
-                                 maxRetentionMs: Long,
-                                 lastActivationExecutedTime: AtomicLong,
-                                 invocationNamespace: String,
-                                 actionMetaData: WhiskActionMetaData,
-                                 stateName: MemoryQueueState,
-                                 queueRef: ActorRef)(implicit logging: Logging) = {
+  def checkToDropStaleActivation(
+    clock: Clock,
+    queue: Queue[TimeSeriesActivationEntry],
+    maxRetentionMs: Long,
+    lastActivationExecutedTime: AtomicLong,
+    invocationNamespace: String,
+    actionMetaData: WhiskActionMetaData,
+    stateName: MemoryQueueState,
+    queueRef: ActorRef)(implicit logging: Logging) = {
     val action = actionMetaData.fullyQualifiedName(true)
     logging.debug(
       this,
       s"[$invocationNamespace:$action:$stateName] use the given retention timeout: $maxRetentionMs for this action kind: ${actionMetaData.exec.kind}.")
 
     if (queue.nonEmpty && Duration
-          .between(queue.head.timestamp, clock.now())
-          .compareTo(Duration.ofMillis(maxRetentionMs)) >= 0) {
+        .between(queue.head.timestamp, clock.now())
+        .compareTo(Duration.ofMillis(maxRetentionMs)) >= 0) {
       logging.info(
         this,
         s"[$invocationNamespace:$action:$stateName] some activations are stale msg: ${queue.head.msg.activationId}.")
@@ -1244,31 +1252,33 @@ object MemoryQueue {
   }
 }
 
-case class QueueSnapshot(initialized: Boolean,
-                         incomingMsgCount: AtomicInteger,
-                         currentMsgCount: Int,
-                         existingContainerCount: Int,
-                         inProgressContainerCount: Int,
-                         staleActivationNum: Int,
-                         existingContainerCountInNamespace: Int,
-                         inProgressContainerCountInNamespace: Int,
-                         averageDuration: Option[Double],
-                         namespaceLimit: Int,
-                         actionLimit: Int,
-                         maxActionConcurrency: Int,
-                         stateName: MemoryQueueState,
-                         recipient: ActorRef)
+case class QueueSnapshot(
+  initialized: Boolean,
+  incomingMsgCount: AtomicInteger,
+  currentMsgCount: Int,
+  existingContainerCount: Int,
+  inProgressContainerCount: Int,
+  staleActivationNum: Int,
+  existingContainerCountInNamespace: Int,
+  inProgressContainerCountInNamespace: Int,
+  averageDuration: Option[Double],
+  namespaceLimit: Int,
+  actionLimit: Int,
+  maxActionConcurrency: Int,
+  stateName: MemoryQueueState,
+  recipient: ActorRef)
 
-case class QueueConfig(idleGrace: FiniteDuration,
-                       stopGrace: FiniteDuration,
-                       flushGrace: FiniteDuration,
-                       gracefulShutdownTimeout: FiniteDuration,
-                       maxRetentionSize: Int,
-                       maxRetentionMs: Long,
-                       maxBlackboxRetentionMs: Long,
-                       throttlingFraction: Double,
-                       durationBufferSize: Int,
-                       failThrottleAsWhiskError: Boolean)
+case class QueueConfig(
+  idleGrace: FiniteDuration,
+  stopGrace: FiniteDuration,
+  flushGrace: FiniteDuration,
+  gracefulShutdownTimeout: FiniteDuration,
+  maxRetentionSize: Int,
+  maxRetentionMs: Long,
+  maxBlackboxRetentionMs: Long,
+  throttlingFraction: Double,
+  durationBufferSize: Int,
+  failThrottleAsWhiskError: Boolean)
 
 case class BufferedRequest(containerId: String, promise: Promise[Either[MemoryQueueError, ActivationMessage]])
 

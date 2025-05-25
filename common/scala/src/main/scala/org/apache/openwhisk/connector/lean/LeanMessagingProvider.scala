@@ -44,7 +44,8 @@ object LeanMessagingProvider extends MessagingProvider {
     new TrieMap[String, BlockingQueue[Array[Byte]]]
 
   def getConsumer(config: WhiskConfig, groupId: String, topic: String, maxPeek: Int, maxPollInterval: FiniteDuration)(
-    implicit logging: Logging,
+    implicit
+    logging: Logging,
     actorSystem: ActorSystem): MessageConsumer = {
 
     val queue = queues.getOrElseUpdate(topic, new LinkedBlockingQueue[Array[Byte]]())
@@ -52,8 +53,8 @@ object LeanMessagingProvider extends MessagingProvider {
     new LeanConsumer(queue, maxPeek)
   }
 
-  def getProducer(config: WhiskConfig, maxRequestSize: Option[ByteSize] = None)(
-    implicit logging: Logging,
+  def getProducer(config: WhiskConfig, maxRequestSize: Option[ByteSize] = None)(implicit
+    logging: Logging,
     actorSystem: ActorSystem): MessageProducer =
     new LeanProducer(queues)
 

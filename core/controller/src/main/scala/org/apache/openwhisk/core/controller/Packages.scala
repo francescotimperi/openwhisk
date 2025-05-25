@@ -110,8 +110,8 @@ trait WhiskPackagesApi extends WhiskCollectionAPI with ReferencedEntities {
    * Responses are one of (Code, Message)
    * - 405 Not Allowed
    */
-  override def activate(user: Identity, entityName: FullyQualifiedEntityName, env: Option[Parameters])(
-    implicit transid: TransactionId) = {
+  override def activate(user: Identity, entityName: FullyQualifiedEntityName, env: Option[Parameters])(implicit
+    transid: TransactionId) = {
     logging.error(this, "activate is not permitted on packages")
     reject
   }
@@ -183,15 +183,17 @@ trait WhiskPackagesApi extends WhiskCollectionAPI with ReferencedEntities {
    * - 404 Not Found
    * - 500 Internal Server Error
    */
-  override def fetch(user: Identity, entityName: FullyQualifiedEntityName, env: Option[Parameters])(
-    implicit transid: TransactionId) = {
+  override def fetch(user: Identity, entityName: FullyQualifiedEntityName, env: Option[Parameters])(implicit
+    transid: TransactionId) = {
     if (executeOnly && user.namespace.name != entityName.namespace) {
       val value = entityName.toString
       terminate(Forbidden, forbiddenGetPackage(entityName.asString))
     } else {
-      getEntity(WhiskPackage.get(entityStore, entityName.toDocId), Some {
-        mergePackageWithBinding() _
-      })
+      getEntity(
+        WhiskPackage.get(entityStore, entityName.toDocId),
+        Some {
+          mergePackageWithBinding() _
+        })
     }
   }
 
@@ -250,8 +252,8 @@ trait WhiskPackagesApi extends WhiskCollectionAPI with ReferencedEntities {
    * Creates a WhiskPackage from PUT content, generating default values where necessary.
    * If this is a binding, confirm the referenced package exists.
    */
-  private def create(content: WhiskPackagePut, pkgName: FullyQualifiedEntityName)(
-    implicit transid: TransactionId): Future[WhiskPackage] = {
+  private def create(content: WhiskPackagePut, pkgName: FullyQualifiedEntityName)(implicit
+    transid: TransactionId): Future[WhiskPackage] = {
     val validateBinding = content.binding map { b =>
       checkBinding(b.fullyQualifiedName)
     } getOrElse Future.successful({})
@@ -272,8 +274,8 @@ trait WhiskPackagesApi extends WhiskCollectionAPI with ReferencedEntities {
   }
 
   /** Updates a WhiskPackage from PUT content, merging old package/binding where necessary. */
-  private def update(content: WhiskPackagePut)(wp: WhiskPackage)(
-    implicit transid: TransactionId): Future[WhiskPackage] = {
+  private def update(content: WhiskPackagePut)(wp: WhiskPackage)(implicit
+    transid: TransactionId): Future[WhiskPackage] = {
     val validateBinding = content.binding map { binding =>
       wp.binding map {
         // pre-existing entity is a binding, check that new binding is valid
@@ -300,8 +302,8 @@ trait WhiskPackagesApi extends WhiskCollectionAPI with ReferencedEntities {
     }
   }
 
-  private def rewriteEntitlementFailure(failure: Throwable)(
-    implicit transid: TransactionId): RequestContext => Future[RouteResult] = {
+  private def rewriteEntitlementFailure(failure: Throwable)(implicit
+    transid: TransactionId): RequestContext => Future[RouteResult] = {
     logging.debug(this, s"rewriting failure $failure")
     failure match {
       case RejectRequest(NotFound, _) => terminate(BadRequest, Messages.bindingDoesNotExist)
@@ -328,28 +330,29 @@ trait WhiskPackagesApi extends WhiskCollectionAPI with ReferencedEntities {
    * If this is a binding, fetch package for binding, merge parameters then emit.
    * Otherwise this is a package, emit it.
    */
-  private def mergePackageWithBinding(ref: Option[WhiskPackage] = None)(wp: WhiskPackage)(
-    implicit transid: TransactionId): RequestContext => Future[RouteResult] = {
-    wp.binding map {
-      case b: Binding =>
-        val docid = b.fullyQualifiedName.toDocId
-        logging.debug(this, s"fetching package '$docid' for reference")
-        if (docid == wp.docid) {
-          logging.error(this, s"unexpected package binding refers to itself: $docid")
-          terminate(UnprocessableEntity, Messages.packageBindingCircularReference(b.fullyQualifiedName.toString))
-        } else {
+  private def mergePackageWithBinding(ref: Option[WhiskPackage] = None)(wp: WhiskPackage)(implicit
+    transid: TransactionId): RequestContext => Future[RouteResult] = {
+    wp.binding map { case b: Binding =>
+      val docid = b.fullyQualifiedName.toDocId
+      logging.debug(this, s"fetching package '$docid' for reference")
+      if (docid == wp.docid) {
+        logging.error(this, s"unexpected package binding refers to itself: $docid")
+        terminate(UnprocessableEntity, Messages.packageBindingCircularReference(b.fullyQualifiedName.toString))
+      } else {
 
-          /** Here's where I check package execute only case with package binding. */
-          if (executeOnly && wp.namespace.asString != b.namespace.asString) {
-            terminate(Forbidden, forbiddenGetPackageBinding(wp.name.asString))
-          } else {
-            getEntity(WhiskPackage.get(entityStore, docid), Some {
+        /** Here's where I check package execute only case with package binding. */
+        if (executeOnly && wp.namespace.asString != b.namespace.asString) {
+          terminate(Forbidden, forbiddenGetPackageBinding(wp.name.asString))
+        } else {
+          getEntity(
+            WhiskPackage.get(entityStore, docid),
+            Some {
               mergePackageWithBinding(Some {
                 wp
               }) _
             })
-          }
         }
+      }
     } getOrElse {
       val pkg = ref map { _ inherit wp.parameters } getOrElse wp
       logging.debug(this, s"fetching package actions in '${wp.fullPath}'")

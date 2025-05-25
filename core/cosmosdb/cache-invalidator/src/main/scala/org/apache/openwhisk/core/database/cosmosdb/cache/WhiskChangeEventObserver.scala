@@ -33,8 +33,9 @@ import scala.collection.immutable.Seq
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-class WhiskChangeEventObserver(config: InvalidatorConfig, eventProducer: EventProducer)(implicit ec: ExecutionContext,
-                                                                                        log: Logging)
+class WhiskChangeEventObserver(config: InvalidatorConfig, eventProducer: EventProducer)(implicit
+  ec: ExecutionContext,
+  log: Logging)
     extends ChangeFeedObserver {
   import WhiskChangeEventObserver._
 

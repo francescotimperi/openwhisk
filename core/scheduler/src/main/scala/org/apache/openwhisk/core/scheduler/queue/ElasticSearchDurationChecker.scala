@@ -84,9 +84,10 @@ class ElasticSearchDurationChecker(private val client: ElasticClient, val timeWi
     }
   }
 
-  private def executeQuery(boolQueryResult: List[Query],
-                           callback: DurationCheckResult => DurationCheckResult,
-                           index: String) = {
+  private def executeQuery(
+    boolQueryResult: List[Query],
+    callback: DurationCheckResult => DurationCheckResult,
+    index: String) = {
     client
       .execute {
         (search(index) query {
@@ -102,9 +103,8 @@ class ElasticSearchDurationChecker(private val client: ElasticClient, val timeWi
       }
       .flatMap(Future.fromTry)
       .map(callback(_))
-      .andThen {
-        case Failure(t) =>
-          logging.error(this, s"failed to check the average duration: ${t}")
+      .andThen { case Failure(t) =>
+        logging.error(this, s"failed to check the average duration: ${t}")
       }
   }
 }
@@ -140,52 +140,52 @@ class ElasticSearchDurationCheckResultFormat extends RootJsonFormat[DurationChec
 
   /**
    * Expected sample data
-      {
-          "_shards": {
-              "failed": 0,
-              "skipped": 0,
-              "successful": 5,
-              "total": 5
-          },
-          "aggregations": {
-              "agg": {
-                  "value": 14
-              }
-          },
-          "hits": {
-              "hits": [],
-              "max_score": 0,
-              "total": 3
-          },
-          "timed_out": false,
-          "took": 0
-      }
+   *      {
+   *          "_shards": {
+   *              "failed": 0,
+   *              "skipped": 0,
+   *              "successful": 5,
+   *              "total": 5
+   *          },
+   *          "aggregations": {
+   *              "agg": {
+   *                  "value": 14
+   *              }
+   *          },
+   *          "hits": {
+   *              "hits": [],
+   *              "max_score": 0,
+   *              "total": 3
+   *          },
+   *          "timed_out": false,
+   *          "took": 0
+   *      }
    */
   /**
    * Expected sample data
-      {
-          "_shards": {
-              "failed": 0,
-              "skipped": 0,
-              "successful": 5,
-              "total": 5
-          },
-          "aggregations": {
-              "pathAggregation": {
-                  "avg_duration": {
-                      "value": 13
-                  },
-                  "doc_count": 3
-              }
-          },
-          "hits": {
-              "hits": [],
-              "max_score": 0,
-              "total": 6
-          },
-          "timed_out": false,
-          "took": 0
-      }
+   *      {
+   *          "_shards": {
+   *              "failed": 0,
+   *              "skipped": 0,
+   *              "successful": 5,
+   *              "total": 5
+   *          },
+   *          "aggregations": {
+   *              "pathAggregation": {
+   *                  "avg_duration": {
+   *                      "value": 13
+   *                  },
+   *                  "doc_count": 3
+   *              }
+   *          },
+   *          "hits": {
+   *              "hits": [],
+   *              "max_score": 0,
+   *              "total": 6
+   *          },
+   *          "timed_out": false,
+   *          "took": 0
+   *      }
    */
   implicit def read(json: JsValue) = {
     val jsObject = json.asJsObject
