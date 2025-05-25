@@ -83,9 +83,9 @@ if (scalaVersion == '2.12') {
 } else {
     println("Build using Scala 2.13")
     gradle.ext.scala = [
-            version     : '2.13.8',
+            version     : '2.13.6',
             depVersion  : '2.13',
-            scoverageScalaVersion : '2.13.8',
+            scoverageScalaVersion : '2.13.6',
             scoverageVersion : '1.4.11',
             // We can't use fatal warnings yet because there are deprecated things in 2.13 that are not fixable
             // in 2.12.
