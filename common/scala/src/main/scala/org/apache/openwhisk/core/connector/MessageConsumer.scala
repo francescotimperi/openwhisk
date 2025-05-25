@@ -89,7 +89,6 @@ object MessageFeed {
  * The actor tries to fill the pipeline with additional messages while the number
  * of outstanding requests is below the pipeline fill threshold.
  */
-@throws[IllegalArgumentException]
 class MessageFeed(description: String,
                   logging: Logging,
                   consumer: MessageConsumer,

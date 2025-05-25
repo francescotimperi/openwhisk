@@ -126,7 +126,6 @@ abstract class WhiskActionLikeMetaData(override val name: EntityName) extends Wh
  * @param updated the timestamp when the action is updated
  * @throws IllegalArgumentException if any argument is undefined
  */
-@throws[IllegalArgumentException]
 case class WhiskAction(namespace: EntityPath,
                        override val name: EntityName,
                        exec: Exec,
@@ -193,7 +192,6 @@ case class WhiskAction(namespace: EntityPath,
   }
 }
 
-@throws[IllegalArgumentException]
 case class WhiskActionMetaData(namespace: EntityPath,
                                override val name: EntityName,
                                exec: ExecMetaDataBase,
@@ -271,7 +269,6 @@ case class WhiskActionMetaData(namespace: EntityPath,
  * @param binding the path of the package binding if any
  * @throws IllegalArgumentException if any argument is undefined
  */
-@throws[IllegalArgumentException]
 case class ExecutableWhiskAction(namespace: EntityPath,
                                  override val name: EntityName,
                                  exec: CodeExec[_],
@@ -317,7 +314,6 @@ case class ExecutableWhiskAction(namespace: EntityPath,
       .revision[WhiskAction](rev)
 }
 
-@throws[IllegalArgumentException]
 case class ExecutableWhiskActionMetaData(namespace: EntityPath,
                                          override val name: EntityName,
                                          exec: ExecMetaData,

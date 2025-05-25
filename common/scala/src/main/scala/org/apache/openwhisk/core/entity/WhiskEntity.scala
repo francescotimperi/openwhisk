@@ -40,7 +40,6 @@ import org.apache.openwhisk.http.Messages
  *
  * @throws IllegalArgumentException if any argument is undefined
  */
-@throws[IllegalArgumentException]
 abstract class WhiskEntity protected[entity] (en: EntityName, val entityType: String) extends WhiskDocument {
 
   val namespace: EntityPath

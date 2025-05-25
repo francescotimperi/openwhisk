@@ -65,7 +65,6 @@ case class WhiskPackagePut(binding: Option[Binding] = None,
  * @param updated the timestamp when the package is updated
  * @throws IllegalArgumentException if any argument is undefined
  */
-@throws[IllegalArgumentException]
 case class WhiskPackage(namespace: EntityPath,
                         override val name: EntityName,
                         binding: Option[Binding] = None,

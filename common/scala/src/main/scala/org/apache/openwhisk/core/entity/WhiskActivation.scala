@@ -48,7 +48,6 @@ import org.apache.openwhisk.core.database.{ArtifactStore, CacheChangeNotificatio
  * @param duration of the activation in milliseconds
  * @throws IllegalArgumentException if any required argument is undefined
  */
-@throws[IllegalArgumentException]
 case class WhiskActivation(namespace: EntityPath,
                            override val name: EntityName,
                            subject: Subject,

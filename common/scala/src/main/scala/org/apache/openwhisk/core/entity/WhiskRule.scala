@@ -70,7 +70,6 @@ case class WhiskRulePut(trigger: Option[FullyQualifiedEntityName] = None,
  * @param updated the timestamp when the rule is updated
  * @throws IllegalArgumentException if any argument is undefined
  */
-@throws[IllegalArgumentException]
 case class WhiskRule(namespace: EntityPath,
                      override val name: EntityName,
                      trigger: FullyQualifiedEntityName,

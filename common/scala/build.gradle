@@ -144,6 +144,8 @@ dependencies {
     api "io.netty:netty-codec-http2:${gradle.netty.version}"
     api "io.netty:netty-transport-native-epoll:${gradle.netty.version}"
     api "io.netty:netty-transport-native-unix-common:${gradle.netty.version}"
+
+    api "com.lightbend.akka.grpc:akka-grpc-runtime_${gradle.scala.depVersion}:${gradle.akka_gprc.version}"
 }
 
 configurations {

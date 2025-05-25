@@ -61,7 +61,6 @@ case class ReducedRule(action: FullyQualifiedEntityName, status: Status)
  * @param updated the timestamp when the trigger is updated
  * @throws IllegalArgumentException if any argument is undefined
  */
-@throws[IllegalArgumentException]
 case class WhiskTrigger(namespace: EntityPath,
                         override val name: EntityName,
                         parameters: Parameters = Parameters(),
