@@ -45,7 +45,7 @@ sudo sed -i -e 's!/usr/bin/dockerd -H fd://!/usr/bin/dockerd -H tcp://0.0.0.0:42
 sudo systemctl daemon-reload
 sudo systemctl start docker
 
-# installing right version of jdk
+# installing right version of jdk 17
 JDK=https://github.com/adoptium/temurin17-binaries/releases/latest/download/OpenJDK17U-jdk_x64_linux_hotspot.tar.gz
 curl -sL $JDK | sudo tar xzvf - -C /usr/local
 JAVA="$(which java)"
