@@ -46,7 +46,7 @@ sudo systemctl daemon-reload
 sudo systemctl start docker
 
 # installing right version of eclipse temurin jdk 17
-JDK=https://github.com/adoptium/temurin17-binaries/releases/latest/download/OpenJDK17U-jdk_x64_linux_hotspot.tar.gz
+JDK=https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.9%2B9/OpenJDK17U-jdk_x64_linux_hotspot_17.0.9_9.tar.gz
 curl -sL $JDK | sudo tar xzvf - -C /usr/local
 JAVA="$(which java)"
 sudo mv "$JAVA" "$JAVA"."$(date +%s)"
