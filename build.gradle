@@ -28,7 +28,7 @@ plugins {
 }
 
 subprojects {
-    apply plugin: 'scalafmt'
+    apply plugin: 'cz.alenkacz.gradle.scalafmt'
     scalafmt.configFilePath = gradle.scalafmt.config
 
     group 'org.apache.openwhisk'
