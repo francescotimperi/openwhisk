@@ -94,7 +94,7 @@ if (scalaVersion == '2.12') {
 }
 
 gradle.ext.scalafmt = [
-    version: '1.17.0',
+    version: '1.16.2',
     config: new File(rootProject.projectDir, '.scalafmt.conf')
 ]
 
