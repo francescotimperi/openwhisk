@@ -69,12 +69,12 @@ include 'tools:admin'
 rootProject.name = 'openwhisk'
 
 
-def scalaVersion = System.getenv().getOrDefault('OW_SCALA_VERSION', '2.13')
+def scalaVersion = System.getenv().getOrDefault('OW_SCALA_VERSION', '2.12')
 
 if (scalaVersion == '2.12') {
     println("Build using Scala 2.12")
     gradle.ext.scala = [
-            version     : '2.12.10',
+            version     : '2.12.15',
             depVersion  : '2.12',
             scoverageScalaVersion : '2.12.15',
             scoverageVersion : '1.4.11',
