@@ -89,7 +89,7 @@ trait BasicActionRunnerTests extends ActionProxyContainerTestUtils {
    * receive a unicode character, and construct a response with a unicode character. It must also
    * emit unicode characters correctly to stdout.
    *
-   * @param code a function { delimiter } => { winter: "❄ " + delimiter + " ❄"}
+   * @param code a function { delimiter } => { winter: "? " + delimiter + " ?"}
    * @param main the main function
    */
   def testUnicode: TestConfig
@@ -178,13 +178,15 @@ trait BasicActionRunnerTests extends ActionProxyContainerTestUtils {
           Some(JsObject("error" -> JsString("The action did not return a dictionary.")))))
       }
 
-      checkStreams(out, err, {
-        case (o, e) =>
+      checkStreams(
+        out,
+        err,
+        { case (o, e) =>
           // some runtimes may emita an error message,
           // or for native runtimes emit the result to stdout
           if (config.enforceEmptyOutputStream) o shouldBe empty
           if (config.enforceEmptyErrorStream) e shouldBe empty
-      })
+        })
     }
   }
 
@@ -202,10 +204,13 @@ trait BasicActionRunnerTests extends ActionProxyContainerTestUtils {
       error2 should be(Some(JsObject("error" -> JsString(errorMessage))))
     }
 
-    checkStreams(out, err, {
-      case (o, e) =>
+    checkStreams(
+      out,
+      err,
+      { case (o, e) =>
         (o + e) should include(errorMessage)
-    }, sentinelCount = 0)
+      },
+      sentinelCount = 0)
   }
 
   it should s"invoke non-standard entry point" in {
@@ -222,12 +227,14 @@ trait BasicActionRunnerTests extends ActionProxyContainerTestUtils {
       out should be(Some(arg))
     }
 
-    checkStreams(out, err, {
-      case (o, e) =>
+    checkStreams(
+      out,
+      err,
+      { case (o, e) =>
         // some native runtimes will emit the result to stdout
         if (config.enforceEmptyOutputStream) o shouldBe empty
         e shouldBe empty
-    })
+      })
   }
 
   it should s"echo arguments and print message to stdout/stderr" in {
@@ -235,7 +242,7 @@ trait BasicActionRunnerTests extends ActionProxyContainerTestUtils {
 
     val argss = List(
       JsObject("string" -> JsString("hello")),
-      JsObject("string" -> JsString("❄ ☃ ❄")),
+      JsObject("string" -> JsString("? ? ?")),
       JsObject("numbers" -> JsArray(JsNumber(42), JsNumber(1))),
       // JsObject("boolean" -> JsTrue), // fails with swift3 returning boolean: 1
       JsObject("object" -> JsObject("a" -> JsString("A"))))
@@ -251,12 +258,15 @@ trait BasicActionRunnerTests extends ActionProxyContainerTestUtils {
       }
     }
 
-    checkStreams(out, err, {
-      case (o, e) =>
+    checkStreams(
+      out,
+      err,
+      { case (o, e) =>
         o should include("hello stdout")
         // some languages may not support printing to stderr
         if (!config.skipTest) e should include("hello stderr")
-    }, argss.length)
+      },
+      argss.length)
   }
 
   it should s"handle unicode in source, input params, logs, and result" in {
@@ -266,14 +276,16 @@ trait BasicActionRunnerTests extends ActionProxyContainerTestUtils {
       val (initCode, _) = c.init(initPayload(config.code, config.main))
       initCode should be(200)
 
-      val (runCode, runRes) = c.run(runPayload(JsObject("delimiter" -> JsString("❄"))))
-      runRes.get.fields.get("winter") shouldBe Some(JsString("❄ ☃ ❄"))
+      val (runCode, runRes) = c.run(runPayload(JsObject("delimiter" -> JsString("?"))))
+      runRes.get.fields.get("winter") shouldBe Some(JsString("? ? ?"))
     }
 
-    checkStreams(out, err, {
-      case (o, _) =>
-        o.toLowerCase should include("❄ ☃ ❄")
-    })
+    checkStreams(
+      out,
+      err,
+      { case (o, _) =>
+        o.toLowerCase should include("? ? ?")
+      })
   }
 
   it should s"export environment variables before initialization" in {
@@ -296,11 +308,13 @@ trait BasicActionRunnerTests extends ActionProxyContainerTestUtils {
         fields("ANOTHER_VAR") shouldBe JsString("")
       }
 
-      checkStreams(out, err, {
-        case (o, e) =>
+      checkStreams(
+        out,
+        err,
+        { case (o, e) =>
           if (config.enforceEmptyOutputStream) o shouldBe empty
           if (config.enforceEmptyErrorStream) e shouldBe empty
-      })
+        })
     }
   }
 
@@ -327,20 +341,21 @@ trait BasicActionRunnerTests extends ActionProxyContainerTestUtils {
       val (runCode, out) = c.run(runPayload(JsObject.empty, Some(props.drop(1).toMap.toJson.asJsObject)))
       runCode should be(200)
       out shouldBe defined
-      props.map {
-        case (k, v) =>
-          withClue(k) {
-            out.get.fields(k) shouldBe JsString(v)
-          }
+      props.map { case (k, v) =>
+        withClue(k) {
+          out.get.fields(k) shouldBe JsString(v)
+        }
 
       }
     }
 
-    checkStreams(out, err, {
-      case (o, e) =>
+    checkStreams(
+      out,
+      err,
+      { case (o, e) =>
         if (config.enforceEmptyOutputStream) o shouldBe empty
         if (config.enforceEmptyErrorStream) e shouldBe empty
-    })
+      })
   }
 
   it should s"echo a large input" in {
@@ -370,10 +385,11 @@ trait BasicActionRunnerTests extends ActionProxyContainerTestUtils {
     }
   }
 
-  case class TestConfig(code: String,
-                        main: String = "main",
-                        enforceEmptyOutputStream: Boolean = true,
-                        enforceEmptyErrorStream: Boolean = true,
-                        hasCodeStub: Boolean = false,
-                        skipTest: Boolean = false)
+  case class TestConfig(
+    code: String,
+    main: String = "main",
+    enforceEmptyOutputStream: Boolean = true,
+    enforceEmptyErrorStream: Boolean = true,
+    hasCodeStub: Boolean = false,
+    skipTest: Boolean = false)
 }

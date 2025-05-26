@@ -35,23 +35,25 @@ import org.apache.openwhisk.core.entity.{
 case class ContainerKeyMeta(revision: DocRevision, invokerId: Int, containerId: String)
 
 case class ContainerCreation(msgs: List[ContainerCreationMessage], memory: ByteSize, invocationNamespace: String)
-case class ContainerDeletion(invocationNamespace: String,
-                             action: FullyQualifiedEntityName,
-                             revision: DocRevision,
-                             whiskActionMetaData: WhiskActionMetaData)
+case class ContainerDeletion(
+  invocationNamespace: String,
+  action: FullyQualifiedEntityName,
+  revision: DocRevision,
+  whiskActionMetaData: WhiskActionMetaData)
 
 sealed trait CreationJob
 case class RegisterCreationJob(msg: ContainerCreationMessage) extends CreationJob
 case class FinishCreationJob(ack: ContainerCreationAckMessage) extends CreationJob
-case class ReschedulingCreationJob(tid: TransactionId,
-                                   creationId: CreationId,
-                                   invocationNamespace: String,
-                                   action: FullyQualifiedEntityName,
-                                   revision: DocRevision,
-                                   actionMetaData: WhiskActionMetaData,
-                                   schedulerHost: String,
-                                   rpcPort: Int,
-                                   retry: Int)
+case class ReschedulingCreationJob(
+  tid: TransactionId,
+  creationId: CreationId,
+  invocationNamespace: String,
+  action: FullyQualifiedEntityName,
+  revision: DocRevision,
+  actionMetaData: WhiskActionMetaData,
+  schedulerHost: String,
+  rpcPort: Int,
+  retry: Int)
     extends CreationJob {
 
   def toCreationMessage(sid: SchedulerInstanceId, retryCount: Int): ContainerCreationMessage =
@@ -68,19 +70,22 @@ case class ReschedulingCreationJob(tid: TransactionId,
       creationId)
 }
 
-abstract class CreationJobState(val creationId: CreationId,
-                                val invocationNamespace: String,
-                                val action: FullyQualifiedEntityName,
-                                val revision: DocRevision)
-case class FailedCreationJob(override val creationId: CreationId,
-                             override val invocationNamespace: String,
-                             override val action: FullyQualifiedEntityName,
-                             override val revision: DocRevision,
-                             error: ContainerCreationError,
-                             message: String)
+abstract class CreationJobState(
+  val creationId: CreationId,
+  val invocationNamespace: String,
+  val action: FullyQualifiedEntityName,
+  val revision: DocRevision)
+case class FailedCreationJob(
+  override val creationId: CreationId,
+  override val invocationNamespace: String,
+  override val action: FullyQualifiedEntityName,
+  override val revision: DocRevision,
+  error: ContainerCreationError,
+  message: String)
     extends CreationJobState(creationId, invocationNamespace, action, revision)
-case class SuccessfulCreationJob(override val creationId: CreationId,
-                                 override val invocationNamespace: String,
-                                 override val action: FullyQualifiedEntityName,
-                                 override val revision: DocRevision)
+case class SuccessfulCreationJob(
+  override val creationId: CreationId,
+  override val invocationNamespace: String,
+  override val action: FullyQualifiedEntityName,
+  override val revision: DocRevision)
     extends CreationJobState(creationId, invocationNamespace, action, revision)

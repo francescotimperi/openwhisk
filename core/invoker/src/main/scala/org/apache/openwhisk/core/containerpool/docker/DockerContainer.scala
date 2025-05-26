@@ -58,36 +58,39 @@ object DockerContainer {
    * @param useRunc use runc to pause/unpause container?
    * @return a Future which either completes with a DockerContainer or one of two specific failures
    */
-  def create(transid: TransactionId,
-             image: Either[ImageName, ImageName],
-             registryConfig: Option[RuntimesRegistryConfig] = None,
-             memory: ByteSize = 256.MB,
-             cpuShares: Int = 0,
-             cpuLimit: Option[Double] = None,
-             environment: Map[String, String] = Map.empty,
-             network: String = "bridge",
-             dnsServers: Seq[String] = Seq.empty,
-             dnsSearch: Seq[String] = Seq.empty,
-             dnsOptions: Seq[String] = Seq.empty,
-             name: Option[String] = None,
-             useRunc: Boolean = true,
-             dockerRunParameters: Map[String, Set[String]])(implicit docker: DockerApiWithFileAccess,
-                                                            runc: RuncApi,
-                                                            as: ActorSystem,
-                                                            ec: ExecutionContext,
-                                                            log: Logging): Future[DockerContainer] = {
+  def create(
+    transid: TransactionId,
+    image: Either[ImageName, ImageName],
+    registryConfig: Option[RuntimesRegistryConfig] = None,
+    memory: ByteSize = 256.MB,
+    cpuShares: Int = 0,
+    cpuLimit: Option[Double] = None,
+    environment: Map[String, String] = Map.empty,
+    network: String = "bridge",
+    dnsServers: Seq[String] = Seq.empty,
+    dnsSearch: Seq[String] = Seq.empty,
+    dnsOptions: Seq[String] = Seq.empty,
+    name: Option[String] = None,
+    useRunc: Boolean = true,
+    dockerRunParameters: Map[String, Set[String]])(implicit
+    docker: DockerApiWithFileAccess,
+    runc: RuncApi,
+    as: ActorSystem,
+    ec: ExecutionContext,
+    log: Logging): Future[DockerContainer] = {
     implicit val tid: TransactionId = transid
 
-    val environmentArgs = environment.flatMap {
-      case (key, value) => Seq("-e", s"$key=$value")
+    val environmentArgs = environment.flatMap { case (key, value) =>
+      Seq("-e", s"$key=$value")
     }
 
-    val params = dockerRunParameters.flatMap {
-      case (key, valueList) => valueList.toList.flatMap(Seq(key, _))
+    val params = dockerRunParameters.flatMap { case (key, valueList) =>
+      valueList.toList.flatMap(Seq(key, _))
     }
 
     // NOTE: --dns-option on modern versions of docker, but is --dns-opt on docker 1.12
-    val dnsOptString = if (docker.clientVersion.startsWith("1.12")) { "--dns-opt" } else { "--dns-option" }
+    val dnsOptString = if (docker.clientVersion.startsWith("1.12")) { "--dns-opt" }
+    else { "--dns-option" }
     val args = Seq(
       "--cpu-shares",
       cpuShares.toString,
@@ -113,8 +116,8 @@ object DockerContainer {
         // Iff the image tag is "latest" explicitly (or implicitly because no tag is given at all), failing to pull will
         // fail the whole container bringup process, because it is expected to pick up the very latest "untagged"
         // version every time.
-        docker.pull(imageToUse).map(_ => true).recoverWith {
-          case _ => Future.failed(BlackboxStartupError(Messages.imagePullError(imageToUse)))
+        docker.pull(imageToUse).map(_ => true).recoverWith { case _ =>
+          Future.failed(BlackboxStartupError(Messages.imagePullError(imageToUse)))
         }
       case Left(_) =>
         // Iff the image tag is something else than latest, we tolerate an outdated image if one is available locally.
@@ -168,13 +171,15 @@ object DockerContainer {
  * @param id the id of the container
  * @param addr the ip of the container
  */
-class DockerContainer(protected val id: ContainerId,
-                      protected[core] val addr: ContainerAddress,
-                      protected val useRunc: Boolean)(implicit docker: DockerApiWithFileAccess,
-                                                      runc: RuncApi,
-                                                      override protected val as: ActorSystem,
-                                                      protected val ec: ExecutionContext,
-                                                      protected val logging: Logging)
+class DockerContainer(
+  protected val id: ContainerId,
+  protected[core] val addr: ContainerAddress,
+  protected val useRunc: Boolean)(implicit
+  docker: DockerApiWithFileAccess,
+  runc: RuncApi,
+  override protected val as: ActorSystem,
+  protected val ec: ExecutionContext,
+  protected val logging: Logging)
     extends Container {
 
   /** The last read-position in the log file */
@@ -189,7 +194,8 @@ class DockerContainer(protected val id: ContainerId,
     super.suspend().flatMap(_ => if (useRunc) runc.pause(id) else docker.pause(id))
   }
   override def resume()(implicit transid: TransactionId): Future[Unit] = {
-    (if (useRunc) { runc.resume(id) } else { docker.unpause(id) }).flatMap(_ => super.resume())
+    (if (useRunc) { runc.resume(id) }
+     else { docker.unpause(id) }).flatMap(_ => super.resume())
   }
   override def destroy()(implicit transid: TransactionId): Future[Unit] = {
     super.destroy()
@@ -206,8 +212,8 @@ class DockerContainer(protected val id: ContainerId,
    * @param retries number of retries to make
    * @return a Future indicating a memory exhaustion situation
    */
-  private def isOomKilled(retries: Int = (waitForOomState / filePollInterval).toInt)(
-    implicit transid: TransactionId): Future[Boolean] = {
+  private def isOomKilled(retries: Int = (waitForOomState / filePollInterval).toInt)(implicit
+    transid: TransactionId): Future[Boolean] = {
     docker.isOomKilled(id)(TransactionId.invoker).flatMap { killed =>
       if (killed) Future.successful(true)
       else if (retries > 0) akka.pattern.after(filePollInterval, as.scheduler)(isOomKilled(retries - 1))

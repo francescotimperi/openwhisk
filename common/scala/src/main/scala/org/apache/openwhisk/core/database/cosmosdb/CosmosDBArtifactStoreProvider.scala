@@ -43,8 +43,8 @@ object CosmosDBArtifactStoreProvider extends ArtifactStoreProvider {
 
   RetryMetricsCollector.registerIfEnabled()
 
-  override def makeStore[D <: DocumentSerializer: ClassTag](useBatching: Boolean)(
-    implicit jsonFormat: RootJsonFormat[D],
+  override def makeStore[D <: DocumentSerializer: ClassTag](useBatching: Boolean)(implicit
+    jsonFormat: RootJsonFormat[D],
     docReader: DocumentReader,
     actorSystem: ActorSystem,
     logging: Logging): ArtifactStore[D] = {
@@ -53,9 +53,10 @@ object CosmosDBArtifactStoreProvider extends ArtifactStoreProvider {
     makeStoreForClient(config, getOrCreateReference(config), getAttachmentStore())
   }
 
-  def makeArtifactStore[D <: DocumentSerializer: ClassTag](config: CosmosDBConfig,
-                                                           attachmentStore: Option[AttachmentStore])(
-    implicit jsonFormat: RootJsonFormat[D],
+  def makeArtifactStore[D <: DocumentSerializer: ClassTag](
+    config: CosmosDBConfig,
+    attachmentStore: Option[AttachmentStore])(implicit
+    jsonFormat: RootJsonFormat[D],
     docReader: DocumentReader,
     actorSystem: ActorSystem,
     logging: Logging): CosmosDBArtifactStore[D] = {
@@ -63,10 +64,11 @@ object CosmosDBArtifactStoreProvider extends ArtifactStoreProvider {
     makeStoreForClient(config, createReference(config).reference(), attachmentStore)
   }
 
-  private def makeStoreForClient[D <: DocumentSerializer: ClassTag](config: CosmosDBConfig,
-                                                                    clientRef: DocumentClientRef,
-                                                                    attachmentStore: Option[AttachmentStore])(
-    implicit jsonFormat: RootJsonFormat[D],
+  private def makeStoreForClient[D <: DocumentSerializer: ClassTag](
+    config: CosmosDBConfig,
+    clientRef: DocumentClientRef,
+    attachmentStore: Option[AttachmentStore])(implicit
+    jsonFormat: RootJsonFormat[D],
     docReader: DocumentReader,
     actorSystem: ActorSystem,
     logging: Logging): CosmosDBArtifactStore[D] = {
@@ -84,8 +86,8 @@ object CosmosDBArtifactStoreProvider extends ArtifactStoreProvider {
       attachmentStore)
   }
 
-  private def handlerAndMapper[D](entityType: ClassTag[D])(
-    implicit actorSystem: ActorSystem,
+  private def handlerAndMapper[D](entityType: ClassTag[D])(implicit
+    actorSystem: ActorSystem,
     logging: Logging): (String, DocumentHandler, CosmosDBViewMapper) = {
     val entityClass = entityType.runtimeClass
     if (entityClass == classOf[WhiskEntity]) ("whisks", WhisksHandler, WhisksViewMapper)

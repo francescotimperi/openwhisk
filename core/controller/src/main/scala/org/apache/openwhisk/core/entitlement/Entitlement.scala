@@ -52,10 +52,11 @@ object types {
  * @param entity     an optional entity name that identifies a specific item in the collection
  * @param env        an optional environment to bind to the resource during an activation
  */
-protected[core] case class Resource(namespace: EntityPath,
-                                    collection: Collection,
-                                    entity: Option[String],
-                                    env: Option[Parameters] = None) {
+protected[core] case class Resource(
+  namespace: EntityPath,
+  collection: Collection,
+  entity: Option[String],
+  env: Option[Parameters] = None) {
   def parent: String = collection.path + EntityPath.PATHSEP + namespace
 
   def id: String = parent + entity.map(EntityPath.PATHSEP + _).getOrElse("")
@@ -66,8 +67,8 @@ protected[core] case class Resource(namespace: EntityPath,
 }
 
 trait EntitlementSpiProvider extends Spi {
-  def instance(config: WhiskConfig, loadBalancer: LoadBalancer, instance: ControllerInstanceId)(
-    implicit actorSystem: ActorSystem,
+  def instance(config: WhiskConfig, loadBalancer: LoadBalancer, instance: ControllerInstanceId)(implicit
+    actorSystem: ActorSystem,
     logging: Logging): EntitlementProvider
 }
 
@@ -163,8 +164,8 @@ protected[core] abstract class EntitlementProvider(
    * @param resource the resource to grant the subject access to
    * @return a promise that completes with true iff the subject is granted the right to access the requested resource
    */
-  protected[core] def grant(user: Identity, right: Privilege, resource: Resource)(
-    implicit transid: TransactionId): Future[Boolean]
+  protected[core] def grant(user: Identity, right: Privilege, resource: Resource)(implicit
+    transid: TransactionId): Future[Boolean]
 
   /**
    * Revokes a subject the right to access a resources.
@@ -174,8 +175,8 @@ protected[core] abstract class EntitlementProvider(
    * @param resource the resource to revoke the subject access to
    * @return a promise that completes with true iff the subject is revoked the right to access the requested resource
    */
-  protected[core] def revoke(user: Identity, right: Privilege, resource: Resource)(
-    implicit transid: TransactionId): Future[Boolean]
+  protected[core] def revoke(user: Identity, right: Privilege, resource: Resource)(implicit
+    transid: TransactionId): Future[Boolean]
 
   /**
    * Checks if a subject is entitled to a resource because it was granted the right explicitly.
@@ -185,8 +186,8 @@ protected[core] abstract class EntitlementProvider(
    * @param resource the resource the subject requests access to
    * @return a promise that completes with true iff the subject is permitted to access the request resource
    */
-  protected def entitled(user: Identity, right: Privilege, resource: Resource)(
-    implicit transid: TransactionId): Future[Boolean]
+  protected def entitled(user: Identity, right: Privilege, resource: Resource)(implicit
+    transid: TransactionId): Future[Boolean]
 
   /**
    * Checks action activation rate throttles for an identity.
@@ -209,8 +210,8 @@ protected[core] abstract class EntitlementProvider(
    * @param resources the set of resource the subject requests access to
    * @return a promise that completes with success iff the user is within their activation quota
    */
-  protected[core] def checkThrottles(user: Identity, right: Privilege, resources: Set[Resource])(
-    implicit transid: TransactionId): Future[Unit] = {
+  protected[core] def checkThrottles(user: Identity, right: Privilege, resources: Set[Resource])(implicit
+    transid: TransactionId): Future[Unit] = {
     checkUserThrottle(user, right, resources).flatMap(_ => checkConcurrentUserThrottle(user, right, resources))
   }
 
@@ -232,14 +233,13 @@ protected[core] abstract class EntitlementProvider(
    */
   protected[core] def check(user: Identity, exec: Option[Exec])(implicit transid: TransactionId): Future[Unit] = {
     exec
-      .map {
-        case e =>
-          if (kindRestrictor.check(user, e.kind)) {
-            Future.successful(())
-          } else {
-            Future.failed(
-              RejectRequest(Forbidden, Some(ErrorResponse(Messages.notAuthorizedtoActionKind(e.kind), transid))))
-          }
+      .map { case e =>
+        if (kindRestrictor.check(user, e.kind)) {
+          Future.successful(())
+        } else {
+          Future.failed(
+            RejectRequest(Forbidden, Some(ErrorResponse(Messages.notAuthorizedtoActionKind(e.kind), transid))))
+        }
       }
       .getOrElse(Future.successful(()))
   }
@@ -260,8 +260,8 @@ protected[core] abstract class EntitlementProvider(
    * @param resource the resource the subject requests access to
    * @return a promise that completes with success iff the subject is permitted to access the requested resource
    */
-  protected[core] def check(user: Identity, right: Privilege, resource: Resource)(
-    implicit transid: TransactionId): Future[Unit] = check(user, right, Set(resource))
+  protected[core] def check(user: Identity, right: Privilege, resource: Resource)(implicit
+    transid: TransactionId): Future[Unit] = check(user, right, Set(resource))
 
   /**
    * Constructs a RejectRequest containing the forbidden resources.
@@ -331,8 +331,8 @@ protected[core] abstract class EntitlementProvider(
    * implicitly or explicitly granted. Instead, the given resource set should include both the binding
    * and the referenced package.
    */
-  protected def checkPrivilege(user: Identity, right: Privilege, resources: Set[Resource])(
-    implicit transid: TransactionId): Future[Set[(Resource, Boolean)]] = {
+  protected def checkPrivilege(user: Identity, right: Privilege, resources: Set[Resource])(implicit
+    transid: TransactionId): Future[Set[(Resource, Boolean)]] = {
     // check the default namespace first, bypassing additional checks if permitted
     val defaultNamespaces = Set(user.namespace.name.asString)
     implicit val es: EntitlementProvider = this
@@ -360,8 +360,8 @@ protected[core] abstract class EntitlementProvider(
    * @param resources the set of resources must contain at least one resource that can be activated else return None
    * @return future completing successfully if user is below limits else failing with a rejection
    */
-  protected[core] def checkUserThrottle(user: Identity, right: Privilege, resources: Set[Resource])(
-    implicit transid: TransactionId): Future[Unit] = {
+  protected[core] def checkUserThrottle(user: Identity, right: Privilege, resources: Set[Resource])(implicit
+    transid: TransactionId): Future[Unit] = {
     if (right == ACTIVATE) {
       if (resources.exists(_.collection.path == Collection.ACTIONS)) {
         checkThrottleOverload(Future.successful(invokeRateThrottler.check(user)), user)
@@ -382,15 +382,15 @@ protected[core] abstract class EntitlementProvider(
    * @param resources the set of resources must contain at least one resource that can be activated else return None
    * @return future completing successfully if user is below limits else failing with a rejection
    */
-  private def checkConcurrentUserThrottle(user: Identity, right: Privilege, resources: Set[Resource])(
-    implicit transid: TransactionId): Future[Unit] = {
+  private def checkConcurrentUserThrottle(user: Identity, right: Privilege, resources: Set[Resource])(implicit
+    transid: TransactionId): Future[Unit] = {
     if (right == ACTIVATE && resources.exists(_.collection.path == Collection.ACTIONS)) {
       checkThrottleOverload(concurrentInvokeThrottler.check(user), user)
     } else Future.successful(())
   }
 
-  private def checkThrottleOverload(throttle: Future[RateLimit], user: Identity)(
-    implicit transid: TransactionId): Future[Unit] = {
+  private def checkThrottleOverload(throttle: Future[RateLimit], user: Identity)(implicit
+    transid: TransactionId): Future[Unit] = {
     throttle.flatMap { limit =>
       val userId = user.namespace.uuid
       if (limit.ok) {

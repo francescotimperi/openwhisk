@@ -46,6 +46,7 @@ trait AzureBlobAttachmentStoreBehaviorBase
   override def getAttachmentStore[D <: DocumentSerializer: ClassTag](): AttachmentStore =
     makeAzureStore[D]()
 
-  def makeAzureStore[D <: DocumentSerializer: ClassTag]()(implicit actorSystem: ActorSystem,
-                                                          logging: Logging): AttachmentStore
+  def makeAzureStore[D <: DocumentSerializer: ClassTag]()(implicit
+    actorSystem: ActorSystem,
+    logging: Logging): AttachmentStore
 }

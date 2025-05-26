@@ -79,9 +79,9 @@ class EtcdLeaderShipUnitTests extends FlatSpec with ScalaFutures with Matchers w
     override def putTxn[T](key: String, value: T, cmpVersion: Long, leaseId: Long): Future[TxnResponse] =
       Future.successful(TxnResponse.newBuilder().setSucceeded(true).build())
 
-    override def watch(key: String, isPrefix: Boolean)(next: WatchUpdate => Unit,
-                                                       error: Throwable => Unit,
-                                                       completed: () => Unit): Watch = {
+    override def watch(
+      key: String,
+      isPrefix: Boolean)(next: WatchUpdate => Unit, error: Throwable => Unit, completed: () => Unit): Watch = {
       onNext = next
       new Watch {
         override def close(): Unit = {}

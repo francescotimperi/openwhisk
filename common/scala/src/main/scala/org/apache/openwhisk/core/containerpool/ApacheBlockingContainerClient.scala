@@ -64,7 +64,8 @@ protected[containerpool] case class RetryableConnectionError(t: Throwable) exten
  * @param maxConcurrent the maximum number of concurrent requests allowed (Default is 1)
  */
 protected class ApacheBlockingContainerClient(hostname: String, timeout: FiniteDuration, maxConcurrent: Int = 1)(
-  implicit logging: Logging,
+  implicit
+  logging: Logging,
   ec: ExecutionContext)
     extends ContainerClient {
 
@@ -226,8 +227,8 @@ object ApacheBlockingContainerClient {
   val clientConfig: ApacheClientConfig = loadConfigOrThrow[ApacheClientConfig](ConfigKeys.apacheClientConfig)
 
   /** A helper method to post one single request to a connection. Used for container tests. */
-  def post(host: String, port: Int, endPoint: String, content: JsValue)(
-    implicit logging: Logging,
+  def post(host: String, port: Int, endPoint: String, content: JsValue)(implicit
+    logging: Logging,
     tid: TransactionId,
     ec: ExecutionContext): (Int, Option[JsObject]) = {
     val timeout = 90.seconds
@@ -239,8 +240,8 @@ object ApacheBlockingContainerClient {
   }
 
   /** A helper method to post multiple concurrent requests to a single connection. Used for container tests. */
-  def concurrentPost(host: String, port: Int, endPoint: String, contents: Seq[JsValue], timeout: Duration)(
-    implicit logging: Logging,
+  def concurrentPost(host: String, port: Int, endPoint: String, contents: Seq[JsValue], timeout: Duration)(implicit
+    logging: Logging,
     tid: TransactionId,
     ec: ExecutionContext): Seq[(Int, Option[JsObject])] = {
     val connection = new ApacheBlockingContainerClient(s"$host:$port", 90.seconds, contents.size)
@@ -252,8 +253,8 @@ object ApacheBlockingContainerClient {
     results
   }
 
-  private def executeRequest(connection: ApacheBlockingContainerClient, endpoint: String, content: JsValue)(
-    implicit logging: Logging,
+  private def executeRequest(connection: ApacheBlockingContainerClient, endpoint: String, content: JsValue)(implicit
+    logging: Logging,
     tid: TransactionId,
     ec: ExecutionContext): Future[(Int, Option[JsObject])] = {
     connection.post(

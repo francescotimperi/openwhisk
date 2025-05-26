@@ -114,7 +114,7 @@ class ActivationClientProxyTests
       Future {
         throw new RuntimeException("failed to create client")
         MockActivationServiceClient(fetch)
-    }
+      }
 
     val probe = TestProbe()
     val machine =
@@ -125,8 +125,8 @@ class ActivationClientProxyTests
 
     machine ! StartClient
 
-    probe.expectMsgPF() {
-      case Failure(t) => t.getMessage shouldBe "The number of client creation retries has been exceeded."
+    probe.expectMsgPF() { case Failure(t) =>
+      t.getMessage shouldBe "The number of client creation retries has been exceeded."
     }
     probe.expectMsg(Transition(machine, ClientProxyUninitialized, ClientProxyRemoving))
     probe.expectMsg(ClientClosed)
@@ -224,8 +224,8 @@ class ActivationClientProxyTests
 
     // next two events can happen in any order
     selfProbe.expectMsg(Transition(machine, ClientProxyReady, ClientProxyRemoving))
-    parentProbe.expectMsgPF() {
-      case Failure(t) => t.getMessage.contains(s"action version does not match") shouldBe true
+    parentProbe.expectMsgPF() { case Failure(t) =>
+      t.getMessage.contains(s"action version does not match") shouldBe true
     }
 
     parentProbe.expectMsg(ClientClosed)
@@ -299,7 +299,7 @@ class ActivationClientProxyTests
       Future {
         throw new StatusRuntimeException(io.grpc.Status.UNAVAILABLE)
         grpc.FetchResponse(AResponse(Right(message)).serialize)
-    }
+      }
     val client = (_: String, _: FullyQualifiedEntityName, _: String, _: Int, _: Boolean) => {
       creationCount += 1
       Future(MockActivationServiceClient(fetch))
@@ -325,7 +325,7 @@ class ActivationClientProxyTests
       Future {
         throw new ClientClosedException()
         grpc.FetchResponse(AResponse(Right(message)).serialize)
-    }
+      }
     val client = (_: String, _: FullyQualifiedEntityName, _: String, _: Int, _: Boolean) =>
       Future(MockActivationServiceClient(fetch))
 
@@ -338,8 +338,8 @@ class ActivationClientProxyTests
     ready(machine, probe)
 
     machine ! RequestActivation()
-    probe.expectMsgPF() {
-      case Failure(t) => t.isInstanceOf[ClientClosedException] shouldBe true
+    probe.expectMsgPF() { case Failure(t) =>
+      t.isInstanceOf[ClientClosedException] shouldBe true
     }
     probe.expectMsg(Transition(machine, ClientProxyReady, ClientProxyRemoving))
 
@@ -353,7 +353,7 @@ class ActivationClientProxyTests
       Future {
         throw new Exception("Unknown exception")
         grpc.FetchResponse(AResponse(Right(message)).serialize)
-    }
+      }
     val client = (_: String, _: FullyQualifiedEntityName, _: String, _: Int, _: Boolean) =>
       Future(MockActivationServiceClient(fetch))
 
@@ -366,8 +366,8 @@ class ActivationClientProxyTests
     ready(machine, probe)
 
     machine ! RequestActivation()
-    probe.expectMsgPF() {
-      case Failure(t) => t.getMessage.contains("Unknown exception") shouldBe true
+    probe.expectMsgPF() { case Failure(t) =>
+      t.getMessage.contains("Unknown exception") shouldBe true
     }
     probe.expectMsg(Transition(machine, ClientProxyReady, ClientProxyRemoving))
     probe.expectMsg(ClientClosed)
@@ -399,7 +399,8 @@ class ActivationClientProxyTests
     probe expectTerminated machine
   }
 
-  it should "be closed when it receives a StopClientProxy message for the case of graceful shutdown" in within(timeout) {
+  it should "be closed when it receives a StopClientProxy message for the case of graceful shutdown" in within(
+    timeout) {
     val fetch = (_: FetchRequest) => Future(grpc.FetchResponse(AResponse(Right(message)).serialize))
     val activationClient = MockActivationServiceClient(fetch)
     val client = (_: String, _: FullyQualifiedEntityName, _: String, _: Int, _: Boolean) => Future(activationClient)

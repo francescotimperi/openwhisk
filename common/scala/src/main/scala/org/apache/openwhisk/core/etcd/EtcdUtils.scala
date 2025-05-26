@@ -107,12 +107,12 @@ object EtcdKV {
      *  - queue/invocationNs/ns/pkg/act/leader
      *  - queue/invocationNs/ns/pkg/act/follower/scheduler1
      *  - queue/invocationNs/ns/pkg/act/follower/scheduler2
-     *
      */
-    def queue(invocationNamespace: String,
-              fqn: FullyQualifiedEntityName,
-              leader: Boolean,
-              schedulerInstanceId: Option[SchedulerInstanceId] = None): String = {
+    def queue(
+      invocationNamespace: String,
+      fqn: FullyQualifiedEntityName,
+      leader: Boolean,
+      schedulerInstanceId: Option[SchedulerInstanceId] = None): String = {
       require(leader || (!leader && schedulerInstanceId.isDefined))
       val prefix = s"$queuePrefix/$invocationNamespace/${fqn.copy(version = None)}"
       if (leader)
@@ -151,10 +151,11 @@ object EtcdKV {
     /**
      * The keys for the number of container
      */
-    def containerPrefix(containerType: String,
-                        invocationNamespace: String,
-                        fqn: FullyQualifiedEntityName,
-                        revision: Option[DocRevision] = None): String =
+    def containerPrefix(
+      containerType: String,
+      invocationNamespace: String,
+      fqn: FullyQualifiedEntityName,
+      revision: Option[DocRevision] = None): String =
       s"$containerType/$invocationNamespace/${fqn.copy(version = None)}/${revision.map(r => s"$r/").getOrElse("")}"
 
     /**
@@ -162,31 +163,34 @@ object EtcdKV {
      *
      * For count queries, fqn must be at the front.
      */
-    def inProgressContainer(invocationNamespace: String,
-                            fqn: FullyQualifiedEntityName,
-                            revision: DocRevision,
-                            sid: SchedulerInstanceId,
-                            cid: CreationId): String =
+    def inProgressContainer(
+      invocationNamespace: String,
+      fqn: FullyQualifiedEntityName,
+      revision: DocRevision,
+      sid: SchedulerInstanceId,
+      cid: CreationId): String =
       s"${containerPrefix(inProgressPrefix, invocationNamespace, fqn, Some(revision))}scheduler/${sid.asString}/creationId/$cid"
 
     /**
      * The keys for the number of warmed container
      */
-    def warmedContainers(invocationNamespace: String,
-                         fqn: FullyQualifiedEntityName,
-                         revision: DocRevision,
-                         invokerInstanceId: InvokerInstanceId,
-                         containerId: ContainerId): String =
+    def warmedContainers(
+      invocationNamespace: String,
+      fqn: FullyQualifiedEntityName,
+      revision: DocRevision,
+      invokerInstanceId: InvokerInstanceId,
+      containerId: ContainerId): String =
       s"${containerPrefix(warmedPrefix, invocationNamespace, fqn, Some(revision))}invoker/${invokerInstanceId.instance}/container/${containerId.asString}"
 
     /**
      * The keys for the number of existing container
      */
-    def existingContainers(invocationNamespace: String,
-                           fqn: FullyQualifiedEntityName,
-                           revision: DocRevision,
-                           invoker: Option[InvokerInstanceId] = None,
-                           containerId: Option[ContainerId] = None): String =
+    def existingContainers(
+      invocationNamespace: String,
+      fqn: FullyQualifiedEntityName,
+      revision: DocRevision,
+      invoker: Option[InvokerInstanceId] = None,
+      containerId: Option[ContainerId] = None): String =
       containerPrefix(namespacePrefix, invocationNamespace, fqn, Some(revision)) + invoker
         .map(id => s"invoker${id.toInt}/")
         .getOrElse("") + containerId

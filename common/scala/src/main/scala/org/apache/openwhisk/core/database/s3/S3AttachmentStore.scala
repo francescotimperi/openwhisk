@@ -59,14 +59,15 @@ object S3AttachmentStoreProvider extends AttachmentStoreProvider {
     def signer: Option[UrlSigner] = cloudFrontConfig.map(CloudFrontSigner)
   }
 
-  override def makeStore[D <: DocumentSerializer: ClassTag]()(implicit actorSystem: ActorSystem,
-                                                              logging: Logging): AttachmentStore = {
+  override def makeStore[D <: DocumentSerializer: ClassTag]()(implicit
+    actorSystem: ActorSystem,
+    logging: Logging): AttachmentStore = {
     val config = loadConfigOrThrow[S3Config](ConfigKeys.s3)
     new S3AttachmentStore(s3Settings(actorSystem.settings.config), config.bucket, config.prefixFor[D], config.signer)
   }
 
-  def makeStore[D <: DocumentSerializer: ClassTag](config: Config)(implicit actorSystem: ActorSystem,
-                                                                   logging: Logging): AttachmentStore = {
+  def makeStore[D <: DocumentSerializer: ClassTag](
+    config: Config)(implicit actorSystem: ActorSystem, logging: Logging): AttachmentStore = {
     val s3config = loadConfigOrThrow[S3Config](config, ConfigKeys.s3)
     new S3AttachmentStore(s3Settings(config), s3config.bucket, s3config.prefixFor[D], s3config.signer)
   }
@@ -79,8 +80,8 @@ trait UrlSigner {
   def getSignedURL(s3ObjectKey: String): Uri
 }
 
-class S3AttachmentStore(s3Settings: S3Settings, bucket: String, prefix: String, urlSigner: Option[UrlSigner])(
-  implicit system: ActorSystem,
+class S3AttachmentStore(s3Settings: S3Settings, bucket: String, prefix: String, urlSigner: Option[UrlSigner])(implicit
+  system: ActorSystem,
   logging: Logging)
     extends AttachmentStore {
 
@@ -125,8 +126,8 @@ class S3AttachmentStore(s3Settings: S3Settings, bucket: String, prefix: String, 
       failure => s"[ATT_PUT] '$prefix' internal error, name: '$name', doc: '$docId', failure: '${failure.getMessage}'")
   }
 
-  override protected[core] def readAttachment[T](docId: DocId, name: String, sink: Sink[ByteString, Future[T]])(
-    implicit transid: TransactionId): Future[T] = {
+  override protected[core] def readAttachment[T](docId: DocId, name: String, sink: Sink[ByteString, Future[T]])(implicit
+    transid: TransactionId): Future[T] = {
     require(name != null, "name undefined")
     val start =
       transid.started(
@@ -145,7 +146,8 @@ class S3AttachmentStore(s3Settings: S3Settings, bucket: String, prefix: String, 
         transid
           .finished(this, start, s"[ATT_GET] '$prefix' completed: found attachment '$name' of document 'id: $docId'")
         s
-      }, {
+      },
+      {
         case e: NoDocumentException =>
           transid
             .finished(
@@ -212,8 +214,8 @@ class S3AttachmentStore(s3Settings: S3Settings, bucket: String, prefix: String, 
       failure => s"[ATTS_DELETE] '$prefix' internal error, doc: '$docId', failure: '${failure.getMessage}'")
   }
 
-  override protected[core] def deleteAttachment(docId: DocId, name: String)(
-    implicit transid: TransactionId): Future[Boolean] = {
+  override protected[core] def deleteAttachment(docId: DocId, name: String)(implicit
+    transid: TransactionId): Future[Boolean] = {
     val start =
       transid.started(this, DATABASE_ATT_DELETE, s"[ATT_DELETE] deleting attachment '$name' of document 'id: $docId'")
 

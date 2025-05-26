@@ -135,7 +135,7 @@ object KamonMetricsReporter {
   }
 
   private def kafkaTagsToTagSet(kafkaTags: util.Map[String, String]): TagSet =
-    kafkaTags.asScala.foldLeft(TagSet.Empty) {
-      case (set, (k, v)) => set.withTag(k, v)
+    kafkaTags.asScala.foldLeft(TagSet.Empty) { case (set, (k, v)) =>
+      set.withTag(k, v)
     }
 }

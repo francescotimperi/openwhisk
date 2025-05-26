@@ -134,9 +134,10 @@ trait ReadOps extends Directives {
    * - 404 Not Found
    * - 500 Internal Server Error
    */
-  protected def getEntity[A <: DocumentRevisionProvider, Au >: A](entity: Future[A],
-                                                                  postProcess: Option[PostProcessEntity[A]] = None)(
-    implicit transid: TransactionId,
+  protected def getEntity[A <: DocumentRevisionProvider, Au >: A](
+    entity: Future[A],
+    postProcess: Option[PostProcessEntity[A]] = None)(implicit
+    transid: TransactionId,
     format: RootJsonFormat[A],
     ma: Manifest[A]) = {
     onComplete(entity) {
@@ -217,7 +218,8 @@ trait ReadOps extends Directives {
     docId: DocId,
     disableStoreResultConfig: Boolean,
     project: (String, ActivationId, Option[Instant], Option[Instant], Option[ActivationLogs]) => Future[JsObject])(
-    implicit transid: TransactionId,
+    implicit
+    transid: TransactionId,
     format: RootJsonFormat[A],
     ma: Manifest[A]) = {
     onComplete(entity) {
@@ -305,15 +307,16 @@ trait WriteOps extends Directives {
    * - 409 Conflict
    * - 500 Internal Server Error
    */
-  protected def putEntity[A <: DocumentRevisionProvider, Au >: A](factory: DocumentFactory[A],
-                                                                  datastore: ArtifactStore[Au],
-                                                                  docid: DocId,
-                                                                  overwrite: Boolean,
-                                                                  update: A => Future[A],
-                                                                  create: () => Future[A],
-                                                                  treatExistsAsConflict: Boolean = true,
-                                                                  postProcess: Option[PostProcessEntity[A]] = None)(
-    implicit transid: TransactionId,
+  protected def putEntity[A <: DocumentRevisionProvider, Au >: A](
+    factory: DocumentFactory[A],
+    datastore: ArtifactStore[Au],
+    docid: DocId,
+    overwrite: Boolean,
+    update: A => Future[A],
+    create: () => Future[A],
+    treatExistsAsConflict: Boolean = true,
+    postProcess: Option[PostProcessEntity[A]] = None)(implicit
+    transid: TransactionId,
     format: RootJsonFormat[A],
     notifier: Option[CacheChangeNotification],
     ma: Manifest[A]) = {
@@ -330,16 +333,14 @@ trait WriteOps extends Directives {
       } else {
         Future failed IdentityPut(doc)
       }
-    } recoverWith {
-      case _: NoDocumentException =>
-        logging.debug(this, s"[PUT] entity does not exist, will try to create it")
-        create().map(newDoc => (None, newDoc))
-    } flatMap {
-      case (old, a) =>
-        logging.debug(this, s"[PUT] entity created/updated, writing back to datastore")
-        factory.put(datastore, a, old) map { _ =>
-          a
-        }
+    } recoverWith { case _: NoDocumentException =>
+      logging.debug(this, s"[PUT] entity does not exist, will try to create it")
+      create().map(newDoc => (None, newDoc))
+    } flatMap { case (old, a) =>
+      logging.debug(this, s"[PUT] entity created/updated, writing back to datastore")
+      factory.put(datastore, a, old) map { _ =>
+        a
+      }
     }) {
       case Success(entity) =>
         logging.debug(this, s"[PUT] entity success")
@@ -383,21 +384,21 @@ trait WriteOps extends Directives {
    * - 409 Conflict
    * - 500 Internal Server Error
    */
-  protected def deleteEntity[A <: WhiskDocument, Au >: A](factory: DocumentFactory[A],
-                                                          datastore: ArtifactStore[Au],
-                                                          docid: DocId,
-                                                          confirm: A => Future[Unit],
-                                                          postProcess: Option[PostProcessEntity[A]] = None)(
-    implicit transid: TransactionId,
+  protected def deleteEntity[A <: WhiskDocument, Au >: A](
+    factory: DocumentFactory[A],
+    datastore: ArtifactStore[Au],
+    docid: DocId,
+    confirm: A => Future[Unit],
+    postProcess: Option[PostProcessEntity[A]] = None)(implicit
+    transid: TransactionId,
     format: RootJsonFormat[A],
     notifier: Option[CacheChangeNotification],
     ma: Manifest[A]) = {
     onComplete(factory.get(datastore, docid, ignoreMissingAttachment = true) flatMap { entity =>
-      confirm(entity) flatMap {
-        case _ =>
-          factory.del(datastore, entity.docinfo) map { _ =>
-            entity
-          }
+      confirm(entity) flatMap { case _ =>
+        factory.del(datastore, entity.docinfo) map { _ =>
+          entity
+        }
       }
     }) {
       case Success(entity) =>

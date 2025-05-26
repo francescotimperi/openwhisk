@@ -30,10 +30,11 @@ class LogStoreCollector(store: LogStore) extends LogsCollector {
   override def logsToBeCollected(action: ExecutableWhiskAction): Boolean =
     super.logsToBeCollected(action) && !store.logCollectionOutOfBand
 
-  override def apply(transid: TransactionId,
-                     user: Identity,
-                     activation: WhiskActivation,
-                     container: Container,
-                     action: ExecutableWhiskAction): Future[ActivationLogs] =
+  override def apply(
+    transid: TransactionId,
+    user: Identity,
+    activation: WhiskActivation,
+    container: Container,
+    action: ExecutableWhiskAction): Future[ActivationLogs] =
     store.collectLogs(transid, user, activation, container, action)
 }

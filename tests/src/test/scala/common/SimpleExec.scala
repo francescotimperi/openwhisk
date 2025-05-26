@@ -39,13 +39,15 @@ object SimpleExec {
     val outs = new StringBuilder()
     val errs = new StringBuilder()
 
-    val exitCode = pb ! ProcessLogger(outStr => {
-      outs.append(outStr)
-      outs.append("\n")
-    }, errStr => {
-      errs.append(errStr)
-      errs.append("\n")
-    })
+    val exitCode = pb ! ProcessLogger(
+      outStr => {
+        outs.append(outStr)
+        outs.append("\n")
+      },
+      errStr => {
+        errs.append(errStr)
+        errs.append("\n")
+      })
 
     logging.debug(this, s"Done running command: ${cmd.mkString(" ")}")
 

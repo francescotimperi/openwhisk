@@ -42,14 +42,15 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.util.Success
 
-class CosmosDBArtifactStore[DocumentAbstraction <: DocumentSerializer](protected val collName: String,
-                                                                       protected val config: CosmosDBConfig,
-                                                                       clientRef: DocumentClientRef,
-                                                                       documentHandler: DocumentHandler,
-                                                                       protected val viewMapper: CosmosDBViewMapper,
-                                                                       val inliningConfig: InliningConfig,
-                                                                       val attachmentStore: Option[AttachmentStore])(
-  implicit system: ActorSystem,
+class CosmosDBArtifactStore[DocumentAbstraction <: DocumentSerializer](
+  protected val collName: String,
+  protected val config: CosmosDBConfig,
+  clientRef: DocumentClientRef,
+  documentHandler: DocumentHandler,
+  protected val viewMapper: CosmosDBViewMapper,
+  val inliningConfig: InliningConfig,
+  val attachmentStore: Option[AttachmentStore])(implicit
+  system: ActorSystem,
   val logging: Logging,
   jsonFormat: RootJsonFormat[DocumentAbstraction],
   docReader: DocumentReader)
@@ -144,7 +145,8 @@ class CosmosDBArtifactStore[DocumentAbstraction <: DocumentSerializer](protected
             InfoLevel)
           collectMetrics(putToken, r.getRequestCharge)
           toDocInfo(r.getResource)
-        }, {
+        },
+        {
           case e: DocumentClientException if isConflict(e) =>
             transid.finished(this, start, s"[PUT] '$collName', document: '$docinfoStr'; conflict.")
             DocumentConflictException("conflict on 'put'")
@@ -166,7 +168,8 @@ class CosmosDBArtifactStore[DocumentAbstraction <: DocumentSerializer](protected
         { r =>
           transid.finished(this, start, s"[DEL] '$collName' completed document: '$doc'${extraLogs(r)}", InfoLevel)
           true
-        }, {
+        },
+        {
           case e: DocumentClientException if isNotFound(e) =>
             transid.finished(this, start, s"[DEL] '$collName', document: '$doc'; not found.")
             NoDocumentException("not found on 'delete'")
@@ -206,9 +209,10 @@ class CosmosDBArtifactStore[DocumentAbstraction <: DocumentSerializer](protected
     f
   }
 
-  override protected[database] def get[A <: DocumentAbstraction](doc: DocInfo,
-                                                                 attachmentHandler: Option[(A, Attached) => A] = None)(
-    implicit transid: TransactionId,
+  override protected[database] def get[A <: DocumentAbstraction](
+    doc: DocInfo,
+    attachmentHandler: Option[(A, Attached) => A] = None)(implicit
+    transid: TransactionId,
     ma: Manifest[A]): Future[A] = {
     val start = transid.started(this, LoggingMarkers.DATABASE_GET, s"[GET] '$collName' finding document: '$doc'")
 
@@ -234,15 +238,16 @@ class CosmosDBArtifactStore[DocumentAbstraction <: DocumentSerializer](protected
                   InfoLevel)
               deserialize[A, DocumentAbstraction](doc, js)
             }
-          }, {
+          },
+          {
             case e: DocumentClientException if isNotFound(e) =>
               transid.finished(this, start, s"[GET] '$collName', document: '$doc'; not found.")
               // for compatibility
               throw NoDocumentException("not found on 'get'")
             case e => e
           })
-        .recoverWith {
-          case _: DeserializationException => throw DocumentUnreadable(Messages.corruptedEntity)
+        .recoverWith { case _: DeserializationException =>
+          throw DocumentUnreadable(Messages.corruptedEntity)
         }
 
     reportFailure(
@@ -308,15 +313,16 @@ class CosmosDBArtifactStore[DocumentAbstraction <: DocumentSerializer](protected
       }
   }
 
-  override protected[core] def query(table: String,
-                                     startKey: List[Any],
-                                     endKey: List[Any],
-                                     skip: Int,
-                                     limit: Int,
-                                     includeDocs: Boolean,
-                                     descending: Boolean,
-                                     reduce: Boolean,
-                                     stale: StaleParameter)(implicit transid: TransactionId): Future[List[JsObject]] = {
+  override protected[core] def query(
+    table: String,
+    startKey: List[Any],
+    endKey: List[Any],
+    skip: Int,
+    limit: Int,
+    includeDocs: Boolean,
+    descending: Boolean,
+    reduce: Boolean,
+    stale: StaleParameter)(implicit transid: TransactionId): Future[List[JsObject]] = {
     require(!(reduce && includeDocs), "reduce and includeDocs cannot both be true")
     require(!reduce, "Reduce scenario not supported") //TODO Investigate reduce
     require(skip >= 0, "skip should be non negative")
@@ -360,30 +366,26 @@ class CosmosDBArtifactStore[DocumentAbstraction <: DocumentSerializer](protected
       .map(_.toList)
       .map(l => if (limit > 0) l.take(limit) else l)
 
-    val g = f.andThen {
-      case Success(queryResult) =>
-        if (queryMetrics.nonEmpty) {
-          val combinedMetrics = QueryMetrics.ZERO.add(queryMetrics.toSeq: _*)
-          logging.debug(
-            this,
-            s"[QueryMetricsEnabled] Collection [$collName] - Query [${querySpec.getQueryText}].\nQueryMetrics\n[$combinedMetrics]")
-        }
-        val stats = viewMapper.recordQueryStats(ddoc, viewName, descending, querySpec.getParameters, queryResult)
-        val statsToLog = stats.map(s => " " + s).getOrElse("")
-        transid.finished(
+    val g = f.andThen { case Success(queryResult) =>
+      if (queryMetrics.nonEmpty) {
+        val combinedMetrics = QueryMetrics.ZERO.add(queryMetrics.toSeq: _*)
+        logging.debug(
           this,
-          start,
-          s"[QUERY] '$collName' completed: matched ${queryResult.size}$statsToLog",
-          InfoLevel)
+          s"[QueryMetricsEnabled] Collection [$collName] - Query [${querySpec.getQueryText}].\nQueryMetrics\n[$combinedMetrics]")
+      }
+      val stats = viewMapper.recordQueryStats(ddoc, viewName, descending, querySpec.getParameters, queryResult)
+      val statsToLog = stats.map(s => " " + s).getOrElse("")
+      transid.finished(this, start, s"[QUERY] '$collName' completed: matched ${queryResult.size}$statsToLog", InfoLevel)
     }
     reportFailure(g, start, failure => s"[QUERY] '$collName' internal error, failure: '${failure.getMessage}'")
   }
 
-  override protected[core] def count(table: String,
-                                     startKey: List[Any],
-                                     endKey: List[Any],
-                                     skip: Int,
-                                     stale: StaleParameter)(implicit transid: TransactionId): Future[Long] = {
+  override protected[core] def count(
+    table: String,
+    startKey: List[Any],
+    endKey: List[Any],
+    skip: Int,
+    stale: StaleParameter)(implicit transid: TransactionId): Future[Long] = {
     require(skip >= 0, "skip should be non negative")
     val Array(ddoc, viewName) = table.split("/")
 

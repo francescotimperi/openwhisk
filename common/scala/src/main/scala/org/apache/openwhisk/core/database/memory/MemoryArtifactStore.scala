@@ -42,16 +42,16 @@ import scala.util.{Failure, Success, Try}
 
 object MemoryArtifactStoreProvider extends ArtifactStoreProvider {
   private val stores = new TrieMap[String, MemoryArtifactStore[_]]()
-  override def makeStore[D <: DocumentSerializer: ClassTag](useBatching: Boolean)(
-    implicit jsonFormat: RootJsonFormat[D],
+  override def makeStore[D <: DocumentSerializer: ClassTag](useBatching: Boolean)(implicit
+    jsonFormat: RootJsonFormat[D],
     docReader: DocumentReader,
     actorSystem: ActorSystem,
     logging: Logging): ArtifactStore[D] = {
     makeArtifactStore(MemoryAttachmentStoreProvider.makeStore())
   }
 
-  def makeArtifactStore[D <: DocumentSerializer: ClassTag](attachmentStore: AttachmentStore)(
-    implicit jsonFormat: RootJsonFormat[D],
+  def makeArtifactStore[D <: DocumentSerializer: ClassTag](attachmentStore: AttachmentStore)(implicit
+    jsonFormat: RootJsonFormat[D],
     docReader: DocumentReader,
     actorSystem: ActorSystem,
     logging: Logging): ArtifactStore[D] = {
@@ -65,8 +65,8 @@ object MemoryArtifactStoreProvider extends ArtifactStoreProvider {
 
   def purgeAll(): Unit = stores.clear()
 
-  private def handlerAndMapper[D](entityType: ClassTag[D])(
-    implicit actorSystem: ActorSystem,
+  private def handlerAndMapper[D](entityType: ClassTag[D])(implicit
+    actorSystem: ActorSystem,
     logging: Logging): (String, DocumentHandler, MemoryViewMapper) = {
     entityType.runtimeClass match {
       case x if x == classOf[WhiskEntity] =>
@@ -84,12 +84,13 @@ object MemoryArtifactStoreProvider extends ArtifactStoreProvider {
  * It also serves as a canonical example of how an ArtifactStore can implemented with all the support for CRUD
  * operations and Queries etc
  */
-class MemoryArtifactStore[DocumentAbstraction <: DocumentSerializer](dbName: String,
-                                                                     documentHandler: DocumentHandler,
-                                                                     viewMapper: MemoryViewMapper,
-                                                                     val inliningConfig: InliningConfig,
-                                                                     val attachmentStore: AttachmentStore)(
-  implicit system: ActorSystem,
+class MemoryArtifactStore[DocumentAbstraction <: DocumentSerializer](
+  dbName: String,
+  documentHandler: DocumentHandler,
+  viewMapper: MemoryViewMapper,
+  val inliningConfig: InliningConfig,
+  val attachmentStore: AttachmentStore)(implicit
+  system: ActorSystem,
   val logging: Logging,
   jsonFormat: RootJsonFormat[DocumentAbstraction],
   docReader: DocumentReader)
@@ -171,9 +172,10 @@ class MemoryArtifactStore[DocumentAbstraction <: DocumentSerializer](dbName: Str
     reportFailure(f, start, failure => s"[DEL] '$dbName' internal error, doc: '$doc', failure: '${failure.getMessage}'")
   }
 
-  override protected[database] def get[A <: DocumentAbstraction](doc: DocInfo,
-                                                                 attachmentHandler: Option[(A, Attached) => A] = None)(
-    implicit transid: TransactionId,
+  override protected[database] def get[A <: DocumentAbstraction](
+    doc: DocInfo,
+    attachmentHandler: Option[(A, Attached) => A] = None)(implicit
+    transid: TransactionId,
     ma: Manifest[A]): Future[A] = {
     val start = transid.started(this, LoggingMarkers.DATABASE_GET, s"[GET] '$dbName' finding document: '$doc'")
 
@@ -192,22 +194,23 @@ class MemoryArtifactStore[DocumentAbstraction <: DocumentSerializer](dbName: Str
       }
     }
 
-    val f = Future.fromTry(t).recoverWith {
-      case _: DeserializationException => throw DocumentUnreadable(Messages.corruptedEntity)
+    val f = Future.fromTry(t).recoverWith { case _: DeserializationException =>
+      throw DocumentUnreadable(Messages.corruptedEntity)
     }
 
     reportFailure(f, start, failure => s"[GET] '$dbName' internal error, doc: '$doc', failure: '${failure.getMessage}'")
   }
 
-  override protected[core] def query(table: String,
-                                     startKey: List[Any],
-                                     endKey: List[Any],
-                                     skip: Int,
-                                     limit: Int,
-                                     includeDocs: Boolean,
-                                     descending: Boolean,
-                                     reduce: Boolean,
-                                     stale: StaleParameter)(implicit transid: TransactionId): Future[List[JsObject]] = {
+  override protected[core] def query(
+    table: String,
+    startKey: List[Any],
+    endKey: List[Any],
+    skip: Int,
+    limit: Int,
+    includeDocs: Boolean,
+    descending: Boolean,
+    reduce: Boolean,
+    stale: StaleParameter)(implicit transid: TransactionId): Future[List[JsObject]] = {
     require(!(reduce && includeDocs), "reduce and includeDocs cannot both be true")
     require(!reduce, "Reduce scenario not supported") //TODO Investigate reduce
     require(skip >= 0, "skip should be non negative")
@@ -248,11 +251,12 @@ class MemoryArtifactStore[DocumentAbstraction <: DocumentSerializer](dbName: Str
 
   }
 
-  override protected[core] def count(table: String,
-                                     startKey: List[Any],
-                                     endKey: List[Any],
-                                     skip: Int,
-                                     stale: StaleParameter)(implicit transid: TransactionId): Future[Long] = {
+  override protected[core] def count(
+    table: String,
+    startKey: List[Any],
+    endKey: List[Any],
+    skip: Int,
+    stale: StaleParameter)(implicit transid: TransactionId): Future[Long] = {
     val f =
       query(table, startKey, endKey, skip, limit = 0, includeDocs = false, descending = true, reduce = false, stale)
     f.map(_.size)

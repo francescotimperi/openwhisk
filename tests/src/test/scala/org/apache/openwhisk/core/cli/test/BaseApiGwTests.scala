@@ -109,51 +109,55 @@ abstract class BaseApiGwTests extends TestHelpers with WskTestHelpers with Befor
     checkThrottle(maxInvocationsBeforeThrottle = 1, throttlePercent = 100)
   }
 
-  def apiCreate(basepath: Option[String] = None,
-                relpath: Option[String] = None,
-                operation: Option[String] = None,
-                action: Option[String] = None,
-                apiname: Option[String] = None,
-                swagger: Option[String] = None,
-                responsetype: Option[String] = None,
-                expectedExitCode: Int = SUCCESS_EXIT,
-                cliCfgFile: Option[String] = Some(cliWskPropsFile.getCanonicalPath()))(
-    implicit wskpropsOverride: WskProps): RunResult = {
+  def apiCreate(
+    basepath: Option[String] = None,
+    relpath: Option[String] = None,
+    operation: Option[String] = None,
+    action: Option[String] = None,
+    apiname: Option[String] = None,
+    swagger: Option[String] = None,
+    responsetype: Option[String] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    cliCfgFile: Option[String] = Some(cliWskPropsFile.getCanonicalPath()))(implicit
+    wskpropsOverride: WskProps): RunResult = {
 
     checkThrottle()
     wsk.api.create(basepath, relpath, operation, action, apiname, swagger, responsetype, expectedExitCode, cliCfgFile)(
       wskpropsOverride)
   }
 
-  def apiList(basepathOrApiName: Option[String] = None,
-              relpath: Option[String] = None,
-              operation: Option[String] = None,
-              limit: Option[Int] = None,
-              since: Option[Instant] = None,
-              full: Option[Boolean] = None,
-              nameSort: Option[Boolean] = None,
-              expectedExitCode: Int = SUCCESS_EXIT,
-              cliCfgFile: Option[String] = Some(cliWskPropsFile.getCanonicalPath())): RunResult = {
+  def apiList(
+    basepathOrApiName: Option[String] = None,
+    relpath: Option[String] = None,
+    operation: Option[String] = None,
+    limit: Option[Int] = None,
+    since: Option[Instant] = None,
+    full: Option[Boolean] = None,
+    nameSort: Option[Boolean] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    cliCfgFile: Option[String] = Some(cliWskPropsFile.getCanonicalPath())): RunResult = {
 
     checkThrottle()
     wsk.api.list(basepathOrApiName, relpath, operation, limit, since, full, nameSort, expectedExitCode, cliCfgFile)
   }
 
-  def apiGet(basepathOrApiName: Option[String] = None,
-             full: Option[Boolean] = None,
-             expectedExitCode: Int = SUCCESS_EXIT,
-             cliCfgFile: Option[String] = Some(cliWskPropsFile.getCanonicalPath()),
-             format: Option[String] = None): RunResult = {
+  def apiGet(
+    basepathOrApiName: Option[String] = None,
+    full: Option[Boolean] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    cliCfgFile: Option[String] = Some(cliWskPropsFile.getCanonicalPath()),
+    format: Option[String] = None): RunResult = {
 
     checkThrottle()
     wsk.api.get(basepathOrApiName, full, expectedExitCode, cliCfgFile, format)
   }
 
-  def apiDelete(basepathOrApiName: String,
-                relpath: Option[String] = None,
-                operation: Option[String] = None,
-                expectedExitCode: Int = SUCCESS_EXIT,
-                cliCfgFile: Option[String] = Some(cliWskPropsFile.getCanonicalPath())): RunResult = {
+  def apiDelete(
+    basepathOrApiName: String,
+    relpath: Option[String] = None,
+    operation: Option[String] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    cliCfgFile: Option[String] = Some(cliWskPropsFile.getCanonicalPath())): RunResult = {
 
     checkThrottle()
     wsk.api.delete(basepathOrApiName, relpath, operation, expectedExitCode, cliCfgFile)

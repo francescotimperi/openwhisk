@@ -61,25 +61,29 @@ class InvokerBootUpTests
   behavior of "Invoker Etcd Key"
   it should "haven't health action key" in {
     val healthActionPrefix = s"$namespacePrefix/namespace/$systemNamespace/$systemNamespace/$healthActionNamePrefix"
-    awaitAssert({
-      etcd.getPrefix(healthActionPrefix).futureValue.getKvsList.size() shouldBe 0
-    }, 10.seconds)
+    awaitAssert(
+      {
+        etcd.getPrefix(healthActionPrefix).futureValue.getKvsList.size() shouldBe 0
+      },
+      10.seconds)
   }
 
   it should "have lease key" in {
     val leasePrefix = s"$namespacePrefix/instance"
-    awaitAssert({
-      val leases = etcd.getPrefix(leasePrefix).futureValue.getKvsList.asScala.toArray
+    awaitAssert(
+      {
+        val leases = etcd.getPrefix(leasePrefix).futureValue.getKvsList.asScala.toArray
 
-      // validate size
-      leases.length > 0
+        // validate size
+        leases.length > 0
 
-      // validate key
-      for (i <- leases.indices) {
-        val invokerId = InvokerInstanceId(i, userMemory = 256.MB)
-        leases(i).getKey.toString(StandardCharsets.UTF_8) shouldBe InstanceKeys.instanceLease(invokerId)
-      }
-    }, 10.seconds)
+        // validate key
+        for (i <- leases.indices) {
+          val invokerId = InvokerInstanceId(i, userMemory = 256.MB)
+          leases(i).getKey.toString(StandardCharsets.UTF_8) shouldBe InstanceKeys.instanceLease(invokerId)
+        }
+      },
+      10.seconds)
   }
 
   it should "have invoker key" in {

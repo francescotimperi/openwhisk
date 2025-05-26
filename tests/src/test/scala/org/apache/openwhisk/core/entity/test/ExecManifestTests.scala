@@ -61,8 +61,8 @@ class ExecManifestTests extends FlatSpec with WskActorSystem with StreamLogging 
       "hostname.com:3121/pre1/pre2/img:t" -> ImageName("img", Some("hostname.com:3121"), Some("pre1/pre2"), Some("t")),
       "hostname.com:3121/pre1/pre2/img:t@sha256:77af4d6b9913e693e8d0b4b294fa62ade6054e6b2f1ffb617ac955dd63fb0182" ->
         ImageName("img", Some("hostname.com:3121"), Some("pre1/pre2"), Some("t")))
-      .foreach {
-        case (s, v) => ImageName.fromString(s) shouldBe Success(v)
+      .foreach { case (s, v) =>
+        ImageName.fromString(s) shouldBe Success(v)
       }
 
     Seq("ABC", "x:8080:10/abc", "p/a:x:y", "p/a:t@sha256:77af4d6b9").foreach { s =>
@@ -199,13 +199,11 @@ class ExecManifestTests extends FlatSpec with WskActorSystem with StreamLogging 
       (ExecManifest.ImageName(name), name),
       (ExecManifest.ImageName(name, None, None, Some("t")), s"$name:t"),
       (ExecManifest.ImageName(name, None, Some("pre")), s"pre/$name"),
-      (ExecManifest.ImageName(name, None, Some("pre"), Some("t")), s"pre/$name:t"),
-    ).foreach {
-      case (image, exp) =>
-        image.resolveImageName() shouldBe exp
-        image.resolveImageName(Some("")) shouldBe exp
-        image.resolveImageName(Some("r")) shouldBe s"r/$exp"
-        image.resolveImageName(Some("r/")) shouldBe s"r/$exp"
+      (ExecManifest.ImageName(name, None, Some("pre"), Some("t")), s"pre/$name:t")).foreach { case (image, exp) =>
+      image.resolveImageName() shouldBe exp
+      image.resolveImageName(Some("")) shouldBe exp
+      image.resolveImageName(Some("r")) shouldBe s"r/$exp"
+      image.resolveImageName(Some("r/")) shouldBe s"r/$exp"
 
     }
   }
@@ -218,15 +216,14 @@ class ExecManifestTests extends FlatSpec with WskActorSystem with StreamLogging 
       (ExecManifest.ImageName(name, Some("hostname.com")), s"hostname.com/$name"),
       (ExecManifest.ImageName(name, Some("hostname.com"), None, Some("t")), s"hostname.com/$name:t"),
       (ExecManifest.ImageName(name, Some("hostname.com"), Some("pre")), s"hostname.com/pre/$name"),
-      (ExecManifest.ImageName(name, Some("hostname.com"), Some("pre"), Some("t")), s"hostname.com/pre/$name:t"),
-    ).foreach {
-      case (image, exp) =>
+      (ExecManifest.ImageName(name, Some("hostname.com"), Some("pre"), Some("t")), s"hostname.com/pre/$name:t"))
+      .foreach { case (image, exp) =>
         image.resolveImageName() shouldBe exp
         image.resolveImageName(Some("")) shouldBe exp
         image.resolveImageName(Some("r")) shouldBe exp
         image.resolveImageName(Some("r/")) shouldBe exp
 
-    }
+      }
   }
 
   it should "indicate image is local if it matches deployment docker prefix" in {
@@ -347,11 +344,10 @@ class ExecManifestTests extends FlatSpec with WskActorSystem with StreamLogging 
         None)
     }
 
-    mf.stemcells.flatMap {
-      case (m, cells) =>
-        cells.map { c =>
-          (m.kind, m.image, c.initialCount, c.memory)
-        }
+    mf.stemcells.flatMap { case (m, cells) =>
+      cells.map { c =>
+        (m.kind, m.image, c.initialCount, c.memory)
+      }
     }.toList should contain theSameElementsAs List(
       (js14.kind, js14.image, 1, 128.MB),
       (js14.kind, js14.image, 1, 256.MB),
@@ -470,11 +466,10 @@ class ExecManifestTests extends FlatSpec with WskActorSystem with StreamLogging 
         None)
     }
 
-    mf.stemcells.flatMap {
-      case (m, cells) =>
-        cells.map { c =>
-          (m.kind, m.image, c.initialCount, c.memory)
-        }
+    mf.stemcells.flatMap { case (m, cells) =>
+      cells.map { c =>
+        (m.kind, m.image, c.initialCount, c.memory)
+      }
     }.toList should contain theSameElementsAs List(
       (js14.kind, js14.image, 1, 128.MB),
       (js14.kind, js14.image, 1, 256.MB),

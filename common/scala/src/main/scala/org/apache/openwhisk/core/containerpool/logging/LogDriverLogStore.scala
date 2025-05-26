@@ -42,21 +42,27 @@ class LogDriverLogStore(actorSystem: ActorSystem) extends LogStore {
 
   override val logCollectionOutOfBand: Boolean = true
 
-  def collectLogs(transid: TransactionId,
-                  user: Identity,
-                  activation: WhiskActivation,
-                  container: Container,
-                  action: ExecutableWhiskAction): Future[ActivationLogs] =
-    Future.successful(ActivationLogs()) //no logs collected when using docker log drivers (see DockerLogStore for json-file exception)
+  def collectLogs(
+    transid: TransactionId,
+    user: Identity,
+    activation: WhiskActivation,
+    container: Container,
+    action: ExecutableWhiskAction): Future[ActivationLogs] =
+    Future.successful(
+      ActivationLogs()
+    ) //no logs collected when using docker log drivers (see DockerLogStore for json-file exception)
 
-  /** no logs exposed to API/CLI using only the LogDriverLogStore; use an extended version,
-   * e.g. the SplunkLogStore to expose logs from some external source */
-  def fetchLogs(namespace: String,
-                activationId: ActivationId,
-                start: Option[Instant],
-                end: Option[Instant],
-                activationLogs: Option[ActivationLogs],
-                context: UserContext): Future[ActivationLogs] =
+  /**
+   * no logs exposed to API/CLI using only the LogDriverLogStore; use an extended version,
+   * e.g. the SplunkLogStore to expose logs from some external source
+   */
+  def fetchLogs(
+    namespace: String,
+    activationId: ActivationId,
+    start: Option[Instant],
+    end: Option[Instant],
+    activationLogs: Option[ActivationLogs],
+    context: UserContext): Future[ActivationLogs] =
     Future.successful(ActivationLogs(Vector("Logs are not available.")))
 }
 

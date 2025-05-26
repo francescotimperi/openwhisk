@@ -378,9 +378,10 @@ object LoggingMarkers {
       counter,
       Some(actionWithoutVersion),
       Map("namespace" -> namespace, "action" -> actionWithVersion))(MeasurementUnit.none)
-  def SCHEDULER_ACTION_INPROGRESS_CONTAINER(namespace: String,
-                                            actionWithVersion: String,
-                                            actionWithoutVersion: String) =
+  def SCHEDULER_ACTION_INPROGRESS_CONTAINER(
+    namespace: String,
+    actionWithVersion: String,
+    actionWithoutVersion: String) =
     LogMarkerToken(
       scheduler,
       "actionInProgressContainer",

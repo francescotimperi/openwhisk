@@ -59,18 +59,16 @@ abstract class WskRuleTests extends TestHelpers with WskTestHelpers {
       }
     }
 
-    actions.foreach {
-      case (actionName, _, file) =>
-        assetHelper.withCleaner(wsk.action, actionName) { (action, name) =>
-          action.create(name, Some(file))
-        }
+    actions.foreach { case (actionName, _, file) =>
+      assetHelper.withCleaner(wsk.action, actionName) { (action, name) =>
+        action.create(name, Some(file))
+      }
     }
 
-    rules.foreach {
-      case (ruleName, triggerName, action) =>
-        assetHelper.withCleaner(wsk.rule, ruleName) { (rule, name) =>
-          rule.create(name, triggerName, action._2)
-        }
+    rules.foreach { case (ruleName, triggerName, action) =>
+      assetHelper.withCleaner(wsk.rule, ruleName) { (rule, name) =>
+        rule.create(name, triggerName, action._2)
+      }
     }
   }
 
@@ -282,87 +280,84 @@ abstract class WskRuleTests extends TestHelpers with WskTestHelpers {
       val testPayloads = Seq("got three words", "got four words, period")
       val runs = testPayloads.map(payload => wsk.trigger.fire(triggerName1, Map("payload" -> payload.toJson)))
 
-      runs.zip(testPayloads).foreach {
-        case (run, payload) =>
-          withActivation(wsk.activation, run) { triggerActivation =>
-            val ruleActivations = triggerActivation.logs.get.map(_.parseJson.convertTo[RuleActivationResult])
-            ruleActivations should have size 1
-            val ruleActivation = ruleActivations.head
-            withActivation(wsk.activation, ruleActivation.activationId) { actionActivation =>
-              actionActivation.response.result shouldBe Some(JsObject("count" -> payload.split(" ").length.toJson))
-            }
+      runs.zip(testPayloads).foreach { case (run, payload) =>
+        withActivation(wsk.activation, run) { triggerActivation =>
+          val ruleActivations = triggerActivation.logs.get.map(_.parseJson.convertTo[RuleActivationResult])
+          ruleActivations should have size 1
+          val ruleActivation = ruleActivations.head
+          withActivation(wsk.activation, ruleActivation.activationId) { actionActivation =>
+            actionActivation.response.result shouldBe Some(JsObject("count" -> payload.split(" ").length.toJson))
           }
+        }
       }
   }
 
-  it should "connect one trigger to two different actions, invoking them both eventually" in withAssetCleaner(wskprops) {
-    (wp, assetHelper) =>
-      val triggerName = withTimestamp("t1to2")
-      val actionName1 = withTimestamp("a1to2a")
-      val actionName2 = withTimestamp("a1to2b")
+  it should "connect one trigger to two different actions, invoking them both eventually" in withAssetCleaner(
+    wskprops) { (wp, assetHelper) =>
+    val triggerName = withTimestamp("t1to2")
+    val actionName1 = withTimestamp("a1to2a")
+    val actionName2 = withTimestamp("a1to2b")
 
-      ruleSetup(
-        Seq(
-          ("r1to2a", triggerName, (actionName1, actionName1, defaultAction)),
-          ("r1to2b", triggerName, (actionName2, actionName2, secondAction))),
-        assetHelper)
+    ruleSetup(
+      Seq(
+        ("r1to2a", triggerName, (actionName1, actionName1, defaultAction)),
+        ("r1to2b", triggerName, (actionName2, actionName2, secondAction))),
+      assetHelper)
 
-      val run = wsk.trigger.fire(triggerName, Map("payload" -> testString.toJson))
+    val run = wsk.trigger.fire(triggerName, Map("payload" -> testString.toJson))
 
+    withActivation(wsk.activation, run) { triggerActivation =>
+      val ruleActivations = triggerActivation.logs.get.map(_.parseJson.convertTo[RuleActivationResult])
+      ruleActivations should have size 2
+
+      val action1Result = ruleActivations.find(_.action.contains(actionName1)).get
+      val action2Result = ruleActivations.find(_.action.contains(actionName2)).get
+
+      withActivation(wsk.activation, action1Result.activationId) { actionActivation =>
+        actionActivation.response.result shouldBe Some(testResult)
+      }
+      withActivation(wsk.activation, action2Result.activationId) { actionActivation =>
+        actionActivation.logs.get.mkString(" ") should include(s"hello, $testString")
+      }
+    }
+  }
+
+  it should "connect two triggers to two different actions, invoking them both eventually" in withAssetCleaner(
+    wskprops) { (wp, assetHelper) =>
+    val triggerName1 = withTimestamp("t1to1a")
+    val triggerName2 = withTimestamp("t1to1b")
+    val actionName1 = withTimestamp("a1to1a")
+    val actionName2 = withTimestamp("a1to1b")
+
+    ruleSetup(
+      Seq(
+        ("r2to2a", triggerName1, (actionName1, actionName1, defaultAction)),
+        ("r2to2b", triggerName1, (actionName2, actionName2, secondAction)),
+        ("r2to2c", triggerName2, (actionName1, actionName1, defaultAction)),
+        ("r2to2d", triggerName2, (actionName2, actionName2, secondAction))),
+      assetHelper)
+
+    val testPayloads = Seq("got three words", "got four words, period")
+    val runs = Seq(triggerName1, triggerName2).zip(testPayloads).map { case (trigger, payload) =>
+      payload -> wsk.trigger.fire(trigger, Map("payload" -> payload.toJson))
+    }
+
+    runs.foreach { case (payload, run) =>
       withActivation(wsk.activation, run) { triggerActivation =>
         val ruleActivations = triggerActivation.logs.get.map(_.parseJson.convertTo[RuleActivationResult])
-        ruleActivations should have size 2
+        ruleActivations should have size 2 // each trigger has 2 actions attached
 
         val action1Result = ruleActivations.find(_.action.contains(actionName1)).get
         val action2Result = ruleActivations.find(_.action.contains(actionName2)).get
 
         withActivation(wsk.activation, action1Result.activationId) { actionActivation =>
-          actionActivation.response.result shouldBe Some(testResult)
+          actionActivation.response.result shouldBe Some(JsObject("count" -> payload.split(" ").length.toJson))
         }
         withActivation(wsk.activation, action2Result.activationId) { actionActivation =>
-          actionActivation.logs.get.mkString(" ") should include(s"hello, $testString")
+          actionActivation.logs.get.mkString(" ") should include(s"hello, $payload")
         }
       }
-  }
-
-  it should "connect two triggers to two different actions, invoking them both eventually" in withAssetCleaner(wskprops) {
-    (wp, assetHelper) =>
-      val triggerName1 = withTimestamp("t1to1a")
-      val triggerName2 = withTimestamp("t1to1b")
-      val actionName1 = withTimestamp("a1to1a")
-      val actionName2 = withTimestamp("a1to1b")
-
-      ruleSetup(
-        Seq(
-          ("r2to2a", triggerName1, (actionName1, actionName1, defaultAction)),
-          ("r2to2b", triggerName1, (actionName2, actionName2, secondAction)),
-          ("r2to2c", triggerName2, (actionName1, actionName1, defaultAction)),
-          ("r2to2d", triggerName2, (actionName2, actionName2, secondAction))),
-        assetHelper)
-
-      val testPayloads = Seq("got three words", "got four words, period")
-      val runs = Seq(triggerName1, triggerName2).zip(testPayloads).map {
-        case (trigger, payload) =>
-          payload -> wsk.trigger.fire(trigger, Map("payload" -> payload.toJson))
-      }
-
-      runs.foreach {
-        case (payload, run) =>
-          withActivation(wsk.activation, run) { triggerActivation =>
-            val ruleActivations = triggerActivation.logs.get.map(_.parseJson.convertTo[RuleActivationResult])
-            ruleActivations should have size 2 // each trigger has 2 actions attached
-
-            val action1Result = ruleActivations.find(_.action.contains(actionName1)).get
-            val action2Result = ruleActivations.find(_.action.contains(actionName2)).get
-
-            withActivation(wsk.activation, action1Result.activationId) { actionActivation =>
-              actionActivation.response.result shouldBe Some(JsObject("count" -> payload.split(" ").length.toJson))
-            }
-            withActivation(wsk.activation, action2Result.activationId) { actionActivation =>
-              actionActivation.logs.get.mkString(" ") should include(s"hello, $payload")
-            }
-          }
-      }
+    }
   }
 
   it should "disable a rule and check its status is displayed when listed" in withAssetCleaner(wskprops) {

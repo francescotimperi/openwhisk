@@ -117,14 +117,16 @@ protected trait ControllerTestCommon
   val activationStore = SpiLoader.get[ActivationStoreProvider].instance(actorSystem, logging)
 
   def deleteAction(doc: DocId)(implicit transid: TransactionId) = {
-    Await.result(WhiskAction.get(entityStore, doc) flatMap { doc =>
-      logging.debug(this, s"deleting ${doc.docinfo}")
-      WhiskAction.del(entityStore, doc.docinfo)
-    }, dbOpTimeout)
+    Await.result(
+      WhiskAction.get(entityStore, doc) flatMap { doc =>
+        logging.debug(this, s"deleting ${doc.docinfo}")
+        WhiskAction.del(entityStore, doc.docinfo)
+      },
+      dbOpTimeout)
   }
 
-  def getActivation(activationId: ActivationId, context: UserContext)(
-    implicit transid: TransactionId,
+  def getActivation(activationId: ActivationId, context: UserContext)(implicit
+    transid: TransactionId,
     timeout: Duration = 10 seconds): WhiskActivation = {
     Await.result(activationStore.get(activationId, context), timeout)
   }
@@ -152,17 +154,16 @@ protected trait ControllerTestCommon
     res
   }
 
-  def waitOnListActivationsInNamespace(namespace: EntityPath, count: Int, context: UserContext)(
-    implicit ec: ExecutionContext,
+  def waitOnListActivationsInNamespace(namespace: EntityPath, count: Int, context: UserContext)(implicit
+    ec: ExecutionContext,
     transid: TransactionId,
     timeout: Duration) = {
     val success = retry(
       () => {
         val activations: Future[Either[List[JsObject], List[WhiskActivation]]] =
           activationStore.listActivationsInNamespace(namespace, 0, 0, context = context)
-        val listFuture: Future[List[JsObject]] = activations map (_.fold(
-          (js) => js,
-          (wa) => wa.map(_.toExtendedJson())))
+        val listFuture: Future[List[JsObject]] =
+          activations map (_.fold((js) => js, (wa) => wa.map(_.toExtendedJson())))
 
         listFuture map { l =>
           if (l.length != count) {
@@ -176,16 +177,16 @@ protected trait ControllerTestCommon
   }
 
   def waitOnListActivationsMatchingName(namespace: EntityPath, name: EntityPath, count: Int, context: UserContext)(
-    implicit ex: ExecutionContext,
+    implicit
+    ex: ExecutionContext,
     transid: TransactionId,
     timeout: Duration) = {
     val success = retry(
       () => {
         val activations: Future[Either[List[JsObject], List[WhiskActivation]]] =
           activationStore.listActivationsMatchingName(namespace, name, 0, 0, context = context)
-        val listFuture: Future[List[JsObject]] = activations map (_.fold(
-          (js) => js,
-          (wa) => wa.map(_.toExtendedJson())))
+        val listFuture: Future[List[JsObject]] =
+          activations map (_.fold((js) => js, (wa) => wa.map(_.toExtendedJson())))
 
         listFuture map { l =>
           if (l.length != count) {
@@ -199,24 +200,30 @@ protected trait ControllerTestCommon
   }
 
   def deleteTrigger(doc: DocId)(implicit transid: TransactionId) = {
-    Await.result(WhiskTrigger.get(entityStore, doc) flatMap { doc =>
-      logging.debug(this, s"deleting ${doc.docinfo}")
-      WhiskAction.del(entityStore, doc.docinfo)
-    }, dbOpTimeout)
+    Await.result(
+      WhiskTrigger.get(entityStore, doc) flatMap { doc =>
+        logging.debug(this, s"deleting ${doc.docinfo}")
+        WhiskAction.del(entityStore, doc.docinfo)
+      },
+      dbOpTimeout)
   }
 
   def deleteRule(doc: DocId)(implicit transid: TransactionId) = {
-    Await.result(WhiskRule.get(entityStore, doc) flatMap { doc =>
-      logging.debug(this, s"deleting ${doc.docinfo}")
-      WhiskRule.del(entityStore, doc.docinfo)
-    }, dbOpTimeout)
+    Await.result(
+      WhiskRule.get(entityStore, doc) flatMap { doc =>
+        logging.debug(this, s"deleting ${doc.docinfo}")
+        WhiskRule.del(entityStore, doc.docinfo)
+      },
+      dbOpTimeout)
   }
 
   def deletePackage(doc: DocId)(implicit transid: TransactionId) = {
-    Await.result(WhiskPackage.get(entityStore, doc) flatMap { doc =>
-      logging.debug(this, s"deleting ${doc.docinfo}")
-      WhiskPackage.del(entityStore, doc.docinfo)
-    }, dbOpTimeout)
+    Await.result(
+      WhiskPackage.get(entityStore, doc) flatMap { doc =>
+        logging.debug(this, s"deleting ${doc.docinfo}")
+        WhiskPackage.del(entityStore, doc.docinfo)
+      },
+      dbOpTimeout)
   }
 
   def stringToFullyQualifiedName(s: String) = FullyQualifiedEntityName.serdes.read(JsString(s))
@@ -248,11 +255,12 @@ protected trait ControllerTestCommon
     authStore.shutdown()
   }
 
-  protected case class BadEntity(namespace: EntityPath,
-                                 override val name: EntityName,
-                                 version: SemVer = SemVer(),
-                                 publish: Boolean = false,
-                                 annotations: Parameters = Parameters())
+  protected case class BadEntity(
+    namespace: EntityPath,
+    override val name: EntityName,
+    version: SemVer = SemVer(),
+    publish: Boolean = false,
+    annotations: Parameters = Parameters())
       extends WhiskEntity(name, "badEntity") {
 
     override def toJson = BadEntity.serdes.write(this).asJsObject
@@ -271,8 +279,8 @@ protected trait ControllerTestCommon
    * @param ns           the namespace to be used when creating the component actions and the sequence action
    * @param components   the names of the actions (entity names, no namespace)
    */
-  protected def putSimpleSequenceInDB(sequenceName: String, ns: EntityPath, components: Vector[String])(
-    implicit tid: TransactionId) = {
+  protected def putSimpleSequenceInDB(sequenceName: String, ns: EntityPath, components: Vector[String])(implicit
+    tid: TransactionId) = {
     val seqAction = makeSimpleSequence(sequenceName, ns, components)
     put(entityStore, seqAction)
   }
@@ -287,10 +295,11 @@ protected trait ControllerTestCommon
    * @param componentNames the names of the actions (entity names, no namespace)
    * @param installDB      if true, installs the component actions in the db (default true)
    */
-  protected def makeSimpleSequence(sequenceName: String,
-                                   ns: EntityPath,
-                                   componentNames: Vector[String],
-                                   installDB: Boolean = true)(implicit tid: TransactionId): WhiskAction = {
+  protected def makeSimpleSequence(
+    sequenceName: String,
+    ns: EntityPath,
+    componentNames: Vector[String],
+    installDB: Boolean = true)(implicit tid: TransactionId): WhiskAction = {
     if (installDB) {
       // create bogus wsk actions
       val wskActions = componentNames.toSet[String] map { c =>
@@ -323,21 +332,20 @@ class DegenerateLoadBalancerService(config: WhiskConfig)(implicit ec: ExecutionC
   override def activeActivationsByController: Future[List[(String, String)]] = Future.successful(List(("", "")))
   override def activeActivationsByInvoker(invoker: String): Future[Int] = Future.successful(0)
 
-  override def publish(action: ExecutableWhiskActionMetaData, msg: ActivationMessage)(
-    implicit transid: TransactionId): Future[Future[Either[ActivationId, WhiskActivation]]] = {
+  override def publish(action: ExecutableWhiskActionMetaData, msg: ActivationMessage)(implicit
+    transid: TransactionId): Future[Future[Either[ActivationId, WhiskActivation]]] = {
     activationMessageChecker.foreach(_(msg))
 
     Future.successful {
-      whiskActivationStub map {
-        case (timeout, activation) =>
-          Future {
-            blocking {
-              println(s"load balancer active ack stub: waiting for $timeout...")
-              Thread.sleep(timeout.toMillis)
-              println(".... done waiting")
-            }
-            activation
+      whiskActivationStub map { case (timeout, activation) =>
+        Future {
+          blocking {
+            println(s"load balancer active ack stub: waiting for $timeout...")
+            Thread.sleep(timeout.toMillis)
+            println(".... done waiting")
           }
+          activation
+        }
       } getOrElse Future.failed(new IllegalArgumentException("Unit test does not need fast path"))
     }
   }

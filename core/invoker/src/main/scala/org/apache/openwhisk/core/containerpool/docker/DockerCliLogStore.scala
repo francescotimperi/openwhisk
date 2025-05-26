@@ -43,19 +43,21 @@ object DockerCliLogStoreProvider extends LogStoreProvider {
 
 class DockerCliLogStore(system: ActorSystem)(implicit log: Logging) extends DockerToActivationLogStore(system) {
   private val client = new ExtendedDockerClient()(system.dispatcher)(log, system)
-  override def collectLogs(transid: TransactionId,
-                           user: Identity,
-                           activation: WhiskActivation,
-                           container: Container,
-                           action: ExecutableWhiskAction): Future[ActivationLogs] = {
+  override def collectLogs(
+    transid: TransactionId,
+    user: Identity,
+    activation: WhiskActivation,
+    container: Container,
+    action: ExecutableWhiskAction): Future[ActivationLogs] = {
     client
       .collectLogs(container.containerId, activation.start, activation.end)(transid)
       .map(logs => ActivationLogs(logs.linesIterator.takeWhile(!_.contains(ACTIVATION_LOG_SENTINEL)).toVector))
   }
 }
 
-class ExtendedDockerClient(dockerHost: Option[String] = None)(executionContext: ExecutionContext)(implicit log: Logging,
-                                                                                                  as: ActorSystem)
+class ExtendedDockerClient(dockerHost: Option[String] = None)(executionContext: ExecutionContext)(implicit
+  log: Logging,
+  as: ActorSystem)
     extends DockerClientWithFileAccess(dockerHost)(executionContext)
     with DockerApiWithFileAccess
     with WindowsDockerClient {

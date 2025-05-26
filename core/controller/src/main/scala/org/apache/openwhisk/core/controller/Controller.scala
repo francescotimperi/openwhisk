@@ -74,11 +74,12 @@ import scala.util.{Failure, Success}
  * @param verbosity logging verbosity
  * @param executionContext Scala runtime support for concurrent operations
  */
-class Controller(val instance: ControllerInstanceId,
-                 runtimes: Runtimes,
-                 implicit val whiskConfig: WhiskConfig,
-                 implicit val actorSystem: ActorSystem,
-                 implicit val logging: Logging)
+class Controller(
+  val instance: ControllerInstanceId,
+  runtimes: Runtimes,
+  implicit val whiskConfig: WhiskConfig,
+  implicit val actorSystem: ActorSystem,
+  implicit val logging: Logging)
     extends BasicRasService
     with RespondWithServerCorsHeaders {
 
@@ -250,12 +251,13 @@ object Controller {
       SpiLoader.get[LoadBalancerProvider].requiredProperties ++
       EntitlementProvider.requiredProperties
 
-  private def info(config: WhiskConfig,
-                   timeLimit: TimeLimitConfig,
-                   memLimit: MemoryLimitConfig,
-                   logLimit: MemoryLimitConfig,
-                   runtimes: Runtimes,
-                   apis: List[String]) =
+  private def info(
+    config: WhiskConfig,
+    timeLimit: TimeLimitConfig,
+    memLimit: MemoryLimitConfig,
+    logLimit: MemoryLimitConfig,
+    runtimes: Runtimes,
+    apis: List[String]) =
     JsObject(
       "description" -> "OpenWhisk".toJson,
       "support" -> JsObject(

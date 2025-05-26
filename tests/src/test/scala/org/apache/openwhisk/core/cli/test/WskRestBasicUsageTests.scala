@@ -109,11 +109,10 @@ class WskRestBasicUsageTests extends TestHelpers with WskTestHelpers with WskAct
       ("dora?", BadRequest.intValue),
       ("|dora|dora?", BadRequest.intValue))
 
-    names foreach {
-      case (name, ec) =>
-        assetHelper.withCleaner(wsk.action, name, confirmDelete = false) { (action, _) =>
-          action.create(name, defaultAction, expectedExitCode = ec)
-        }
+    names foreach { case (name, ec) =>
+      assetHelper.withCleaner(wsk.action, name, confirmDelete = false) { (action, _) =>
+        action.create(name, defaultAction, expectedExitCode = ec)
+      }
     }
   }
 
@@ -215,32 +214,32 @@ class WskRestBasicUsageTests extends TestHelpers with WskTestHelpers with WskAct
       }
   }
 
-  it should "invoke an action that exits during initialization and get appropriate error" in withAssetCleaner(wskprops) {
-    (wp, assetHelper) =>
-      val name = "abort init"
-      assetHelper.withCleaner(wsk.action, name) { (action, _) =>
-        action.create(name, Some(TestUtils.getTestActionFilename("initexit.js")))
-      }
+  it should "invoke an action that exits during initialization and get appropriate error" in withAssetCleaner(
+    wskprops) { (wp, assetHelper) =>
+    val name = "abort init"
+    assetHelper.withCleaner(wsk.action, name) { (action, _) =>
+      action.create(name, Some(TestUtils.getTestActionFilename("initexit.js")))
+    }
 
-      withActivation(wsk.activation, wsk.action.invoke(name)) { activation =>
-        val response = activation.response
-        response.result.get.asJsObject.fields("error") shouldBe Messages.abnormalInitialization.toJson
-        response.status shouldBe ActivationResponse.messageForCode(ActivationResponse.DeveloperError)
-      }
+    withActivation(wsk.activation, wsk.action.invoke(name)) { activation =>
+      val response = activation.response
+      response.result.get.asJsObject.fields("error") shouldBe Messages.abnormalInitialization.toJson
+      response.status shouldBe ActivationResponse.messageForCode(ActivationResponse.DeveloperError)
+    }
   }
 
-  it should "invoke an action that hangs during initialization and get appropriate error" in withAssetCleaner(wskprops) {
-    (wp, assetHelper) =>
-      val name = "hang init"
-      assetHelper.withCleaner(wsk.action, name) { (action, _) =>
-        action.create(name, Some(TestUtils.getTestActionFilename("initforever.js")), timeout = Some(3 seconds))
-      }
+  it should "invoke an action that hangs during initialization and get appropriate error" in withAssetCleaner(
+    wskprops) { (wp, assetHelper) =>
+    val name = "hang init"
+    assetHelper.withCleaner(wsk.action, name) { (action, _) =>
+      action.create(name, Some(TestUtils.getTestActionFilename("initforever.js")), timeout = Some(3 seconds))
+    }
 
-      withActivation(wsk.activation, wsk.action.invoke(name)) { activation =>
-        val response = activation.response
-        response.result.get.asJsObject.fields("error") shouldBe Messages.timedoutActivation(3 seconds, true).toJson
-        response.status shouldBe ActivationResponse.messageForCode(ActivationResponse.DeveloperError)
-      }
+    withActivation(wsk.activation, wsk.action.invoke(name)) { activation =>
+      val response = activation.response
+      response.result.get.asJsObject.fields("error") shouldBe Messages.timedoutActivation(3 seconds, true).toJson
+      response.status shouldBe ActivationResponse.messageForCode(ActivationResponse.DeveloperError)
+    }
   }
 
   it should "invoke an action that exits during run and get appropriate error" in withAssetCleaner(wskprops) {
@@ -792,11 +791,12 @@ class WskRestBasicUsageTests extends TestHelpers with WskTestHelpers with WskAct
       }
   }
 
-  def requestEntityWithHeader(method: HttpMethod,
-                              path: Path,
-                              headers: List[HttpHeader],
-                              params: Map[String, String] = Map.empty,
-                              body: Option[String] = None)(implicit wp: WskProps): HttpResponse = {
+  def requestEntityWithHeader(
+    method: HttpMethod,
+    path: Path,
+    headers: List[HttpHeader],
+    params: Map[String, String] = Map.empty,
+    body: Option[String] = None)(implicit wp: WskProps): HttpResponse = {
     val credentials = wp.authKey.split(":")
     val creds = new BasicHttpCredentials(credentials(0), credentials(1))
 

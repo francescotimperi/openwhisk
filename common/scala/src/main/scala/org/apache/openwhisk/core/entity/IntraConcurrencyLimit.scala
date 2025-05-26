@@ -44,7 +44,7 @@ case class IntraConcurrencyLimitConfig(min: Int, max: Int, std: Int)
  */
 protected[entity] class IntraConcurrencyLimit private (val maxConcurrent: Int) extends AnyVal {
 
-  /** It checks the namespace memory limit setting value  */
+  /** It checks the namespace memory limit setting value */
   @throws[ActionConcurrencyLimitException]
   protected[core] def checkNamespaceLimit(user: Identity): Unit = {
     val concurrencyMax = user.limits.allowedMaxActionConcurrency
@@ -65,13 +65,14 @@ protected[core] object IntraConcurrencyLimit extends ArgNormalizer[IntraConcurre
   val config = ConfigFactory.load().getConfig("test")
   private val concurrencyConfig =
     loadConfigWithFallbackOrThrow[IntraConcurrencyLimitConfig](config, ConfigKeys.concurrencyLimit)
-  private val namespaceConcurrencyDefaultConfig = try {
-    loadConfigWithFallbackOrThrow[NamespaceIntraConcurrencyLimitConfig](config, ConfigKeys.namespaceConcurrencyLimit)
-  } catch {
-    case _: Throwable =>
-      // Supports backwards compatibility for openwhisk that do not use the namespace default limit
-      NamespaceIntraConcurrencyLimitConfig(concurrencyConfig.min, concurrencyConfig.max)
-  }
+  private val namespaceConcurrencyDefaultConfig =
+    try {
+      loadConfigWithFallbackOrThrow[NamespaceIntraConcurrencyLimitConfig](config, ConfigKeys.namespaceConcurrencyLimit)
+    } catch {
+      case _: Throwable =>
+        // Supports backwards compatibility for openwhisk that do not use the namespace default limit
+        NamespaceIntraConcurrencyLimitConfig(concurrencyConfig.min, concurrencyConfig.max)
+    }
 
   /**
    * These system limits and namespace default limits are set once at the beginning.

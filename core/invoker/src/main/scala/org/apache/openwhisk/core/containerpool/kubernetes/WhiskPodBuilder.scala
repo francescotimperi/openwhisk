@@ -52,15 +52,14 @@ class WhiskPodBuilder(client: NamespacedKubernetesClient, config: KubernetesClie
     environment: Map[String, String],
     labels: Map[String, String],
     config: KubernetesClientConfig)(implicit transid: TransactionId): (Pod, Option[PodDisruptionBudget]) = {
-    val envVars = environment.map {
-      case (key, value) => new EnvVarBuilder().withName(key).withValue(value).build()
+    val envVars = environment.map { case (key, value) =>
+      new EnvVarBuilder().withName(key).withValue(value).build()
     }.toSeq ++ config.fieldRefEnvironment
-      .map(_.map({
-        case (key, value) =>
-          new EnvVarBuilder()
-            .withName(key)
-            .withValueFrom(new EnvVarSourceBuilder().withNewFieldRef().withFieldPath(value).endFieldRef().build())
-            .build()
+      .map(_.map({ case (key, value) =>
+        new EnvVarBuilder()
+          .withName(key)
+          .withValueFrom(new EnvVarSourceBuilder().withNewFieldRef().withFieldPath(value).endFieldRef().build())
+          .build()
       }).toSeq)
       .getOrElse(Seq.empty)
 
@@ -108,13 +107,12 @@ class WhiskPodBuilder(client: NamespacedKubernetesClient, config: KubernetesClie
       .getOrElse(Map.empty)
 
     val diskLimit = config.ephemeralStorage
-      .map(
-        diskConfig =>
-          // Scale the ephemeral storage unless it exceeds the limit, if it exceeds the limit use the limit.
-          if ((diskConfig.scaleFactor > 0) && (diskConfig.scaleFactor * memory.toMB < diskConfig.limit.toMB)) {
-            Map("ephemeral-storage" -> new Quantity(diskConfig.scaleFactor * memory.toMB + "Mi"))
-          } else {
-            Map("ephemeral-storage" -> new Quantity(diskConfig.limit.toMB + "Mi"))
+      .map(diskConfig =>
+        // Scale the ephemeral storage unless it exceeds the limit, if it exceeds the limit use the limit.
+        if ((diskConfig.scaleFactor > 0) && (diskConfig.scaleFactor * memory.toMB < diskConfig.limit.toMB)) {
+          Map("ephemeral-storage" -> new Quantity(diskConfig.scaleFactor * memory.toMB + "Mi"))
+        } else {
+          Map("ephemeral-storage" -> new Quantity(diskConfig.limit.toMB + "Mi"))
         })
       .getOrElse(Map.empty)
 

@@ -278,16 +278,15 @@ class EntitlementProviderTests extends ControllerTestCommon with ScalaFutures {
       (ACTIVATE, guestUser, Right(false)),
       (REJECT, guestUser, Right(false)))
 
-    paths foreach {
-      case (priv, who, expected) =>
-        val check = new PackageCollection(entityStore).implicitRights(
-          who,
-          Set(who.namespace.name.asString),
-          priv,
-          // any user can list any namespace packages
-          // (because this performs a db view lookup which is later filtered)
-          Resource(someUser.namespace.name.toPath, PACKAGES, None))
-        Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
+    paths foreach { case (priv, who, expected) =>
+      val check = new PackageCollection(entityStore).implicitRights(
+        who,
+        Set(who.namespace.name.asString),
+        priv,
+        // any user can list any namespace packages
+        // (because this performs a db view lookup which is later filtered)
+        Resource(someUser.namespace.name.toPath, PACKAGES, None))
+      Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
     }
   }
 
@@ -307,14 +306,13 @@ class EntitlementProviderTests extends ControllerTestCommon with ScalaFutures {
       (ACTIVATE, guestUser, Right(false)),
       (REJECT, guestUser, Right(false)))
 
-    paths foreach {
-      case (priv, who, expected) =>
-        val check = new PackageCollection(entityStore).implicitRights(
-          who,
-          Set(who.namespace.name.asString),
-          priv,
-          Resource(someUser.namespace.name.toPath, PACKAGES, Some("xyz")))
-        Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
+    paths foreach { case (priv, who, expected) =>
+      val check = new PackageCollection(entityStore).implicitRights(
+        who,
+        Set(who.namespace.name.asString),
+        priv,
+        Resource(someUser.namespace.name.toPath, PACKAGES, Some("xyz")))
+      Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
     }
   }
 
@@ -337,14 +335,13 @@ class EntitlementProviderTests extends ControllerTestCommon with ScalaFutures {
     // this forces a doc mismatch error
     val action = WhiskAction(someUser.namespace.name.toPath, MakeName.next(), jsDefault(""))
     put(entityStore, action)
-    paths foreach {
-      case (priv, who, expected) =>
-        val check = new PackageCollection(entityStore).implicitRights(
-          who,
-          Set(who.namespace.name.asString),
-          priv,
-          Resource(someUser.namespace.name.toPath, PACKAGES, Some(action.name.asString)))
-        Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
+    paths foreach { case (priv, who, expected) =>
+      val check = new PackageCollection(entityStore).implicitRights(
+        who,
+        Set(who.namespace.name.asString),
+        priv,
+        Resource(someUser.namespace.name.toPath, PACKAGES, Some(action.name.asString)))
+      Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
     }
   }
 
@@ -367,14 +364,13 @@ class EntitlementProviderTests extends ControllerTestCommon with ScalaFutures {
       (ACTIVATE, guestUser, Right(false)),
       (REJECT, guestUser, Right(false)))
 
-    paths foreach {
-      case (priv, who, expected) =>
-        val check = new PackageCollection(entityStore).implicitRights(
-          who,
-          Set(who.namespace.name.asString),
-          priv,
-          Resource(someUser.namespace.name.toPath, PACKAGES, Some(provider.name.asString)))
-        Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
+    paths foreach { case (priv, who, expected) =>
+      val check = new PackageCollection(entityStore).implicitRights(
+        who,
+        Set(who.namespace.name.asString),
+        priv,
+        Resource(someUser.namespace.name.toPath, PACKAGES, Some(provider.name.asString)))
+      Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
     }
   }
 
@@ -400,26 +396,24 @@ class EntitlementProviderTests extends ControllerTestCommon with ScalaFutures {
       (ACTIVATE, guestUser, Right(false)),
       (REJECT, guestUser, Right(false)))
 
-    paths foreach {
-      case (priv, who, expected) =>
-        val check = new PackageCollection(entityStore).implicitRights(
-          who,
-          Set(who.namespace.name.asString),
-          priv,
-          Resource(guestUser.namespace.name.toPath, PACKAGES, Some(binding.name.asString)))
-        Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
+    paths foreach { case (priv, who, expected) =>
+      val check = new PackageCollection(entityStore).implicitRights(
+        who,
+        Set(who.namespace.name.asString),
+        priv,
+        Resource(guestUser.namespace.name.toPath, PACKAGES, Some(binding.name.asString)))
+      Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
     }
 
     // simulate package deletion for which binding was once entitled
     deletePackage(provider.docid)
-    paths foreach {
-      case (priv, who, expected) =>
-        val check = new PackageCollection(entityStore).implicitRights(
-          who,
-          Set(who.namespace.name.asString),
-          priv,
-          Resource(guestUser.namespace.name.toPath, PACKAGES, Some(binding.name.asString)))
-        Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
+    paths foreach { case (priv, who, expected) =>
+      val check = new PackageCollection(entityStore).implicitRights(
+        who,
+        Set(who.namespace.name.asString),
+        priv,
+        Resource(guestUser.namespace.name.toPath, PACKAGES, Some(binding.name.asString)))
+      Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
     }
   }
 
@@ -445,14 +439,13 @@ class EntitlementProviderTests extends ControllerTestCommon with ScalaFutures {
       (ACTIVATE, guestUser, Right(false)),
       (REJECT, guestUser, Right(false)))
 
-    paths foreach {
-      case (priv, who, expected) =>
-        val check = new PackageCollection(entityStore).implicitRights(
-          who,
-          Set(who.namespace.name.asString),
-          priv,
-          Resource(guestUser.namespace.name.toPath, PACKAGES, Some(binding.name.asString)))
-        Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
+    paths foreach { case (priv, who, expected) =>
+      val check = new PackageCollection(entityStore).implicitRights(
+        who,
+        Set(who.namespace.name.asString),
+        priv,
+        Resource(guestUser.namespace.name.toPath, PACKAGES, Some(binding.name.asString)))
+      Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
     }
   }
 
@@ -477,14 +470,13 @@ class EntitlementProviderTests extends ControllerTestCommon with ScalaFutures {
       (ACTIVATE, guestUser, Right(false)),
       (REJECT, guestUser, Right(false)))
 
-    paths foreach {
-      case (priv, who, expected) =>
-        val check = new PackageCollection(entityStore).implicitRights(
-          who,
-          Set(who.namespace.name.asString),
-          priv,
-          Resource(guestUser.namespace.name.toPath, PACKAGES, Some(binding.name.asString)))
-        Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
+    paths foreach { case (priv, who, expected) =>
+      val check = new PackageCollection(entityStore).implicitRights(
+        who,
+        Set(who.namespace.name.asString),
+        priv,
+        Resource(guestUser.namespace.name.toPath, PACKAGES, Some(binding.name.asString)))
+      Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
     }
   }
 
@@ -506,16 +498,15 @@ class EntitlementProviderTests extends ControllerTestCommon with ScalaFutures {
       (ACTIVATE, guestUser, Right(false)),
       (REJECT, guestUser, Right(false)))
 
-    paths foreach {
-      case (priv, who, expected) =>
-        val check = new ActionCollection(entityStore).implicitRights(
-          who,
-          Set(who.namespace.name.asString),
-          priv,
-          // any user can list any namespace packages
-          // (because this performs a db view lookup which is later filtered)
-          Resource(someUser.namespace.name.toPath, ACTIONS, None))
-        Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
+    paths foreach { case (priv, who, expected) =>
+      val check = new ActionCollection(entityStore).implicitRights(
+        who,
+        Set(who.namespace.name.asString),
+        priv,
+        // any user can list any namespace packages
+        // (because this performs a db view lookup which is later filtered)
+        Resource(someUser.namespace.name.toPath, ACTIONS, None))
+      Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
     }
   }
 
@@ -540,14 +531,13 @@ class EntitlementProviderTests extends ControllerTestCommon with ScalaFutures {
     put(entityStore, provider)
     put(entityStore, action)
 
-    paths foreach {
-      case (priv, who, expected) =>
-        val check = new ActionCollection(entityStore).implicitRights(
-          who,
-          Set(who.namespace.name.asString),
-          priv,
-          Resource(action.namespace, ACTIONS, Some(action.name.asString)))
-        Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
+    paths foreach { case (priv, who, expected) =>
+      val check = new ActionCollection(entityStore).implicitRights(
+        who,
+        Set(who.namespace.name.asString),
+        priv,
+        Resource(action.namespace, ACTIONS, Some(action.name.asString)))
+      Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
     }
   }
 
@@ -574,14 +564,13 @@ class EntitlementProviderTests extends ControllerTestCommon with ScalaFutures {
       (ACTIVATE, guestUser, Left(RejectRequest(Forbidden, Messages.notAuthorizedtoAccessResource(resourceName)))),
       (REJECT, guestUser, Right(false)))
 
-    paths foreach {
-      case (priv, who, expected) =>
-        val check = new ActionCollection(entityStore).implicitRights(
-          who,
-          Set(who.namespace.name.asString),
-          priv,
-          Resource(action.namespace, ACTIONS, Some(action.name.asString)))
-        Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
+    paths foreach { case (priv, who, expected) =>
+      val check = new ActionCollection(entityStore).implicitRights(
+        who,
+        Set(who.namespace.name.asString),
+        priv,
+        Resource(action.namespace, ACTIONS, Some(action.name.asString)))
+      Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
     }
   }
 
@@ -610,14 +599,13 @@ class EntitlementProviderTests extends ControllerTestCommon with ScalaFutures {
       (ACTIVATE, guestUser, Right(true)),
       (REJECT, guestUser, Right(false)))
 
-    paths foreach {
-      case (priv, who, expected) =>
-        val check = new ActionCollection(entityStore).implicitRights(
-          who,
-          Set(who.namespace.name.asString),
-          priv,
-          Resource(action.namespace, ACTIONS, Some(action.name.asString)))
-        Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
+    paths foreach { case (priv, who, expected) =>
+      val check = new ActionCollection(entityStore).implicitRights(
+        who,
+        Set(who.namespace.name.asString),
+        priv,
+        Resource(action.namespace, ACTIONS, Some(action.name.asString)))
+      Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
     }
   }
 
@@ -646,14 +634,13 @@ class EntitlementProviderTests extends ControllerTestCommon with ScalaFutures {
       (ACTIVATE, guestUser, Left(RejectRequest(Forbidden, Messages.notAuthorizedtoAccessResource(resourceName)))),
       (REJECT, guestUser, Right(false)))
 
-    paths foreach {
-      case (priv, who, expected) =>
-        val check = new ActionCollection(entityStore).implicitRights(
-          who,
-          Set(who.namespace.name.asString),
-          priv,
-          Resource(action.namespace, ACTIONS, Some(action.name.asString)))
-        Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
+    paths foreach { case (priv, who, expected) =>
+      val check = new ActionCollection(entityStore).implicitRights(
+        who,
+        Set(who.namespace.name.asString),
+        priv,
+        Resource(action.namespace, ACTIONS, Some(action.name.asString)))
+      Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
     }
   }
 
@@ -676,14 +663,13 @@ class EntitlementProviderTests extends ControllerTestCommon with ScalaFutures {
     val action = WhiskAction(someUser.namespace.name.toPath, MakeName.next(), jsDefault(""))
     put(entityStore, action)
 
-    paths foreach {
-      case (priv, who, expected) =>
-        val check = new ActionCollection(entityStore).implicitRights(
-          who,
-          Set(who.namespace.name.asString),
-          priv,
-          Resource(action.namespace, ACTIONS, Some(action.name.asString)))
-        Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
+    paths foreach { case (priv, who, expected) =>
+      val check = new ActionCollection(entityStore).implicitRights(
+        who,
+        Set(who.namespace.name.asString),
+        priv,
+        Resource(action.namespace, ACTIONS, Some(action.name.asString)))
+      Await.ready(check, requestTimeout).eitherValue.get shouldBe expected
     }
   }
 

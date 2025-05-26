@@ -32,12 +32,13 @@ import org.apache.openwhisk.http.PoolingRestClient._
 /**
  * Implementation of additional endpoints that should only be used in testing.
  */
-class ExtendedCouchDbRestClient(protocol: String,
-                                host: String,
-                                port: Int,
-                                username: String,
-                                password: String,
-                                db: String)(implicit system: ActorSystem, logging: Logging)
+class ExtendedCouchDbRestClient(
+  protocol: String,
+  host: String,
+  port: Int,
+  username: String,
+  password: String,
+  db: String)(implicit system: ActorSystem, logging: Logging)
     extends CouchDbRestClient(protocol, host, port, username, password, db) {
 
   // http://docs.couchdb.org/en/1.6.1/api/server/common.html#get--
@@ -59,10 +60,11 @@ class ExtendedCouchDbRestClient(protocol: String,
     requestJson[JsObject](mkRequest(HttpMethods.DELETE, uri(db), headers = baseHeaders))
 
   // http://docs.couchdb.org/en/1.6.1/api/database/bulk-api.html#get--db-_all_docs
-  def getAllDocs(skip: Option[Int] = None,
-                 limit: Option[Int] = None,
-                 includeDocs: Option[Boolean] = None,
-                 keys: Option[List[String]] = None): Future[Either[StatusCode, JsObject]] = {
+  def getAllDocs(
+    skip: Option[Int] = None,
+    limit: Option[Int] = None,
+    includeDocs: Option[Boolean] = None,
+    keys: Option[List[String]] = None): Future[Either[StatusCode, JsObject]] = {
     val args = Seq[(String, Option[String])](
       "skip" -> skip.filter(_ > 0).map(_.toString),
       "limit" -> limit.filter(_ > 0).map(_.toString),
@@ -71,8 +73,8 @@ class ExtendedCouchDbRestClient(protocol: String,
 
     // Throw out all undefined arguments.
     val argMap: Map[String, String] = args
-      .collect({
-        case (l, Some(r)) => (l, r)
+      .collect({ case (l, Some(r)) =>
+        (l, r)
       })
       .toMap
 

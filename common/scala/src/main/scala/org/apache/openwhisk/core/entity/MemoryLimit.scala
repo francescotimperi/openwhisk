@@ -45,7 +45,7 @@ protected[entity] class MemoryLimit private (val megabytes: Int) extends AnyVal 
 
   def toByteSize: ByteSize = ByteSize(megabytes, SizeUnits.MB)
 
-  /** It checks the namespace memory limit setting value  */
+  /** It checks the namespace memory limit setting value */
   @throws[ActionMemoryLimitException]
   protected[core] def checkNamespaceLimit(user: Identity): Unit = {
     val memoryMax = user.limits.allowedMaxActionMemory
@@ -65,13 +65,14 @@ protected[entity] class MemoryLimit private (val megabytes: Int) extends AnyVal 
 
 protected[core] object MemoryLimit extends ArgNormalizer[MemoryLimit] {
   val config = loadConfigOrThrow[MemoryLimitConfig](ConfigKeys.memory)
-  val namespaceDefaultConfig = try {
-    loadConfigOrThrow[NamespaceMemoryLimitConfig](ConfigKeys.namespaceMemoryLimit)
-  } catch {
-    case _: Throwable =>
-      // Supports backwards compatibility for openwhisk that do not use the namespace default limit
-      NamespaceMemoryLimitConfig(config.min, config.max)
-  }
+  val namespaceDefaultConfig =
+    try {
+      loadConfigOrThrow[NamespaceMemoryLimitConfig](ConfigKeys.namespaceMemoryLimit)
+    } catch {
+      case _: Throwable =>
+        // Supports backwards compatibility for openwhisk that do not use the namespace default limit
+        NamespaceMemoryLimitConfig(config.min, config.max)
+    }
   val memoryLimitFieldName = "memory"
 
   /**

@@ -60,7 +60,6 @@ import scala.util.{Failure, Success}
  * 4. only if the db operation completes with success, atomically set the state to Cached.
  *
  * 5. lastly, for cache invalidations that race with, we mark the entry as
- *
  */
 private object MultipleReadersSingleWriterCache {
 
@@ -109,9 +108,10 @@ trait MultipleReadersSingleWriterCache[W, Winfo] {
    *
    * We need the transid in order to detect whether we have won the race to add an entry to the cache.
    */
-  private class Entry(@volatile private var transid: TransactionId,
-                      val state: AtomicReference[State],
-                      @volatile private var value: Option[Future[W]]) {
+  private class Entry(
+    @volatile private var transid: TransactionId,
+    val state: AtomicReference[State],
+    @volatile private var value: Option[Future[W]]) {
 
     def invalidate(): Unit = {
       state.set(InvalidateInProgress)
@@ -153,8 +153,8 @@ trait MultipleReadersSingleWriterCache[W, Winfo] {
    * This method posts a delete to the backing store, and either directly invalidates the cache entry
    * or informs any outstanding transaction that it must invalidate the cache on completion.
    */
-  protected def cacheInvalidate[R](key: CacheKey, invalidator: => Future[R])(
-    implicit ec: ExecutionContext,
+  protected def cacheInvalidate[R](key: CacheKey, invalidator: => Future[R])(implicit
+    ec: ExecutionContext,
     transid: TransactionId,
     logger: Logging,
     notifier: Option[CacheChangeNotification]): Future[R] = {
@@ -204,8 +204,8 @@ trait MultipleReadersSingleWriterCache[W, Winfo] {
             // a pre-existing owner will take care of the invalidation
             invalidator
         }
-      } andThen {
-        case _ => notifier.foreach(_(key))
+      } andThen { case _ =>
+        notifier.foreach(_(key))
       }
     } else invalidator // not caching
   }
@@ -214,7 +214,8 @@ trait MultipleReadersSingleWriterCache[W, Winfo] {
    * This method may initiate a read from the backing store, and potentially stores the result in the cache.
    */
   protected def cacheLookup[Wsuper >: W](key: CacheKey, generator: => Future[W], fromCache: Boolean = cacheEnabled)(
-    implicit ec: ExecutionContext,
+    implicit
+    ec: ExecutionContext,
     transid: TransactionId,
     logger: Logging): Future[W] = {
     if (fromCache) {
@@ -255,8 +256,8 @@ trait MultipleReadersSingleWriterCache[W, Winfo] {
     } else generator // not caching
   }
 
-  protected def cacheUpdate(doc: W, key: CacheKey, generator: => Future[Winfo])(
-    implicit ec: ExecutionContext,
+  protected def cacheUpdate(doc: W, key: CacheKey, generator: => Future[Winfo])(implicit
+    ec: ExecutionContext,
     transid: TransactionId,
     logger: Logging,
     notifier: Option[CacheChangeNotification]): Future[Winfo] = {
@@ -266,8 +267,8 @@ trait MultipleReadersSingleWriterCache[W, Winfo] {
   /**
    * This method posts an update to the backing store, and potentially stores the result in the cache.
    */
-  protected def cacheUpdate(f: Future[W], key: CacheKey, generator: => Future[Winfo])(
-    implicit ec: ExecutionContext,
+  protected def cacheUpdate(f: Future[W], key: CacheKey, generator: => Future[Winfo])(implicit
+    ec: ExecutionContext,
     transid: TransactionId,
     logger: Logging,
     notifier: Option[CacheChangeNotification]): Future[Winfo] = {
@@ -298,8 +299,8 @@ trait MultipleReadersSingleWriterCache[W, Winfo] {
             invalidateEntryAfter(generator, key, actualEntry)
           }
         }
-      } andThen {
-        case _ => notifier.foreach(_(key))
+      } andThen { case _ =>
+        notifier.foreach(_(key))
       }
     } else generator // not caching
   }
@@ -314,7 +315,6 @@ trait MultipleReadersSingleWriterCache[W, Winfo] {
 
   /**
    * Log a cache hit
-   *
    */
   private def makeNoteOfCacheHit(key: CacheKey)(implicit transid: TransactionId, logger: Logging) = {
     transid.started(this, LoggingMarkers.DATABASE_CACHE_HIT, s"[GET] serving from cache: $key")(logger)
@@ -322,7 +322,6 @@ trait MultipleReadersSingleWriterCache[W, Winfo] {
 
   /**
    * Log a cache miss
-   *
    */
   private def makeNoteOfCacheMiss(key: CacheKey)(implicit transid: TransactionId, logger: Logging) = {
     transid.started(this, LoggingMarkers.DATABASE_CACHE_MISS, s"[GET] serving from datastore: $key")(logger)
@@ -333,8 +332,8 @@ trait MultipleReadersSingleWriterCache[W, Winfo] {
    * 1. either cache the result if there is no intervening delete or update, or
    * 2. invalidate the cache because there was an intervening delete or update.
    */
-  private def listenForReadDone(key: CacheKey, entry: Entry, generator: => Future[W], promise: Promise[W])(
-    implicit ec: ExecutionContext,
+  private def listenForReadDone(key: CacheKey, entry: Entry, generator: => Future[W], promise: Promise[W])(implicit
+    ec: ExecutionContext,
     transid: TransactionId,
     logger: Logging): Unit = {
 
@@ -389,8 +388,8 @@ trait MultipleReadersSingleWriterCache[W, Winfo] {
    * 1. either cache the result if there is no intervening delete or update, or
    * 2. invalidate the cache cache because there was an intervening delete or update
    */
-  private def listenForWriteDone(key: CacheKey, entry: Entry, generator: => Future[Winfo])(
-    implicit ec: ExecutionContext,
+  private def listenForWriteDone(key: CacheKey, entry: Entry, generator: => Future[Winfo])(implicit
+    ec: ExecutionContext,
     transid: TransactionId,
     logger: Logging): Future[Winfo] = {
 
@@ -434,14 +433,14 @@ trait MultipleReadersSingleWriterCache[W, Winfo] {
   }
 
   /** Invalidates the given entry after a given invalidator completes. */
-  private def invalidateEntryAfter[R](invalidator: => Future[R], key: CacheKey, entry: Entry)(
-    implicit ec: ExecutionContext,
+  private def invalidateEntryAfter[R](invalidator: => Future[R], key: CacheKey, entry: Entry)(implicit
+    ec: ExecutionContext,
     transid: TransactionId,
     logger: Logging): Future[R] = {
 
     entry.grabInvalidationLock()
-    invalidator andThen {
-      case _ => invalidateEntry(key, entry)
+    invalidator andThen { case _ =>
+      invalidateEntry(key, entry)
     }
   }
 

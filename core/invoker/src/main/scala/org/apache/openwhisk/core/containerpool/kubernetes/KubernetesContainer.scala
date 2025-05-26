@@ -54,15 +54,17 @@ object KubernetesContainer {
    * @param name optional name for the container
    * @return a Future which either completes with a KubernetesContainer or a failure to create a container
    */
-  def create(transid: TransactionId,
-             name: String,
-             image: String,
-             userProvidedImage: Boolean = false,
-             memory: ByteSize = 256.MB,
-             environment: Map[String, String] = Map.empty,
-             labels: Map[String, String] = Map.empty)(implicit kubernetes: KubernetesApi,
-                                                      ec: ExecutionContext,
-                                                      log: Logging): Future[KubernetesContainer] = {
+  def create(
+    transid: TransactionId,
+    name: String,
+    image: String,
+    userProvidedImage: Boolean = false,
+    memory: ByteSize = 256.MB,
+    environment: Map[String, String] = Map.empty,
+    labels: Map[String, String] = Map.empty)(implicit
+    kubernetes: KubernetesApi,
+    ec: ExecutionContext,
+    log: Logging): Future[KubernetesContainer] = {
     implicit val tid = transid
 
     // Kubernetes naming rule allows maximum length of 63 character and ended with character only.
@@ -83,17 +85,16 @@ object KubernetesContainer {
       }
     } yield container
   }
-  private def cleanupFailedPod(e: Throwable, podName: String, failureCause: Exception)(
-    implicit kubernetes: KubernetesApi,
+  private def cleanupFailedPod(e: Throwable, podName: String, failureCause: Exception)(implicit
+    kubernetes: KubernetesApi,
     ec: ExecutionContext,
     tid: TransactionId,
     log: Logging) = {
     log.info(this, s"Deleting failed pod '$podName' after: ${e.getClass} - ${e.getMessage}")
     kubernetes
       .rm(podName)
-      .andThen {
-        case Failure(e) =>
-          log.error(this, s"Failed delete pod for '$podName': ${e.getClass} - ${e.getMessage}")
+      .andThen { case Failure(e) =>
+        log.error(this, s"Failed delete pod for '$podName': ${e.getClass} - ${e.getMessage}")
       }
       .transformWith { _ =>
         Future.failed(failureCause)
@@ -113,14 +114,16 @@ object KubernetesContainer {
  * @param workerIP the ip of the workernode on which the container is executing
  * @param nativeContainerId the docker/containerd lowlevel id for the container
  */
-class KubernetesContainer(protected[core] val id: ContainerId,
-                          protected[core] val addr: ContainerAddress,
-                          protected[core] val workerIP: String,
-                          protected[core] val nativeContainerId: String,
-                          portForward: Option[PortForward] = None)(implicit kubernetes: KubernetesApi,
-                                                                   override protected val as: ActorSystem,
-                                                                   protected val ec: ExecutionContext,
-                                                                   protected val logging: Logging)
+class KubernetesContainer(
+  protected[core] val id: ContainerId,
+  protected[core] val addr: ContainerAddress,
+  protected[core] val workerIP: String,
+  protected[core] val nativeContainerId: String,
+  portForward: Option[PortForward] = None)(implicit
+  kubernetes: KubernetesApi,
+  override protected val as: ActorSystem,
+  protected val ec: ExecutionContext,
+  protected val logging: Logging)
     extends Container {
 
   /** The last read timestamp in the log file */
@@ -141,10 +144,11 @@ class KubernetesContainer(protected[core] val id: ContainerId,
     kubernetes.rm(this)
   }
 
-  override def initialize(initializer: JsObject,
-                          timeout: FiniteDuration,
-                          maxConcurrent: Int,
-                          entity: Option[WhiskAction] = None)(implicit transid: TransactionId): Future[Interval] = {
+  override def initialize(
+    initializer: JsObject,
+    timeout: FiniteDuration,
+    maxConcurrent: Int,
+    entity: Option[WhiskAction] = None)(implicit transid: TransactionId): Future[Interval] = {
     entity match {
       case Some(e) => {
         kubernetes

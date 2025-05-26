@@ -74,12 +74,13 @@ abstract class ApiGwEndToEndTests
     println(s"apiurl: '$apiurl'")
   }
 
-  def verifyAPIList(rr: RunResult,
-                    actionName: String,
-                    testurlop: String,
-                    testapiname: String,
-                    testbasepath: String,
-                    testrelpath: String): Unit = {
+  def verifyAPIList(
+    rr: RunResult,
+    actionName: String,
+    testurlop: String,
+    testapiname: String,
+    testbasepath: String,
+    testrelpath: String): Unit = {
     rr.stdout should include("ok: APIs")
     rr.stdout should include regex (s"$actionName\\s+$testurlop\\s+$testapiname\\s+")
     rr.stdout should include(testbasepath + testrelpath)
@@ -175,12 +176,15 @@ abstract class ApiGwEndToEndTests
       val start = java.lang.System.currentTimeMillis
       val apiToInvoke = s"$swaggerapiurl?$urlqueryparam=$urlqueryvalue&guid=$start"
       println(s"Invoking: '${apiToInvoke}'")
-      val response = org.apache.openwhisk.utils.retry({
-        val response = RestAssured.given().config(sslconfig).get(s"$apiToInvoke")
-        println("URL invocation response status: " + response.statusCode)
-        response.statusCode should be(200)
-        response
-      }, 6, Some(2.second))
+      val response = org.apache.openwhisk.utils.retry(
+        {
+          val response = RestAssured.given().config(sslconfig).get(s"$apiToInvoke")
+          println("URL invocation response status: " + response.statusCode)
+          response.statusCode should be(200)
+          response
+        },
+        6,
+        Some(2.second))
       val end = java.lang.System.currentTimeMillis
       val elapsed = end - start
       println("Elapsed time (milliseconds) for a successful response: " + elapsed)

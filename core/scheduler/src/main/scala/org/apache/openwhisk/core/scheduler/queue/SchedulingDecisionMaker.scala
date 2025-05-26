@@ -33,17 +33,16 @@ class SchedulingDecisionMaker(
 
   private val staleThreshold: Double = schedulingConfig.staleThreshold.toMillis.toDouble
 
-  override def receive: Receive = {
-    case msg: QueueSnapshot =>
-      decide(msg)
-        .andThen {
-          case Success(DecisionResults(Skip, _)) =>
-          // do nothing
-          case Success(result: DecisionResults) =>
-            msg.recipient ! result
-          case Failure(e) =>
-            logging.error(this, s"failed to make a scheduling decision due to $e");
-        }
+  override def receive: Receive = { case msg: QueueSnapshot =>
+    decide(msg)
+      .andThen {
+        case Success(DecisionResults(Skip, _)) =>
+        // do nothing
+        case Success(result: DecisionResults) =>
+          msg.recipient ! result
+        case Failure(e) =>
+          logging.error(this, s"failed to make a scheduling decision due to $e");
+      }
   }
 
   private[queue] def decide(snapshot: QueueSnapshot) = {
@@ -66,7 +65,8 @@ class SchedulingDecisionMaker(
     val availableMsg = currentMsg + incoming.get()
     val actionCapacity = actionLimit - totalContainers
     val namespaceCapacity = namespaceLimit - existingContainerCountInNs - inProgressContainerCountInNs
-    val overProvisionCapacity = ceiling(namespaceLimit * schedulingConfig.namespaceOverProvisionBeforeThrottleRatio) - existingContainerCountInNs - inProgressContainerCountInNs
+    val overProvisionCapacity = ceiling(
+      namespaceLimit * schedulingConfig.namespaceOverProvisionBeforeThrottleRatio) - existingContainerCountInNs - inProgressContainerCountInNs
 
     if (Math.min(namespaceLimit, actionLimit) <= 0) {
       // this is an error case, the limit should be bigger than 0
@@ -258,16 +258,17 @@ class SchedulingDecisionMaker(
     }
   }
 
-  private def addServersIfPossible(existing: Int,
-                                   inProgress: Int,
-                                   containerThroughput: Double,
-                                   availableMsg: Int,
-                                   capacity: Int,
-                                   namespaceCapacity: Int,
-                                   actualNum: Int,
-                                   staleActivationNum: Int,
-                                   duration: Double = 0.0,
-                                   state: MemoryQueueState) = {
+  private def addServersIfPossible(
+    existing: Int,
+    inProgress: Int,
+    containerThroughput: Double,
+    availableMsg: Int,
+    capacity: Int,
+    namespaceCapacity: Int,
+    actualNum: Int,
+    staleActivationNum: Int,
+    duration: Double = 0.0,
+    state: MemoryQueueState) = {
     if (actualNum > capacity) {
       if (capacity >= namespaceCapacity) {
         // containers can be partially created. throttling should be enabled
@@ -299,8 +300,8 @@ class SchedulingDecisionMaker(
 }
 
 object SchedulingDecisionMaker {
-  def props(invocationNamespace: String, action: FullyQualifiedEntityName, schedulingConfig: SchedulingConfig)(
-    implicit actorSystem: ActorSystem,
+  def props(invocationNamespace: String, action: FullyQualifiedEntityName, schedulingConfig: SchedulingConfig)(implicit
+    actorSystem: ActorSystem,
     ec: ExecutionContext,
     logging: Logging): Props = {
     Props(new SchedulingDecisionMaker(invocationNamespace, action, schedulingConfig))

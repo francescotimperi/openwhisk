@@ -94,7 +94,8 @@ class ConductorsApiTests extends ControllerTestCommon with WhiskActionsApi {
     }
 
     // an error result
-    Post(s"$collectionPath/${echo}?blocking=true", JsObject("error" -> testString.toJson)) ~> Route.seal(routes(creds)) ~> check {
+    Post(s"$collectionPath/${echo}?blocking=true", JsObject("error" -> testString.toJson)) ~> Route.seal(
+      routes(creds)) ~> check {
       status should not be (OK)
       val response = responseAs[JsObject]
       response.fields("response").asJsObject.fields("status") shouldBe "application error".toJson
@@ -103,7 +104,9 @@ class ConductorsApiTests extends ControllerTestCommon with WhiskActionsApi {
     }
 
     // a wrapped result { params: result } is unwrapped by the controller
-    Post(s"$collectionPath/${echo}?blocking=true", JsObject("params" -> JsObject("payload" -> testString.toJson))) ~> Route
+    Post(
+      s"$collectionPath/${echo}?blocking=true",
+      JsObject("params" -> JsObject("payload" -> testString.toJson))) ~> Route
       .seal(routes(creds)) ~> check {
       status should be(OK)
       val response = responseAs[JsObject]
@@ -112,7 +115,9 @@ class ConductorsApiTests extends ControllerTestCommon with WhiskActionsApi {
     }
 
     // an invalid action name
-    Post(s"$collectionPath/${echo}?blocking=true", JsObject("payload" -> testString.toJson, "action" -> invalid.toJson)) ~> Route
+    Post(
+      s"$collectionPath/${echo}?blocking=true",
+      JsObject("payload" -> testString.toJson, "action" -> invalid.toJson)) ~> Route
       .seal(routes(creds)) ~> check {
       status should not be (OK)
       val response = responseAs[JsObject]
@@ -123,7 +128,9 @@ class ConductorsApiTests extends ControllerTestCommon with WhiskActionsApi {
     }
 
     // an undefined action
-    Post(s"$collectionPath/${echo}?blocking=true", JsObject("payload" -> testString.toJson, "action" -> missing.toJson)) ~> Route
+    Post(
+      s"$collectionPath/${echo}?blocking=true",
+      JsObject("payload" -> testString.toJson, "action" -> missing.toJson)) ~> Route
       .seal(routes(creds)) ~> check {
       status should not be (OK)
       val response = responseAs[JsObject]
@@ -153,7 +160,8 @@ class ConductorsApiTests extends ControllerTestCommon with WhiskActionsApi {
     }
 
     // dynamically invoke step action with an error result
-    Post(s"$collectionPath/${conductor}?blocking=true", JsObject("action" -> step.toJson)) ~> Route.seal(routes(creds)) ~> check {
+    Post(s"$collectionPath/${conductor}?blocking=true", JsObject("action" -> step.toJson)) ~> Route.seal(
+      routes(creds)) ~> check {
       status should not be (OK)
       val response = responseAs[JsObject]
       response.fields("response").asJsObject.fields("status") shouldBe "application error".toJson
@@ -264,7 +272,8 @@ class ConductorsApiTests extends ControllerTestCommon with WhiskActionsApi {
     // add one extra step
     Post(
       s"$collectionPath/${conductor}?blocking=true",
-      JsObject("action" -> step.toJson, "state" -> JsObject(params), "n" -> 0.toJson)) ~> Route.seal(routes(creds)) ~> check {
+      JsObject("action" -> step.toJson, "state" -> JsObject(params), "n" -> 0.toJson)) ~> Route.seal(
+      routes(creds)) ~> check {
       status should not be (OK)
       val response = responseAs[JsObject]
       response.fields("response").asJsObject.fields("status") shouldBe "application error".toJson
@@ -343,8 +352,8 @@ class ConductorsApiTests extends ControllerTestCommon with WhiskActionsApi {
         response = response)
     }
 
-    override def publish(action: ExecutableWhiskActionMetaData, msg: ActivationMessage)(
-      implicit transid: TransactionId): Future[Future[Either[ActivationId, WhiskActivation]]] =
+    override def publish(action: ExecutableWhiskActionMetaData, msg: ActivationMessage)(implicit
+      transid: TransactionId): Future[Future[Either[ActivationId, WhiskActivation]]] =
       msg.content map { args =>
         Future.successful {
           action.name match {

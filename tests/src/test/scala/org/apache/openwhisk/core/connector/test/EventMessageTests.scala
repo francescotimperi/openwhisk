@@ -75,8 +75,10 @@ class EventMessageTests extends FlatSpec with Matchers {
 
   it should "fail transformation if needed annotations are missing" in {
     Activation.from(fullActivation.copy(annotations = Parameters())) shouldBe 'failure
-    Activation.from(fullActivation.copy(annotations = fullActivation.annotations - WhiskActivation.kindAnnotation)) shouldBe 'failure
-    Activation.from(fullActivation.copy(annotations = fullActivation.annotations - WhiskActivation.pathAnnotation)) shouldBe 'failure
+    Activation.from(
+      fullActivation.copy(annotations = fullActivation.annotations - WhiskActivation.kindAnnotation)) shouldBe 'failure
+    Activation.from(
+      fullActivation.copy(annotations = fullActivation.annotations - WhiskActivation.pathAnnotation)) shouldBe 'failure
   }
 
   it should "provide sensible defaults for optional annotations" in {

@@ -46,7 +46,8 @@ class WskMultiRuntimeTests extends TestHelpers with WskTestHelpers with JsHelper
         wsk.action.create(
           name,
           Some(TestUtils.getTestActionFilename("hello.js")),
-          parameters = Map("name" -> testString.toJson)) //unused in the first function
+          parameters = Map("name" -> testString.toJson)
+        ) //unused in the first function
       }
 
       wsk.action.create(name, Some(TestUtils.getTestActionFilename("hello.py")), update = true)

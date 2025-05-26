@@ -123,11 +123,14 @@ trait StandaloneServerFixture extends TestSuite with BeforeAndAfterAll with Stre
   def waitForServerToStart(): Stopwatch = {
     val w = Stopwatch.createStarted()
     try {
-      retry({
-        println(s"Waiting for OpenWhisk server to start since $w")
-        val response = RestAssured.get(new URI(serverUrl))
-        require(response.statusCode() == 200)
-      }, 60, Some(1.second))
+      retry(
+        {
+          println(s"Waiting for OpenWhisk server to start since $w")
+          val response = RestAssured.get(new URI(serverUrl))
+          require(response.statusCode() == 200)
+        },
+        60,
+        Some(1.second))
     } catch {
       case NonFatal(e) =>
         println(logLines.mkString("\n"))

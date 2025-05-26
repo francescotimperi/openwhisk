@@ -69,11 +69,12 @@ trait LogStore {
    * @param action action that was activated
    * @return logs for the given activation
    */
-  def collectLogs(transid: TransactionId,
-                  user: Identity,
-                  activation: WhiskActivation,
-                  container: Container,
-                  action: ExecutableWhiskAction): Future[ActivationLogs]
+  def collectLogs(
+    transid: TransactionId,
+    user: Identity,
+    activation: WhiskActivation,
+    container: Container,
+    action: ExecutableWhiskAction): Future[ActivationLogs]
 
   /**
    * Fetch relevant logs for the given activation from the store.
@@ -89,12 +90,13 @@ trait LogStore {
    * @param end activation end
    * @return the relevant logs
    */
-  def fetchLogs(namespace: String,
-                activationId: ActivationId,
-                start: Option[Instant],
-                end: Option[Instant],
-                logs: Option[ActivationLogs],
-                content: UserContext): Future[ActivationLogs]
+  def fetchLogs(
+    namespace: String,
+    activationId: ActivationId,
+    start: Option[Instant],
+    end: Option[Instant],
+    logs: Option[ActivationLogs],
+    content: UserContext): Future[ActivationLogs]
 }
 
 trait LogStoreProvider extends Spi {

@@ -52,14 +52,15 @@ import scala.util.{Failure, Random, Success, Try}
 
 case class FPCPoolBalancerConfig(usePerMinThrottle: Boolean)
 
-class FPCPoolBalancer(config: WhiskConfig,
-                      controllerInstance: ControllerInstanceId,
-                      etcdClient: EtcdClient,
-                      private val feedFactory: FeedFactory,
-                      lbConfig: ShardingContainerPoolBalancerConfig =
-                        loadConfigOrThrow[ShardingContainerPoolBalancerConfig](ConfigKeys.loadbalancer),
-                      private val messagingProvider: MessagingProvider = SpiLoader.get[MessagingProvider])(
-  implicit val actorSystem: ActorSystem,
+class FPCPoolBalancer(
+  config: WhiskConfig,
+  controllerInstance: ControllerInstanceId,
+  etcdClient: EtcdClient,
+  private val feedFactory: FeedFactory,
+  lbConfig: ShardingContainerPoolBalancerConfig =
+    loadConfigOrThrow[ShardingContainerPoolBalancerConfig](ConfigKeys.loadbalancer),
+  private val messagingProvider: MessagingProvider = SpiLoader.get[MessagingProvider])(implicit
+  val actorSystem: ActorSystem,
   logging: Logging)
     extends LoadBalancer {
 
@@ -104,8 +105,8 @@ class FPCPoolBalancer(config: WhiskConfig,
    *         The future is guaranteed to complete within the declared action time limit
    *         plus a grace period (see activeAckTimeoutGrace).
    */
-  override def publish(action: ExecutableWhiskActionMetaData, msg: ActivationMessage)(
-    implicit transid: TransactionId): Future[Future[Either[ActivationId, WhiskActivation]]] = {
+  override def publish(action: ExecutableWhiskActionMetaData, msg: ActivationMessage)(implicit
+    transid: TransactionId): Future[Future[Either[ActivationId, WhiskActivation]]] = {
 
     val topicBaseName = if (schedulerEndpoints.isEmpty) {
       logging.error(
@@ -150,9 +151,8 @@ class FPCPoolBalancer(config: WhiskConfig,
               }
             }
             .map { _.get }
-            .recoverWith {
-              case _ =>
-                Future.failed(LoadBalancerException("No scheduler endpoint available"))
+            .recoverWith { case _ =>
+              Future.failed(LoadBalancerException("No scheduler endpoint available"))
             }
       }
     }
@@ -203,7 +203,8 @@ class FPCPoolBalancer(config: WhiskConfig,
                   this,
                   s"failed to create queue for $invocationNamespace/$fullyQualifiedEntityName, no scheduler endpoint available related activations may fail")
               }
-        } else
+        }
+    else
       logging.error(
         this,
         s"failed to create queue for $invocationNamespace/$fullyQualifiedEntityName, related activations may fail")
@@ -217,8 +218,9 @@ class FPCPoolBalancer(config: WhiskConfig,
    * will cause the result to be forwarded to the caller waiting on the result, and cancel
    * the DB poll which is also trying to do the same.
    */
-  private def setupActivation(msg: ActivationMessage,
-                              action: ExecutableWhiskActionMetaData): Future[Either[ActivationId, WhiskActivation]] = {
+  private def setupActivation(
+    msg: ActivationMessage,
+    action: ExecutableWhiskActionMetaData): Future[Either[ActivationId, WhiskActivation]] = {
     val isBlackboxInvocation = action.exec.pull
 
     totalActivations.increment()
@@ -266,9 +268,10 @@ class FPCPoolBalancer(config: WhiskConfig,
   }
 
   /** 3. Send the activation to the kafka */
-  private def sendActivationToKafka(producer: MessageProducer,
-                                    msg: ActivationMessage,
-                                    topic: String): Future[ResultMetadata] = {
+  private def sendActivationToKafka(
+    producer: MessageProducer,
+    msg: ActivationMessage,
+    topic: String): Future[ResultMetadata] = {
     implicit val transid: TransactionId = msg.transid
 
     MetricEmitter.emitCounterMetric(LoggingMarkers.LOADBALANCER_ACTIVATION_START)
@@ -320,9 +323,10 @@ class FPCPoolBalancer(config: WhiskConfig,
     }
   }
 
-  private def renewTimeoutHandler(entry: DistributedActivationEntry,
-                                  msg: ActivationMessage,
-                                  isSystemError: Boolean): Unit = {
+  private def renewTimeoutHandler(
+    entry: DistributedActivationEntry,
+    msg: ActivationMessage,
+    isSystemError: Boolean): Unit = {
     entry.timeoutHandler.cancel()
 
     val timeout = (TimeLimit.MAX_DURATION * lbConfig.timeoutFactor) + 1.minute
@@ -333,9 +337,10 @@ class FPCPoolBalancer(config: WhiskConfig,
   }
 
   /** 5. Process the result ack and return it to the user */
-  private def processResult(aid: ActivationId,
-                            tid: TransactionId,
-                            response: Either[ActivationId, WhiskActivation]): Unit = {
+  private def processResult(
+    aid: ActivationId,
+    tid: TransactionId,
+    response: Either[ActivationId, WhiskActivation]): Unit = {
     // Resolve the promise to send the result back to the user.
     // The activation will be removed from the activation slots later, when the completion message
     // is received (because the slot in the invoker is not yet free for new activations).
@@ -365,17 +370,17 @@ class FPCPoolBalancer(config: WhiskConfig,
     LoggingMarkers.LOADBALANCER_COMPLETION_ACK(controllerInstance, ForcedAfterRegularCompletionAck)
 
   /** Process the completion ack and update the state */
-  protected[loadBalancer] def processCompletion(aid: ActivationId,
-                                                tid: TransactionId,
-                                                forced: Boolean,
-                                                isSystemError: Boolean): Unit = {
+  protected[loadBalancer] def processCompletion(
+    aid: ActivationId,
+    tid: TransactionId,
+    forced: Boolean,
+    isSystemError: Boolean): Unit = {
     implicit val transid = tid
     activationSlots.remove(aid) match {
       case Some(entry) =>
         if (activationSlots.contains(aid))
-          Try { retry(deleteActivationSlot(aid, tid)) } recover {
-            case _ =>
-              logging.error(this, s"Failed to delete $aid from activation slots")
+          Try { retry(deleteActivationSlot(aid, tid)) } recover { case _ =>
+            logging.error(this, s"Failed to delete $aid from activation slots")
           }
         totalActivations.decrement()
         totalActivationMemory.add(entry.memory.toMB * (-1))
@@ -440,35 +445,34 @@ class FPCPoolBalancer(config: WhiskConfig,
                   //the leader key's value is queue/invocationNamespace/ns/pkg/act/leader
                   QueueKeys
                     .queue(entry.invocationNamespace, entry.fullyQualifiedEntityName.copy(version = None), true) == key)
-                .foreach {
-                  entry =>
-                    implicit val transid = entry.transactionId
-                    logging.warn(
-                      this,
-                      s"The $key is deleted from ETCD, but there are still unhandled activations for this action, try to create a new queue")
-                    WhiskActionMetaData
-                      .get(
-                        entityStore,
-                        entry.fullyQualifiedEntityName.toDocId,
-                        DocRevision.empty,
-                        entry.revision != DocRevision.empty)
-                      .map { actionMetaData =>
-                        FPCPoolBalancer
-                          .schedule(schedulerEndpoints.values.toIndexedSeq)
-                          .map { scheduler =>
-                            createQueue(
-                              entry.invocationNamespace,
-                              actionMetaData,
-                              entry.fullyQualifiedEntityName,
-                              entry.revision,
-                              scheduler)
-                          }
-                          .getOrElse {
-                            logging.error(
-                              this,
-                              s"Failed to recreate queue for ${entry.fullyQualifiedEntityName}, no scheduler endpoint available")
-                          }
-                      }
+                .foreach { entry =>
+                  implicit val transid = entry.transactionId
+                  logging.warn(
+                    this,
+                    s"The $key is deleted from ETCD, but there are still unhandled activations for this action, try to create a new queue")
+                  WhiskActionMetaData
+                    .get(
+                      entityStore,
+                      entry.fullyQualifiedEntityName.toDocId,
+                      DocRevision.empty,
+                      entry.revision != DocRevision.empty)
+                    .map { actionMetaData =>
+                      FPCPoolBalancer
+                        .schedule(schedulerEndpoints.values.toIndexedSeq)
+                        .map { scheduler =>
+                          createQueue(
+                            entry.invocationNamespace,
+                            actionMetaData,
+                            entry.fullyQualifiedEntityName,
+                            entry.revision,
+                            scheduler)
+                        }
+                        .getOrElse {
+                          logging.error(
+                            this,
+                            s"Failed to recreate queue for ${entry.fullyQualifiedEntityName}, no scheduler endpoint available")
+                        }
+                    }
                 }
             }
           case `schedulerKey` =>
@@ -478,9 +482,8 @@ class FPCPoolBalancer(config: WhiskConfig,
                 logging.info(this, s"remove scheduler endpoint $state")
                 schedulerEndpoints.remove(state.endpoints)
               }
-              .recover {
-                case t =>
-                  logging.error(this, s"Unexpected error$t")
+              .recover { case t =>
+                logging.error(this, s"Unexpected error$t")
               }
 
           case `throttlingKey` =>
@@ -498,9 +501,8 @@ class FPCPoolBalancer(config: WhiskConfig,
                 .map { endpoints =>
                   queueEndpoints.update(key, endpoints)
                 }
-                .recover {
-                  case t =>
-                    logging.error(this, s"Unexpected error$t")
+                .recover { case t =>
+                  logging.error(this, s"Unexpected error$t")
                 }
             }
           case `schedulerKey` =>
@@ -512,9 +514,8 @@ class FPCPoolBalancer(config: WhiskConfig,
                   warmUpScheduler(key, state.endpoints)
                 schedulerEndpoints.update(state.endpoints, state)
               }
-              .recover {
-                case t =>
-                  logging.error(this, s"Unexpected error$t")
+              .recover { case t =>
+                logging.error(this, s"Unexpected error$t")
               }
           case `throttlingKey` =>
             val throttled = Try {
@@ -551,11 +552,12 @@ class FPCPoolBalancer(config: WhiskConfig,
     sendActivationToKafka(
       messageProducer,
       WarmUp.warmUpActivation(controllerInstance),
-      Controller.topicPrefix + schedulerName.replace(s"$clusterName/", "").replace("/", "")) // warm up kafka
+      Controller.topicPrefix + schedulerName.replace(s"$clusterName/", "").replace("/", "")
+    ) // warm up kafka
 
     warmUpQueueCreationRequest.foreach { request =>
-      scheduler.getRemoteRef(QueueManager.actorName).ask(request).mapTo[CreateQueueResponse].onComplete {
-        case _ => logging.info(this, s"Warmed up scheduler $scheduler")
+      scheduler.getRemoteRef(QueueManager.actorName).ask(request).mapTo[CreateQueueResponse].onComplete { case _ =>
+        logging.info(this, s"Warmed up scheduler $scheduler")
       }
     }
   }
@@ -574,9 +576,8 @@ class FPCPoolBalancer(config: WhiskConfig,
                 warmUpScheduler(kv.getKey, state.endpoints)
               schedulerEndpoints.update(state.endpoints, state)
             }
-            .recover {
-              case t =>
-                logging.error(this, s"Unexpected error$t")
+            .recover { case t =>
+              logging.error(this, s"Unexpected error$t")
             }
         }
       }
@@ -595,7 +596,7 @@ class FPCPoolBalancer(config: WhiskConfig,
    * Returns a message indicating the health of the containers and/or container pool in general.
    *
    * @return a Future[IndexedSeq[InvokerHealth]] representing the health of the pools managed by the loadbalancer.
-   **/
+   */
   override def invokerHealth(): Future[IndexedSeq[InvokerHealth]] = {
     etcdClient.getPrefix(s"${InvokerKeys.prefix}/").map { res =>
       val healthsFromEtcd = res.getKvsList.asScala.map { kv =>
@@ -642,13 +643,15 @@ class FPCPoolBalancer(config: WhiskConfig,
       MetricEmitter.emitGaugeMetric(UNHEALTHY_INVOKERS, invokers.count(_.status == Unhealthy))
       MetricEmitter.emitGaugeMetric(OFFLINE_INVOKERS, invokers.count(_.status == Offline))
       // Add both user memory and busy memory because user memory represents free memory in this case
-      MetricEmitter.emitGaugeMetric(INVOKER_TOTALMEM, invokers.foldLeft(0L) { (total, curr) =>
-        if (curr.status.isUsable) {
-          curr.id.userMemory.toMB + curr.id.busyMemory.getOrElse(ByteSize(0, SizeUnits.BYTE)).toMB + total
-        } else {
-          total
-        }
-      })
+      MetricEmitter.emitGaugeMetric(
+        INVOKER_TOTALMEM,
+        invokers.foldLeft(0L) { (total, curr) =>
+          if (curr.status.isUsable) {
+            curr.id.userMemory.toMB + curr.id.busyMemory.getOrElse(ByteSize(0, SizeUnits.BYTE)).toMB + total
+          } else {
+            total
+          }
+        })
       MetricEmitter.emitGaugeMetric(LOADBALANCER_ACTIVATIONS_INFLIGHT(controllerInstance), totalActivations.longValue)
       MetricEmitter
         .emitGaugeMetric(LOADBALANCER_MEMORY_INFLIGHT(controllerInstance, ""), totalActivationMemory.longValue)
@@ -696,8 +699,9 @@ class FPCPoolBalancer(config: WhiskConfig,
 
 object FPCPoolBalancer extends LoadBalancerProvider {
 
-  override def instance(whiskConfig: WhiskConfig, instance: ControllerInstanceId)(implicit actorSystem: ActorSystem,
-                                                                                  logging: Logging): LoadBalancer = {
+  override def instance(whiskConfig: WhiskConfig, instance: ControllerInstanceId)(implicit
+    actorSystem: ActorSystem,
+    logging: Logging): LoadBalancer = {
 
     implicit val exe: ExecutionContextExecutor = actorSystem.dispatcher
     val activeAckTopic = s"${Controller.topicPrefix}completed${instance.asString}"
@@ -728,7 +732,6 @@ object FPCPoolBalancer extends LoadBalancerProvider {
   // TODO modularize rng algorithm
   /**
    * The rng algorithm is responsible for the invoker distribution, and the better the distribution, the smaller the number of rescheduling.
-   *
    */
   def rng(mod: Int): Int = ThreadLocalRandom.current().nextInt(mod)
 
@@ -739,8 +742,9 @@ object FPCPoolBalancer extends LoadBalancerProvider {
    * @param excludeSchedulers schedulers which should not be chose
    * @return Assigned a scheduler
    */
-  def schedule(schedulers: IndexedSeq[SchedulerStates],
-               excludeSchedulers: Set[SchedulerInstanceId] = Set.empty): Option[SchedulerStates] = {
+  def schedule(
+    schedulers: IndexedSeq[SchedulerStates],
+    excludeSchedulers: Set[SchedulerInstanceId] = Set.empty): Option[SchedulerStates] = {
     schedulers.filter(scheduler => !excludeSchedulers.contains(scheduler.sid)).sortBy(_.queueSize).headOption
   }
 
@@ -753,15 +757,16 @@ object FPCPoolBalancer extends LoadBalancerProvider {
  * @param namespaceId namespace that invoked the action
  * @param timeoutHandler times out completion of this activation, should be canceled on good paths
  */
-case class DistributedActivationEntry(id: ActivationId,
-                                      namespaceId: UUID,
-                                      invocationNamespace: String,
-                                      revision: DocRevision,
-                                      transactionId: TransactionId,
-                                      memory: ByteSize,
-                                      maxConcurrent: Int,
-                                      fullyQualifiedEntityName: FullyQualifiedEntityName,
-                                      timeoutHandler: Cancellable,
-                                      isBlackbox: Boolean,
-                                      isBlocking: Boolean,
-                                      controllerName: ControllerInstanceId = ControllerInstanceId("0"))
+case class DistributedActivationEntry(
+  id: ActivationId,
+  namespaceId: UUID,
+  invocationNamespace: String,
+  revision: DocRevision,
+  transactionId: TransactionId,
+  memory: ByteSize,
+  maxConcurrent: Int,
+  fullyQualifiedEntityName: FullyQualifiedEntityName,
+  timeoutHandler: Cancellable,
+  isBlackbox: Boolean,
+  isBlocking: Boolean,
+  controllerName: ControllerInstanceId = ControllerInstanceId("0"))

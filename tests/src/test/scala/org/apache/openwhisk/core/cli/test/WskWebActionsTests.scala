@@ -101,20 +101,19 @@ class WskWebActionsTests extends TestHelpers with WskTestHelpers with RestUtil w
       // in how characters are counted i.e., whether these count "https://:443"
       // or not; it seems sufficient to test right around the boundary
       ("A" * (padAmount + 100), 414))
-      .foreach {
-        case (pad, code) =>
-          val url = (requestPath + pad)
-          val response = RestAssured.given().config(sslconfig).get(url)
-          val responseCode = response.statusCode
+      .foreach { case (pad, code) =>
+        val url = (requestPath + pad)
+        val response = RestAssured.given().config(sslconfig).get(url)
+        val responseCode = response.statusCode
 
-          withClue(s"response code: $responseCode, url length: ${url.length}, pad amount: ${pad.length}, url: $url") {
-            responseCode shouldBe code
-            if (code == 200) {
-              response.body.asString.parseJson.asJsObject.fields("a").convertTo[String] shouldBe pad
-            } else {
-              response.body.asString should include("414 Request-URI Too Large") // from nginx
-            }
+        withClue(s"response code: $responseCode, url length: ${url.length}, pad amount: ${pad.length}, url: $url") {
+          responseCode shouldBe code
+          if (code == 200) {
+            response.body.asString.parseJson.asJsObject.fields("a").convertTo[String] shouldBe pad
+          } else {
+            response.body.asString should include("414 Request-URI Too Large") // from nginx
           }
+        }
       }
   }
 
@@ -221,7 +220,8 @@ class WskWebActionsTests extends TestHelpers with WskTestHelpers with RestUtil w
       response.statusCode shouldBe 200
       response.header("Access-Control-Allow-Origin") shouldBe "*"
       response.header("Access-Control-Allow-Methods") shouldBe "OPTIONS, GET, DELETE, POST, PUT, HEAD, PATCH"
-      response.header("Access-Control-Allow-Headers") shouldBe "Authorization, Origin, X-Requested-With, Content-Type, Accept, User-Agent"
+      response.header(
+        "Access-Control-Allow-Headers") shouldBe "Authorization, Origin, X-Requested-With, Content-Type, Accept, User-Agent"
       response.header("Location") shouldBe null
       response.header("Set-Cookie") shouldBe null
     }
@@ -376,42 +376,42 @@ class WskWebActionsTests extends TestHelpers with WskTestHelpers with RestUtil w
     vanitySubdomain.length should be <= 63
   }
 
-  "vanity subdomain" should "access a web action via namespace subdomain" in withAssetCleaner(wskPropsForSubdomainTest) {
-    (wp, assetHelper) =>
-      val actionName = "webaction"
+  "vanity subdomain" should "access a web action via namespace subdomain" in withAssetCleaner(
+    wskPropsForSubdomainTest) { (wp, assetHelper) =>
+    val actionName = "webaction"
 
-      val file = Some(TestUtils.getTestActionFilename("echo.js"))
-      assetHelper.withCleaner(wsk.action, actionName) { (action, _) =>
-        action.create(actionName, file, web = Some(true.toString))(wp)
-      }
+    val file = Some(TestUtils.getTestActionFilename("echo.js"))
+    assetHelper.withCleaner(wsk.action, actionName) { (action, _) =>
+      action.create(actionName, file, web = Some(true.toString))(wp)
+    }
 
-      val url = getServiceApiHost(vanitySubdomain, true) + s"/default/$actionName.json/a?a=A"
-      println(s"url: $url")
+    val url = getServiceApiHost(vanitySubdomain, true) + s"/default/$actionName.json/a?a=A"
+    println(s"url: $url")
 
-      // try the rest assured path first, failing that, try curl with explicit resolve
-      Try {
-        val response = RestAssured.given().config(sslconfig).get(url)
-        val responseCode = response.statusCode
-        responseCode shouldBe 200
-        response.body.asString.parseJson.asJsObject.fields("a").convertTo[String] shouldBe "A"
-      } match {
-        case Failure(t) =>
-          println(s"RestAssured path failed, trying curl: $t")
-          implicit val tid = TransactionId.testing
-          implicit val logger = new PrintStreamLogging(Console.out)
-          val host = getServiceApiHost(vanitySubdomain, false)
-          // if the edge host is a name, try to resolve it, otherwise, it should be an ip address already
-          val edgehost = WhiskProperties.getEdgeHost
-          val ip = Try(java.net.InetAddress.getByName(edgehost).getHostAddress) getOrElse "???"
-          println(s"edge: $edgehost, ip: $ip")
-          val cmd = Seq("curl", "-k", url, "--resolve", s"$host:$ip")
-          val (stdout, stderr, exitCode) = SimpleExec.syncRunCmd(cmd)
-          withClue(s"\n$stderr\n") {
-            stdout.parseJson.asJsObject.fields("a").convertTo[String] shouldBe "A"
-            exitCode shouldBe 0
-          }
+    // try the rest assured path first, failing that, try curl with explicit resolve
+    Try {
+      val response = RestAssured.given().config(sslconfig).get(url)
+      val responseCode = response.statusCode
+      responseCode shouldBe 200
+      response.body.asString.parseJson.asJsObject.fields("a").convertTo[String] shouldBe "A"
+    } match {
+      case Failure(t) =>
+        println(s"RestAssured path failed, trying curl: $t")
+        implicit val tid = TransactionId.testing
+        implicit val logger = new PrintStreamLogging(Console.out)
+        val host = getServiceApiHost(vanitySubdomain, false)
+        // if the edge host is a name, try to resolve it, otherwise, it should be an ip address already
+        val edgehost = WhiskProperties.getEdgeHost
+        val ip = Try(java.net.InetAddress.getByName(edgehost).getHostAddress) getOrElse "???"
+        println(s"edge: $edgehost, ip: $ip")
+        val cmd = Seq("curl", "-k", url, "--resolve", s"$host:$ip")
+        val (stdout, stderr, exitCode) = SimpleExec.syncRunCmd(cmd)
+        withClue(s"\n$stderr\n") {
+          stdout.parseJson.asJsObject.fields("a").convertTo[String] shouldBe "A"
+          exitCode shouldBe 0
+        }
 
-        case _ =>
-      }
+      case _ =>
+    }
   }
 }

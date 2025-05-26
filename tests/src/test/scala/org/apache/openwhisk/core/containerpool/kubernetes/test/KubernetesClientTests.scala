@@ -74,16 +74,21 @@ class KubernetesClientTests
   /** Returns a KubernetesClient with a mocked result for 'executeProcess' */
   def kubernetesClient(fixture: => Future[String]) = {
     new KubernetesClient()(executionContext) {
-      override def executeProcess(args: Seq[String], timeout: Duration)(implicit ec: ExecutionContext,
-                                                                        as: ActorSystem) =
+      override def executeProcess(args: Seq[String], timeout: Duration)(implicit
+        ec: ExecutionContext,
+        as: ActorSystem) =
         fixture
     }
   }
 
   def kubernetesContainer(id: ContainerId) =
-    new KubernetesContainer(id, ContainerAddress("ip"), "ip", "docker://" + id.asString)(kubernetesClient {
-      Future.successful("")
-    }, actorSystem, executionContext, logging)
+    new KubernetesContainer(id, ContainerAddress("ip"), "ip", "docker://" + id.asString)(
+      kubernetesClient {
+        Future.successful("")
+      },
+      actorSystem,
+      executionContext,
+      logging)
 
   behavior of "KubernetesClient"
 
@@ -126,8 +131,8 @@ class KubernetesClientTests
 
   it should "return all logs when no sinceTime passed" in {
     val client = new TestKubernetesClient {
-      override def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean)(
-        implicit transid: TransactionId): Source[TypedLogLine, Any] = {
+      override def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean)(implicit
+        transid: TransactionId): Source[TypedLogLine, Any] = {
         firstSource()
       }
     }
@@ -141,8 +146,8 @@ class KubernetesClientTests
 
     val testDate: Option[Instant] = "2018-02-06T00:00:18.419988733Z"
     val client = new TestKubernetesClient {
-      override def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean)(
-        implicit transid: TransactionId): Source[TypedLogLine, Any] = {
+      override def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean)(implicit
+        transid: TransactionId): Source[TypedLogLine, Any] = {
         Source.combine(firstSource(testDate), secondSource(testDate))(Concat(_))
       }
     }
@@ -155,8 +160,8 @@ class KubernetesClientTests
   it should "return all logs if none match sinceTime" in {
     val testDate: Option[Instant] = "2018-02-06T00:00:18.419988733Z"
     val client = new TestKubernetesClient {
-      override def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean)(
-        implicit transid: TransactionId): Source[TypedLogLine, Any] = {
+      override def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean)(implicit
+        transid: TransactionId): Source[TypedLogLine, Any] = {
         secondSource(testDate)
       }
     }
@@ -186,11 +191,12 @@ object KubernetesClientTests {
     var suspends = mutable.Buffer.empty[ContainerId]
     var logCalls = mutable.Buffer.empty[(ContainerId, Option[Instant])]
 
-    def run(name: String,
-            image: String,
-            memory: ByteSize = 256.MB,
-            env: Map[String, String] = Map.empty,
-            labels: Map[String, String] = Map.empty)(implicit transid: TransactionId): Future[KubernetesContainer] = {
+    def run(
+      name: String,
+      image: String,
+      memory: ByteSize = 256.MB,
+      env: Map[String, String] = Map.empty,
+      labels: Map[String, String] = Map.empty)(implicit transid: TransactionId): Future[KubernetesContainer] = {
       runs += ((name, image, env, labels))
       implicit val kubernetes = this
       val containerId = ContainerId("id")
@@ -209,8 +215,8 @@ object KubernetesClientTests {
       rms += ContainerId(podName)
       Future.successful(())
     }
-    def rm(labels: Map[String, String], ensureUnpause: Boolean = false)(
-      implicit transid: TransactionId): Future[Unit] = {
+    def rm(labels: Map[String, String], ensureUnpause: Boolean = false)(implicit
+      transid: TransactionId): Future[Unit] = {
       labels.foreach { label =>
         rmByLabels += ((label._1, label._2))
       }
@@ -227,8 +233,8 @@ object KubernetesClientTests {
       Future.successful({})
     }
 
-    def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean = false)(
-      implicit transid: TransactionId): Source[TypedLogLine, Any] = {
+    def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean = false)(implicit
+      transid: TransactionId): Source[TypedLogLine, Any] = {
       logCalls += ((container.id, sinceTime))
       Source(List.empty[TypedLogLine])
     }

@@ -42,15 +42,16 @@ import scala.concurrent.{ExecutionContext, Future}
  * - does not support log collection (currently), but does provide a message indicating logs can be viewed via YARN UI
  * (external log collection and retrieval must be enabled via LogStore SPI to expose logs to wsk cli)
  */
-class YARNTask(override protected val id: ContainerId,
-               override protected[core] val addr: ContainerAddress,
-               override protected val ec: ExecutionContext,
-               override protected val logging: Logging,
-               override protected val as: ActorSystem,
-               val component_instance_name: String,
-               imageName: ImageName,
-               yarnConfig: YARNConfig,
-               yarnComponentActor: ActorRef)
+class YARNTask(
+  override protected val id: ContainerId,
+  override protected[core] val addr: ContainerAddress,
+  override protected val ec: ExecutionContext,
+  override protected val logging: Logging,
+  override protected val as: ActorSystem,
+  val component_instance_name: String,
+  imageName: ImageName,
+  yarnConfig: YARNConfig,
+  yarnComponentActor: ActorRef)
     extends Container {
 
   val containerRemoveTimeoutMS = 60000
@@ -85,7 +86,7 @@ class YARNTask(override protected val id: ContainerId,
       s"You can browse the logs for YARN Service ${yarnConfig.serviceName} using the yarn UI at ${yarnConfig.masterUrl}"
   private val noLinkLogMsg = "Log collection is not configured correctly, check with your service administrator."
   private val logMsg = if (yarnConfig.yarnLinkLogMessage) linkedLogMsg else noLinkLogMsg
-  override def logs(limit: ByteSize, waitForSentinel: Boolean)(
-    implicit transid: TransactionId): Source[ByteString, Any] =
+  override def logs(limit: ByteSize, waitForSentinel: Boolean)(implicit
+    transid: TransactionId): Source[ByteString, Any] =
     Source.single(ByteString(LogLine(logMsg, "stdout", Instant.now.toString).toJson.compactPrint))
 }

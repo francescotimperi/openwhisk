@@ -118,45 +118,42 @@ class MongoDBViewMapperTests extends FlatSpec with Matchers with OptionValues {
     ("triggers", "trigger"))
 
   it should "match entities of specific type in namespace" in {
-    whiskTypes.foreach {
-      case (view, entityType) =>
-        var filters =
-          or(
-            and(meq("entityType", entityType), meq("namespace", "ns1")),
-            and(meq("entityType", entityType), meq("_computed.rootns", "ns1")))
-        if (view == "packages-public")
-          filters = getPublicPackageFilter(filters)
-        WhisksViewMapper.filter("whisks.v2.1.0", view, List("ns1"), List("ns1", TOP)).toDoc shouldBe filters.toDoc
+    whiskTypes.foreach { case (view, entityType) =>
+      var filters =
+        or(
+          and(meq("entityType", entityType), meq("namespace", "ns1")),
+          and(meq("entityType", entityType), meq("_computed.rootns", "ns1")))
+      if (view == "packages-public")
+        filters = getPublicPackageFilter(filters)
+      WhisksViewMapper.filter("whisks.v2.1.0", view, List("ns1"), List("ns1", TOP)).toDoc shouldBe filters.toDoc
     }
   }
 
   it should "match entities of specific type in namespace and updated since" in {
-    whiskTypes.foreach {
-      case (view, entityType) =>
-        var filters =
-          or(
-            and(meq("entityType", entityType), meq("namespace", "ns1"), gte("updated", 42)),
-            and(meq("entityType", entityType), meq("_computed.rootns", "ns1"), gte("updated", 42)))
-        if (view == "packages-public")
-          filters = getPublicPackageFilter(filters)
-        WhisksViewMapper
-          .filter("whisks.v2.1.0", view, List("ns1", 42), List("ns1", TOP, TOP))
-          .toDoc shouldBe filters.toDoc
+    whiskTypes.foreach { case (view, entityType) =>
+      var filters =
+        or(
+          and(meq("entityType", entityType), meq("namespace", "ns1"), gte("updated", 42)),
+          and(meq("entityType", entityType), meq("_computed.rootns", "ns1"), gte("updated", 42)))
+      if (view == "packages-public")
+        filters = getPublicPackageFilter(filters)
+      WhisksViewMapper
+        .filter("whisks.v2.1.0", view, List("ns1", 42), List("ns1", TOP, TOP))
+        .toDoc shouldBe filters.toDoc
     }
   }
 
   it should "match all entities of specific type in namespace and between" in {
-    whiskTypes.foreach {
-      case (view, entityType) =>
-        var filters =
-          or(
-            and(meq("entityType", entityType), meq("namespace", "ns1"), gte("updated", 42), lte("updated", 314)),
-            and(meq("entityType", entityType), meq("_computed.rootns", "ns1"), gte("updated", 42), lte("updated", 314)))
-        if (view == "packages-public")
-          filters = getPublicPackageFilter(filters)
-        WhisksViewMapper
-          .filter("whisks.v2.1.0", view, List("ns1", 42), List("ns1", 314, TOP))
-          .toDoc shouldBe filters.toDoc
+    whiskTypes.foreach { case (view, entityType) =>
+      var filters =
+        or(
+          and(meq("entityType", entityType), meq("namespace", "ns1"), gte("updated", 42), lte("updated", 314)),
+          and(meq("entityType", entityType), meq("_computed.rootns", "ns1"), gte("updated", 42), lte("updated", 314)))
+      if (view == "packages-public")
+        filters = getPublicPackageFilter(filters)
+      WhisksViewMapper
+        .filter("whisks.v2.1.0", view, List("ns1", 42), List("ns1", 314, TOP))
+        .toDoc shouldBe filters.toDoc
     }
   }
 
@@ -183,18 +180,16 @@ class MongoDBViewMapperTests extends FlatSpec with Matchers with OptionValues {
   behavior of "WhisksViewMapper sort"
 
   it should "sort descending" in {
-    whiskTypes.foreach {
-      case (view, _) =>
-        WhisksViewMapper.sort("whisks.v2.1.0", view, descending = true).value.toDoc shouldBe
-          Sorts.descending("updated").toDoc
+    whiskTypes.foreach { case (view, _) =>
+      WhisksViewMapper.sort("whisks.v2.1.0", view, descending = true).value.toDoc shouldBe
+        Sorts.descending("updated").toDoc
     }
   }
 
   it should "sort ascending" in {
-    whiskTypes.foreach {
-      case (view, _) =>
-        WhisksViewMapper.sort("whisks.v2.1.0", view, descending = false).value.toDoc shouldBe
-          Sorts.ascending("updated").toDoc
+    whiskTypes.foreach { case (view, _) =>
+      WhisksViewMapper.sort("whisks.v2.1.0", view, descending = false).value.toDoc shouldBe
+        Sorts.ascending("updated").toDoc
     }
   }
 
@@ -215,7 +210,9 @@ class MongoDBViewMapperTests extends FlatSpec with Matchers with OptionValues {
     SubjectViewMapper.filter("subjects", "identities", List("u1", "k1"), List("u1", "k1")).toDoc shouldBe
       and(
         notEqual("blocked", true),
-        or(and(meq("uuid", "u1"), meq("key", "k1")), and(meq("namespaces.uuid", "u1"), meq("namespaces.key", "k1")))).toDoc
+        or(
+          and(meq("uuid", "u1"), meq("key", "k1")),
+          and(meq("namespaces.uuid", "u1"), meq("namespaces.key", "k1")))).toDoc
   }
 
   it should "match by blocked or invocationsPerMinute or concurrentInvocations" in {

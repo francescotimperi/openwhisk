@@ -34,8 +34,8 @@ class ArtifactActivationStore(actorSystem: ActorSystem, override val logging: Lo
   private val artifactStore: ArtifactStore[WhiskActivation] =
     WhiskActivationStore.datastore()(actorSystem, logging)
 
-  def store(activation: WhiskActivation, context: UserContext)(
-    implicit transid: TransactionId,
+  def store(activation: WhiskActivation, context: UserContext)(implicit
+    transid: TransactionId,
     notifier: Option[CacheChangeNotification]): Future[DocInfo] = {
 
     logging.debug(this, s"recording activation '${activation.activationId}'")
@@ -53,8 +53,8 @@ class ArtifactActivationStore(actorSystem: ActorSystem, override val logging: Lo
     res
   }
 
-  def get(activationId: ActivationId, context: UserContext)(
-    implicit transid: TransactionId): Future[WhiskActivation] = {
+  def get(activationId: ActivationId, context: UserContext)(implicit
+    transid: TransactionId): Future[WhiskActivation] = {
     WhiskActivation.get(artifactStore, DocId(activationId.asString))
   }
 
@@ -62,20 +62,21 @@ class ArtifactActivationStore(actorSystem: ActorSystem, override val logging: Lo
    * Here there is added overhead of retrieving the specified activation before deleting it, so this method should not
    * be used in production or performance related code.
    */
-  def delete(activationId: ActivationId, context: UserContext)(
-    implicit transid: TransactionId,
+  def delete(activationId: ActivationId, context: UserContext)(implicit
+    transid: TransactionId,
     notifier: Option[CacheChangeNotification]): Future[Boolean] = {
     WhiskActivation.get(artifactStore, DocId(activationId.asString)) flatMap { doc =>
       WhiskActivation.del(artifactStore, doc.docinfo)
     }
   }
 
-  def countActivationsInNamespace(namespace: EntityPath,
-                                  name: Option[EntityPath] = None,
-                                  skip: Int,
-                                  since: Option[Instant] = None,
-                                  upto: Option[Instant] = None,
-                                  context: UserContext)(implicit transid: TransactionId): Future[JsObject] = {
+  def countActivationsInNamespace(
+    namespace: EntityPath,
+    name: Option[EntityPath] = None,
+    skip: Int,
+    since: Option[Instant] = None,
+    upto: Option[Instant] = None,
+    context: UserContext)(implicit transid: TransactionId): Future[JsObject] = {
     WhiskActivation.countCollectionInNamespace(
       artifactStore,
       name.map(p => namespace.addPath(p)).getOrElse(namespace),

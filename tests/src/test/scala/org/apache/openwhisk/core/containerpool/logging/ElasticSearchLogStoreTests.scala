@@ -112,10 +112,9 @@ class ElasticSearchLogStoreTests
   private def testFlow(httpResponse: HttpResponse = HttpResponse(), httpRequest: HttpRequest = HttpRequest())
     : Flow[(HttpRequest, Promise[HttpResponse]), (Try[HttpResponse], Promise[HttpResponse]), NotUsed] =
     Flow[(HttpRequest, Promise[HttpResponse])]
-      .mapAsyncUnordered(1) {
-        case (request, userContext) =>
-          request shouldBe httpRequest
-          Future.successful((Success(httpResponse), userContext))
+      .mapAsyncUnordered(1) { case (request, userContext) =>
+        request shouldBe httpRequest
+        Future.successful((Success(httpResponse), userContext))
       }
 
   private def await[T](awaitable: Future[T], timeout: FiniteDuration = 10.seconds) = Await.result(awaitable, timeout)

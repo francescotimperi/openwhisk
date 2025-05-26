@@ -94,17 +94,19 @@ class CreationJobManagerTests
     QueuePool.clear()
   }
 
-  def feedFactory(actorRefFactory: ActorRefFactory,
-                  description: String,
-                  topic: String,
-                  maxActiveAcksPerPoll: Int,
-                  handler: Array[Byte] => Future[Unit]): ActorRef = {
+  def feedFactory(
+    actorRefFactory: ActorRefFactory,
+    description: String,
+    topic: String,
+    maxActiveAcksPerPoll: Int,
+    handler: Array[Byte] => Future[Unit]): ActorRef = {
     TestProbe().ref
   }
 
-  def createRegisterMessage(action: FullyQualifiedEntityName,
-                            revision: DocRevision,
-                            sid: SchedulerInstanceId): RegisterCreationJob = {
+  def createRegisterMessage(
+    action: FullyQualifiedEntityName,
+    revision: DocRevision,
+    sid: SchedulerInstanceId): RegisterCreationJob = {
     val message =
       ContainerCreationMessage(
         TransactionId.testing,
@@ -158,12 +160,13 @@ class CreationJobManagerTests
     probe.expectNoMessage()
   }
 
-  def createFinishMessage(action: FullyQualifiedEntityName,
-                          revision: DocRevision,
-                          memory: ByteSize,
-                          invokerInstanceId: InvokerInstanceId,
-                          retryCount: Int = 0,
-                          error: Option[ContainerCreationError] = None): FinishCreationJob = {
+  def createFinishMessage(
+    action: FullyQualifiedEntityName,
+    revision: DocRevision,
+    memory: ByteSize,
+    invokerInstanceId: InvokerInstanceId,
+    retryCount: Int = 0,
+    error: Option[ContainerCreationError] = None): FinishCreationJob = {
     val message =
       ContainerCreationAckMessage(
         TransactionId.testing,

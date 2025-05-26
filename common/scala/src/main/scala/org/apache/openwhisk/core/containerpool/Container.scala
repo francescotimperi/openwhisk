@@ -95,7 +95,7 @@ trait Container {
     closeConnections(toClose)
   }
 
-  /** Dual of halt. NOT thread-safe - caller must synchronize.*/
+  /** Dual of halt. NOT thread-safe - caller must synchronize. */
   def resume()(implicit transid: TransactionId): Future[Unit] = {
     httpConnection = Some(openConnections(containerHttpTimeout, containerHttpMaxConcurrent))
     Future.successful({})
@@ -110,10 +110,11 @@ trait Container {
   }
 
   /** Initializes code in the container. */
-  def initialize(initializer: JsObject,
-                 timeout: FiniteDuration,
-                 maxConcurrent: Int,
-                 entity: Option[WhiskAction] = None)(implicit transid: TransactionId): Future[Interval] = {
+  def initialize(
+    initializer: JsObject,
+    timeout: FiniteDuration,
+    maxConcurrent: Int,
+    entity: Option[WhiskAction] = None)(implicit transid: TransactionId): Future[Interval] = {
     val start = transid.started(
       this,
       LoggingMarkers.INVOKER_ACTIVATION_INIT,
@@ -166,13 +167,14 @@ trait Container {
   }
 
   /** Runs code in the container. Thread-safe - caller may invoke concurrently for concurrent activation processing. */
-  def run(parameters: JsValue,
-          environment: JsObject,
-          timeout: FiniteDuration,
-          maxConcurrent: Int,
-          maxResponse: ByteSize,
-          truncation: ByteSize,
-          reschedule: Boolean = false)(implicit transid: TransactionId): Future[(Interval, ActivationResponse)] = {
+  def run(
+    parameters: JsValue,
+    environment: JsObject,
+    timeout: FiniteDuration,
+    maxConcurrent: Int,
+    maxResponse: ByteSize,
+    truncation: ByteSize,
+    reschedule: Boolean = false)(implicit transid: TransactionId): Future[(Interval, ActivationResponse)] = {
     val actionName = environment.fields.get("action_name").map(_.convertTo[String]).getOrElse("")
     val start =
       transid.started(
@@ -224,14 +226,15 @@ trait Container {
    * @param retry whether or not to retry the request
    * @param reschedule throw a reschedule error in case of connection failure
    */
-  protected def callContainer(path: String,
-                              body: JsObject,
-                              timeout: FiniteDuration,
-                              maxConcurrent: Int,
-                              maxResponse: ByteSize,
-                              truncation: ByteSize,
-                              retry: Boolean = false,
-                              reschedule: Boolean = false)(implicit transid: TransactionId): Future[RunResult] = {
+  protected def callContainer(
+    path: String,
+    body: JsObject,
+    timeout: FiniteDuration,
+    maxConcurrent: Int,
+    maxResponse: ByteSize,
+    truncation: ByteSize,
+    retry: Boolean = false,
+    reschedule: Boolean = false)(implicit transid: TransactionId): Future[RunResult] = {
     val started = Instant.now()
     val http = httpConnection.getOrElse {
       val conn = openConnections(timeout, maxConcurrent)
@@ -256,8 +259,10 @@ trait Container {
     toClose.map(_.close()).getOrElse(Future.successful(()))
   }
 
-  /** This is so that we can easily log the container id during ContainerPool.logContainerStart().
-   *  Null check is here since some tests use stub[Container] so id is null during those tests. */
+  /**
+   * This is so that we can easily log the container id during ContainerPool.logContainerStart().
+   *  Null check is here since some tests use stub[Container] so id is null during those tests.
+   */
   override def toString() = if (id == null) "no-container-id" else id.toString
 }
 

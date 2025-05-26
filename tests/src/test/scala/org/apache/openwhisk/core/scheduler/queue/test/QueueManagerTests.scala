@@ -111,12 +111,13 @@ class QueueManagerTests
   val activationResponse = ActivationResponse(Right(activationMessage))
 
   val ack = new ActiveAck {
-    override def apply(tid: TransactionId,
-                       activationResult: WhiskActivation,
-                       blockingInvoke: Boolean,
-                       controllerInstance: ControllerInstanceId,
-                       userId: UUID,
-                       acknowledgement: AcknowledgementMessage): Future[Any] = {
+    override def apply(
+      tid: TransactionId,
+      activationResult: WhiskActivation,
+      blockingInvoke: Boolean,
+      controllerInstance: ControllerInstanceId,
+      userId: UUID,
+      acknowledgement: AcknowledgementMessage): Future[Any] = {
       Future.successful({})
 
     }
@@ -152,7 +153,7 @@ class QueueManagerTests
       .revision[WhiskActionMetaData](action.rev)
   }
 
-  /**get WhiskActionMetaData*/
+  /** get WhiskActionMetaData */
   def getWhiskActionMetaData(meta: Future[WhiskActionMetaData]) = LoggedFunction {
     (_: ArtifactStore[WhiskEntity], _: DocId, _: DocRevision, _: Boolean, _: Boolean) =>
       meta
@@ -295,8 +296,8 @@ class QueueManagerTests
   it should "only do leader election for one time if there are more than one create queue requests incoming" in {
     val mockEtcdClient = mock[EtcdClient]
     val dataManagementService = getTestDataManagementService()
-    dataManagementService.ignoreMsg {
-      case _: UpdateDataOnChange => true
+    dataManagementService.ignoreMsg { case _: UpdateDataOnChange =>
+      true
     }
     val watcher = TestProbe()
 
@@ -349,7 +350,7 @@ class QueueManagerTests
 
         case _ =>
           TestActor.KeepRunning
-    })
+      })
     dataManagementService
   }
 
@@ -482,11 +483,12 @@ class QueueManagerTests
     val queueWatcher = TestProbe()
 
     val childFactory =
-      (_: ActorRefFactory,
-       _: String,
-       fqn: FullyQualifiedEntityName,
-       revision: DocRevision,
-       metadata: WhiskActionMetaData) => {
+      (
+        _: ActorRefFactory,
+        _: String,
+        fqn: FullyQualifiedEntityName,
+        revision: DocRevision,
+        metadata: WhiskActionMetaData) => {
         queueWatcher.ref ! (fqn, revision)
         probe.ref
       }
@@ -496,11 +498,12 @@ class QueueManagerTests
     val finalFqn = newFqn.copy(version = Some(SemVer(0, 0, 3)))
     val finalRevision = DocRevision("3-test-revision")
     // simulate the case that action is updated again while fetch it from database
-    def newGet(store: ArtifactStore[WhiskEntity],
-               docId: DocId,
-               docRevision: DocRevision,
-               fromCache: Boolean,
-               ignoreMissingAttachment: Boolean) = {
+    def newGet(
+      store: ArtifactStore[WhiskEntity],
+      docId: DocId,
+      docRevision: DocRevision,
+      fromCache: Boolean,
+      ignoreMissingAttachment: Boolean) = {
       if (docRevision == DocRevision.empty) {
         Future(convertToMetaData(action.copy(version = SemVer(0, 0, 3)).toWhiskAction.revision(finalRevision)))
       } else
@@ -671,8 +674,8 @@ class QueueManagerTests
   it should "retry to fetch queue data if etcd does not respond" in {
     val mockEtcdClient = stub[EtcdClient]
     val dataManagementService = getTestDataManagementService()
-    dataManagementService.ignoreMsg {
-      case _: UpdateDataOnChange => true
+    dataManagementService.ignoreMsg { case _: UpdateDataOnChange =>
+      true
     }
     val watcher = TestProbe()
 
@@ -702,8 +705,8 @@ class QueueManagerTests
   it should "retry to fetch queue data if there is no data in the response" in {
     val mockEtcdClient = stub[EtcdClient]
     val dataManagementService = getTestDataManagementService()
-    dataManagementService.ignoreMsg {
-      case _: UpdateDataOnChange => true
+    dataManagementService.ignoreMsg { case _: UpdateDataOnChange =>
+      true
     }
     val watcher = TestProbe()
 
@@ -736,8 +739,8 @@ class QueueManagerTests
 
     val mockEtcdClient = stub[EtcdClient]
     val dataManagementService = getTestDataManagementService()
-    dataManagementService.ignoreMsg {
-      case _: UpdateDataOnChange => true
+    dataManagementService.ignoreMsg { case _: UpdateDataOnChange =>
+      true
     }
     val watcher = TestProbe()
 
@@ -811,12 +814,13 @@ class QueueManagerTests
     val dataManagementService = getTestDataManagementService()
 
     val ack = new ActiveAck {
-      override def apply(tid: TransactionId,
-                         activationResult: WhiskActivation,
-                         blockingInvoke: Boolean,
-                         controllerInstance: ControllerInstanceId,
-                         userId: UUID,
-                         acknowledgement: AcknowledgementMessage): Future[Any] = {
+      override def apply(
+        tid: TransactionId,
+        activationResult: WhiskActivation,
+        blockingInvoke: Boolean,
+        controllerInstance: ControllerInstanceId,
+        userId: UUID,
+        acknowledgement: AcknowledgementMessage): Future[Any] = {
         Future.successful(probe.ref ! acknowledgement.isSystemError)
       }
     }
@@ -865,12 +869,13 @@ class QueueManagerTests
     val dataManagementService = getTestDataManagementService()
 
     val ack = new ActiveAck {
-      override def apply(tid: TransactionId,
-                         activationResult: WhiskActivation,
-                         blockingInvoke: Boolean,
-                         controllerInstance: ControllerInstanceId,
-                         userId: UUID,
-                         acknowledgement: AcknowledgementMessage): Future[Any] = {
+      override def apply(
+        tid: TransactionId,
+        activationResult: WhiskActivation,
+        blockingInvoke: Boolean,
+        controllerInstance: ControllerInstanceId,
+        userId: UUID,
+        acknowledgement: AcknowledgementMessage): Future[Any] = {
         Future.successful(probe.ref ! activationResult.activationId)
       }
     }
@@ -909,12 +914,13 @@ class QueueManagerTests
     val consumer = TestProbe()
     val dataManagementService = getTestDataManagementService()
     val ack = new ActiveAck {
-      override def apply(tid: TransactionId,
-                         activationResult: WhiskActivation,
-                         blockingInvoke: Boolean,
-                         controllerInstance: ControllerInstanceId,
-                         userId: UUID,
-                         acknowledgement: AcknowledgementMessage): Future[Any] = {
+      override def apply(
+        tid: TransactionId,
+        activationResult: WhiskActivation,
+        blockingInvoke: Boolean,
+        controllerInstance: ControllerInstanceId,
+        userId: UUID,
+        acknowledgement: AcknowledgementMessage): Future[Any] = {
         Future.successful(probe.ref ! activationResult.activationId)
       }
     }
@@ -1056,7 +1062,7 @@ class QueueManagerTests
 
         case _ =>
           TestActor.KeepRunning
-    })
+      })
 
     val fqn2 = FullyQualifiedEntityName(EntityPath("hello1"), EntityName("action1"))
     val fqn3 = FullyQualifiedEntityName(EntityPath("hello2"), EntityName("action2"))

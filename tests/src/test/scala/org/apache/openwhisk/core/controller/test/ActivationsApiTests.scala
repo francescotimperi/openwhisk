@@ -39,7 +39,6 @@ import org.apache.openwhisk.core.database.{ActivationStoreLevel, UserContext}
  * These tests exercise a fresh instance of the service object in memory -- these
  * tests do NOT communication with a whisk deployment.
  *
- *
  * @Idioglossia
  * "using Specification DSL to write unit tests, as in should, must, not, be"
  * "using Specs2RouteTest DSL to chain HTTP requests for unit testing, as in ~>"
@@ -231,14 +230,16 @@ class ActivationsApiTests extends ControllerTestCommon with WhiskActivationsApi 
         creds.subject,
         ActivationId.generate(),
         start = now.plusSeconds(20),
-        end = now.plusSeconds(20)), // should match
+        end = now.plusSeconds(20)
+      ), // should match
       WhiskActivation(
         namespace,
         actionName,
         creds.subject,
         ActivationId.generate(),
         start = now.plusSeconds(10),
-        end = now.plusSeconds(20)), // should match
+        end = now.plusSeconds(20)
+      ), // should match
       WhiskActivation(
         namespace,
         actionName,
@@ -252,7 +253,9 @@ class ActivationsApiTests extends ControllerTestCommon with WhiskActivationsApi 
         creds.subject,
         ActivationId.generate(),
         start = now.plusSeconds(30),
-        end = now.plusSeconds(30))) // should match
+        end = now.plusSeconds(30)
+      )
+    ) // should match
 
     try {
       (notExpectedActivations ++ activations).foreach(
@@ -830,12 +833,13 @@ class ActivationsApiTests extends ControllerTestCommon with WhiskActivationsApi 
     implicit val tid = transid()
 
     //A bad activation type which breaks the deserialization by removing the subject entry
-    class BadActivation(override val namespace: EntityPath,
-                        override val name: EntityName,
-                        override val subject: Subject,
-                        override val activationId: ActivationId,
-                        override val start: Instant,
-                        override val end: Instant)
+    class BadActivation(
+      override val namespace: EntityPath,
+      override val name: EntityName,
+      override val subject: Subject,
+      override val activationId: ActivationId,
+      override val start: Instant,
+      override val end: Instant)
         extends WhiskActivation(namespace, name, subject, activationId, start, end) {
       override def toJson = {
         val json = super.toJson

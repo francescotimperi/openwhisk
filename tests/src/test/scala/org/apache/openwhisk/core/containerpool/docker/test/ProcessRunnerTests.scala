@@ -40,8 +40,9 @@ class ProcessRunnerTests extends FlatSpec with Matchers with WskActorSystem {
   def await[A](f: Future[A], timeout: FiniteDuration = 2.seconds) = Await.result(f, timeout)
 
   val processRunner = new ProcessRunner {
-    def run(args: Seq[String], timeout: FiniteDuration = 100.milliseconds)(implicit ec: ExecutionContext,
-                                                                           as: ActorSystem) =
+    def run(args: Seq[String], timeout: FiniteDuration = 100.milliseconds)(implicit
+      ec: ExecutionContext,
+      as: ActorSystem) =
       executeProcess(args, timeout)(ec, as)
   }
 
@@ -91,9 +92,8 @@ class ProcessRunnerTests extends FlatSpec with Matchers with WskActorSystem {
       (137, "terminated by signal SIGKILL"),
       (142, "terminated by signal SIGALRM"),
       (143, "terminated by signal SIGTERM"),
-      (144, "terminated by signal 16")).foreach {
-      case (statusValue, detailText) =>
-        ExitStatus(statusValue).toString shouldBe s"$statusValue ($detailText)"
+      (144, "terminated by signal 16")).foreach { case (statusValue, detailText) =>
+      ExitStatus(statusValue).toString shouldBe s"$statusValue ($detailText)"
     }
   }
 

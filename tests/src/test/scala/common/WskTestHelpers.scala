@@ -94,15 +94,16 @@ object ActivationResponse extends DefaultJsonProtocol {
  * @param cause String to save the cause of failure if the activation fails
  * @param annotations a list of JSON objects to save the annotations of the activation
  */
-case class ActivationResult(activationId: String,
-                            namespace: String,
-                            logs: Option[List[String]],
-                            response: ActivationResponse,
-                            start: Instant,
-                            end: Instant,
-                            duration: Long,
-                            cause: Option[String],
-                            annotations: Option[List[JsObject]]) {
+case class ActivationResult(
+  activationId: String,
+  namespace: String,
+  logs: Option[List[String]],
+  response: ActivationResponse,
+  start: Instant,
+  end: Instant,
+  duration: Long,
+  cause: Option[String],
+  annotations: Option[List[JsObject]]) {
 
   def getAnnotationValue(key: String): Option[JsValue] =
     annotations
@@ -174,7 +175,6 @@ trait WskTestHelpers extends Matchers {
    * Helper to register an entity to delete once a test completes.
    * The helper sanitizes (deletes) a previous instance of the entity if it exists
    * in given collection.
-   *
    */
   class AssetCleaner(assetsToDeleteAfterTest: Assets, wskprops: WskProps) {
     def withCleaner[T <: DeleteFromCollectionOperations](cli: T, name: String, confirmDelete: Boolean = true)(
@@ -206,24 +206,26 @@ trait WskTestHelpers extends Matchers {
         throw t
     } finally {
       // delete assets in reverse order so that was created last is deleted first
-      val deletedAll = assetsToDeleteAfterTest.reverse map {
-        case (cli, n, delete) =>
-          n -> Try {
-            cli match {
-              case _: PackageOperations if delete =>
-                // sanitize ignores the exit code, so we can inspect the actual result and retry accordingly
-                val rr = cli.sanitize(n)(wskprops)
-                rr.exitCode match {
-                  case CONFLICT | StatusCodes.Conflict.intValue =>
-                    org.apache.openwhisk.utils.retry({
+      val deletedAll = assetsToDeleteAfterTest.reverse map { case (cli, n, delete) =>
+        n -> Try {
+          cli match {
+            case _: PackageOperations if delete =>
+              // sanitize ignores the exit code, so we can inspect the actual result and retry accordingly
+              val rr = cli.sanitize(n)(wskprops)
+              rr.exitCode match {
+                case CONFLICT | StatusCodes.Conflict.intValue =>
+                  org.apache.openwhisk.utils.retry(
+                    {
                       println("package deletion conflict, view computation delay likely, retrying...")
                       cli.delete(n)(wskprops)
-                    }, 5, Some(1.second))
-                  case _ => rr
-                }
-              case _ => if (delete) cli.delete(n)(wskprops) else cli.sanitize(n)(wskprops)
-            }
+                    },
+                    5,
+                    Some(1.second))
+                case _ => rr
+              }
+            case _ => if (delete) cli.delete(n)(wskprops) else cli.sanitize(n)(wskprops)
           }
+        }
       } forall {
         case (n, Failure(t)) =>
           println(s"ERROR: deleting asset failed for $n: $t")
@@ -259,11 +261,12 @@ trait WskTestHelpers extends Matchers {
    * Polls activations until one matching id is found. If found, pass
    * the activation to the post processor which then check for expected values.
    */
-  def withActivation(wsk: ActivationOperations,
-                     activationId: String,
-                     initialWait: Duration,
-                     pollPeriod: Duration,
-                     totalWait: Duration)(check: ActivationResult => Unit)(implicit wskprops: WskProps): Unit = {
+  def withActivation(
+    wsk: ActivationOperations,
+    activationId: String,
+    initialWait: Duration,
+    pollPeriod: Duration,
+    totalWait: Duration)(check: ActivationResult => Unit)(implicit wskprops: WskProps): Unit = {
     val id = activationId
     val activation = wsk.waitForActivation(id, initialWait, pollPeriod, totalWait)
 
@@ -275,8 +278,8 @@ trait WskTestHelpers extends Matchers {
         }
     }
   }
-  def withActivation(wsk: ActivationOperations, activationId: String)(check: ActivationResult => Unit)(
-    implicit wskprops: WskProps): Unit = {
+  def withActivation(wsk: ActivationOperations, activationId: String)(check: ActivationResult => Unit)(implicit
+    wskprops: WskProps): Unit = {
     withActivation(wsk, activationId, 1.second, 1.second, 120.seconds)(check)
   }
 

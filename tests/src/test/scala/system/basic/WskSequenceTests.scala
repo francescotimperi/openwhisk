@@ -123,15 +123,13 @@ class WskSequenceTests extends TestHelpers with WskTestHelpers with StreamLoggin
     // create inner sequence
     assetHelper.withCleaner(wsk.action, inner_name) {
       val inner_sequence = inner_actions.mkString(",")
-      (action, _) =>
-        action.create(inner_name, Some(inner_sequence), kind = Some("sequence"))
+      (action, _) => action.create(inner_name, Some(inner_sequence), kind = Some("sequence"))
     }
 
     // create outer sequence
     assetHelper.withCleaner(wsk.action, outer_name) {
       val outer_sequence = Seq("split", "inner_sequence", "cat").mkString(",")
-      (action, _) =>
-        action.create(outer_name, Some(outer_sequence), kind = Some("sequence"))
+      (action, _) => action.create(outer_name, Some(outer_sequence), kind = Some("sequence"))
     }
 
     val now = "it is now " + new Date()
@@ -501,44 +499,44 @@ class WskSequenceTests extends TestHelpers with WskTestHelpers with StreamLoggin
     checkEchoSeqRuleResult(newRun, seqName, JsObject(newPayload))
   }
 
-  it should "run a sub-action even if it is updated while the sequence action is running" in withAssetCleaner(wskprops) {
-    (wp, assetHelper) =>
-      val seqName = "sequence"
-      val sleep = "sleep"
-      val echo = "echo"
-      val slowInvokeDuration = 5.seconds
+  it should "run a sub-action even if it is updated while the sequence action is running" in withAssetCleaner(
+    wskprops) { (wp, assetHelper) =>
+    val seqName = "sequence"
+    val sleep = "sleep"
+    val echo = "echo"
+    val slowInvokeDuration = 5.seconds
 
-      // create echo action
-      val echoFile = TestUtils.getTestActionFilename(s"$echo.js")
-      assetHelper.withCleaner(wsk.action, echo) { (action, actionName) =>
-        action.create(name = actionName, artifact = Some(echoFile), timeout = Some(allowedActionDuration))
-      }
-      // create sleep action
-      val sleepFile = TestUtils.getTestActionFilename(s"$sleep.js")
-      assetHelper.withCleaner(wsk.action, sleep) { (action, actionName) =>
-        action.create(
-          name = sleep,
-          artifact = Some(sleepFile),
-          parameters = Map("sleepTimeInMs" -> slowInvokeDuration.toMillis.toJson),
-          timeout = Some(allowedActionDuration))
-      }
+    // create echo action
+    val echoFile = TestUtils.getTestActionFilename(s"$echo.js")
+    assetHelper.withCleaner(wsk.action, echo) { (action, actionName) =>
+      action.create(name = actionName, artifact = Some(echoFile), timeout = Some(allowedActionDuration))
+    }
+    // create sleep action
+    val sleepFile = TestUtils.getTestActionFilename(s"$sleep.js")
+    assetHelper.withCleaner(wsk.action, sleep) { (action, actionName) =>
+      action.create(
+        name = sleep,
+        artifact = Some(sleepFile),
+        parameters = Map("sleepTimeInMs" -> slowInvokeDuration.toMillis.toJson),
+        timeout = Some(allowedActionDuration))
+    }
 
-      // create sequence
-      assetHelper.withCleaner(wsk.action, seqName) { (action, seqName) =>
-        action.create(seqName, Some(s"$sleep,$echo"), kind = Some("sequence"))
-      }
-      val run = wsk.action.invoke(seqName)
+    // create sequence
+    assetHelper.withCleaner(wsk.action, seqName) { (action, seqName) =>
+      action.create(seqName, Some(s"$sleep,$echo"), kind = Some("sequence"))
+    }
+    val run = wsk.action.invoke(seqName)
 
-      // update the sub-action before the sequence action invokes it
-      wsk.action.create(name = echo, artifact = None, annotations = Map("a" -> JsString("A")), update = true)
-      wsk.action.invoke(echo)
+    // update the sub-action before the sequence action invokes it
+    wsk.action.create(name = echo, artifact = None, annotations = Map("a" -> JsString("A")), update = true)
+    wsk.action.invoke(echo)
 
-      wsk.action.create(name = echo, artifact = None, annotations = Map("b" -> JsString("B")), update = true)
-      wsk.action.invoke(echo)
+    wsk.action.create(name = echo, artifact = None, annotations = Map("b" -> JsString("B")), update = true)
+    wsk.action.invoke(echo)
 
-      withActivation(wsk.activation, run, totalWait = 2 * allowedActionDuration) { activation =>
-        activation.response.status shouldBe "success"
-      }
+    withActivation(wsk.activation, run, totalWait = 2 * allowedActionDuration) { activation =>
+      activation.response.status shouldBe "success"
+    }
   }
 
   it should "invoke a sequence which supports array result" in withAssetCleaner(wskprops) { (wp, assetHelper) =>
@@ -553,8 +551,7 @@ class WskSequenceTests extends TestHelpers with WskTestHelpers with StreamLoggin
 
     assetHelper.withCleaner(wsk.action, name) {
       val sequence = actions.mkString(",")
-      (action, _) =>
-        action.create(name, Some(sequence), kind = Some("sequence"), timeout = Some(allowedActionDuration))
+      (action, _) => action.create(name, Some(sequence), kind = Some("sequence"), timeout = Some(allowedActionDuration))
     }
 
     val args = Array("bbb", "aaa", "ccc")

@@ -48,8 +48,8 @@ class SchedulerTests extends FlatSpec with Matchers with WskActorSystem with Str
    * @return duration between each element of the given sequence
    */
   def calculateDifferences(times: Seq[Instant]) = {
-    times sliding (2) map {
-      case Seq(a, b) => Duration.fromNanos(java.time.Duration.between(a, b).toNanos)
+    times sliding (2) map { case Seq(a, b) =>
+      Duration.fromNanos(java.time.Duration.between(a, b).toNanos)
     } toList
   }
 

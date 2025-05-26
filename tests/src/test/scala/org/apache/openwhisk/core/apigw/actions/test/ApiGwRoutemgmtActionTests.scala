@@ -52,38 +52,39 @@ abstract class ApiGwRoutemgmtActionTests
   implicit val wskprops = WskProps(authKey = WskAdmin.listKeys(systemId)(0)._1, namespace = systemId)
   val wsk: WskOperations
 
-  def getApis(bpOrName: Option[String],
-              relpath: Option[String] = None,
-              operation: Option[String] = None,
-              docid: Option[String] = None,
-              accesstoken: Option[String] = Some("AnAccessToken"),
-              spaceguid: Option[String] = Some("ASpaceGuid")): Vector[JsValue] = {
+  def getApis(
+    bpOrName: Option[String],
+    relpath: Option[String] = None,
+    operation: Option[String] = None,
+    docid: Option[String] = None,
+    accesstoken: Option[String] = Some("AnAccessToken"),
+    spaceguid: Option[String] = Some("ASpaceGuid")): Vector[JsValue] = {
     val parms = Map[String, JsValue]() ++
       Map("__ow_user" -> wskprops.namespace.toJson) ++ {
-      bpOrName map { b =>
-        Map("basepath" -> b.toJson)
-      } getOrElse Map[String, JsValue]()
-    } ++ {
-      relpath map { r =>
-        Map("relpath" -> r.toJson)
-      } getOrElse Map[String, JsValue]()
-    } ++ {
-      operation map { o =>
-        Map("operation" -> o.toJson)
-      } getOrElse Map[String, JsValue]()
-    } ++ {
-      docid map { d =>
-        Map("docid" -> d.toJson)
-      } getOrElse Map[String, JsValue]()
-    } ++ {
-      accesstoken map { t =>
-        Map("accesstoken" -> t.toJson)
-      } getOrElse Map[String, JsValue]()
-    } ++ {
-      spaceguid map { s =>
-        Map("spaceguid" -> s.toJson)
-      } getOrElse Map[String, JsValue]()
-    }
+        bpOrName map { b =>
+          Map("basepath" -> b.toJson)
+        } getOrElse Map[String, JsValue]()
+      } ++ {
+        relpath map { r =>
+          Map("relpath" -> r.toJson)
+        } getOrElse Map[String, JsValue]()
+      } ++ {
+        operation map { o =>
+          Map("operation" -> o.toJson)
+        } getOrElse Map[String, JsValue]()
+      } ++ {
+        docid map { d =>
+          Map("docid" -> d.toJson)
+        } getOrElse Map[String, JsValue]()
+      } ++ {
+        accesstoken map { t =>
+          Map("accesstoken" -> t.toJson)
+        } getOrElse Map[String, JsValue]()
+      } ++ {
+        spaceguid map { s =>
+          Map("spaceguid" -> s.toJson)
+        } getOrElse Map[String, JsValue]()
+      }
 
     val rr = wsk.action.invoke(
       name = "apimgmt/getApi",
@@ -102,16 +103,17 @@ abstract class ApiGwRoutemgmtActionTests
     apiJsArray.elements
   }
 
-  def createApi(namespace: Option[String] = Some("_"),
-                basepath: Option[String] = Some("/"),
-                relpath: Option[String],
-                operation: Option[String],
-                apiname: Option[String],
-                action: Option[ApiAction],
-                swagger: Option[String] = None,
-                accesstoken: Option[String] = Some("AnAccessToken"),
-                spaceguid: Option[String] = Some("ASpaceGuid"),
-                expectedExitCode: Int = SUCCESS_EXIT): RunResult = {
+  def createApi(
+    namespace: Option[String] = Some("_"),
+    basepath: Option[String] = Some("/"),
+    relpath: Option[String],
+    operation: Option[String],
+    apiname: Option[String],
+    action: Option[ApiAction],
+    swagger: Option[String] = None,
+    accesstoken: Option[String] = Some("AnAccessToken"),
+    spaceguid: Option[String] = Some("ASpaceGuid"),
+    expectedExitCode: Int = SUCCESS_EXIT): RunResult = {
     val parms = Map[String, JsValue]() ++ {
       namespace map { n =>
         Map("namespace" -> n.toJson)
@@ -163,14 +165,15 @@ abstract class ApiGwRoutemgmtActionTests
       expectedExitCode = expectedExitCode)(wskprops)
   }
 
-  def deleteApi(namespace: Option[String] = Some("_"),
-                basepath: Option[String] = Some("/"),
-                relpath: Option[String] = None,
-                operation: Option[String] = None,
-                apiname: Option[String] = None,
-                accesstoken: Option[String] = Some("AnAccessToken"),
-                spaceguid: Option[String] = Some("ASpaceGuid"),
-                expectedExitCode: Int = SUCCESS_EXIT): RunResult = {
+  def deleteApi(
+    namespace: Option[String] = Some("_"),
+    basepath: Option[String] = Some("/"),
+    relpath: Option[String] = None,
+    operation: Option[String] = None,
+    apiname: Option[String] = None,
+    accesstoken: Option[String] = Some("AnAccessToken"),
+    spaceguid: Option[String] = Some("ASpaceGuid"),
+    expectedExitCode: Int = SUCCESS_EXIT): RunResult = {
     val parms = Map[String, JsValue]() ++ {
       namespace map { n =>
         Map("__ow_user" -> n.toJson)
@@ -209,12 +212,13 @@ abstract class ApiGwRoutemgmtActionTests
       expectedExitCode = expectedExitCode)(wskprops)
   }
 
-  def apiMatch(apiarr: Vector[JsValue],
-               basepath: String = "/",
-               relpath: String = "",
-               operation: String = "",
-               apiname: String = "",
-               action: ApiAction = null): Boolean = {
+  def apiMatch(
+    apiarr: Vector[JsValue],
+    basepath: String = "/",
+    relpath: String = "",
+    operation: String = "",
+    apiname: String = "",
+    action: ApiAction = null): Boolean = {
     var matches: Boolean = false
     for (api <- apiarr) {
       val basepathExists = JsObjectHelper(api.asJsObject).fieldPathExists("value", "apidoc", "basePath")

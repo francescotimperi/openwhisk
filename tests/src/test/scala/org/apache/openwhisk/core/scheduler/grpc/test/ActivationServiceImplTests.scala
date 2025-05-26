@@ -91,10 +91,9 @@ class ActivationServiceImplTests
   it should "delegate the FetchRequest to a MemoryQueue" in {
 
     val mock = system.actorOf(Props(new Actor() {
-      override def receive: Receive = {
-        case getActivation: GetActivation =>
-          testActor ! getActivation
-          sender() ! ActivationResponse(Right(message))
+      override def receive: Receive = { case getActivation: GetActivation =>
+        testActor ! getActivation
+        sender() ! ActivationResponse(Right(message))
       }
     }))
 

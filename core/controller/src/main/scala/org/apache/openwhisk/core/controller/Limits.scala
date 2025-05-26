@@ -42,8 +42,8 @@ trait WhiskLimitsApi extends Directives with AuthenticatedRouteProvider with Aut
   import RestApiCommons.jsonDefaultResponsePrinter
 
   /** Dispatches resource to the proper handler depending on context. */
-  protected override def dispatchOp(user: Identity, op: Privilege, resource: Resource)(
-    implicit transid: TransactionId) = {
+  protected override def dispatchOp(user: Identity, op: Privilege, resource: Resource)(implicit
+    transid: TransactionId) = {
 
     resource.entity match {
       case Some(_) =>
@@ -65,7 +65,8 @@ trait WhiskLimitsApi extends Directives with AuthenticatedRouteProvider with Aut
               maxActionConcurrency = Some(IntraConcurrencyLimit(user.limits.allowedMaxActionConcurrency)),
               minActionConcurrency = Some(IntraConcurrencyLimit(user.limits.allowedMinActionConcurrency)),
               maxParameterSize = Some(user.limits.allowedMaxParameterSize),
-              maxActionInstances = Some(user.limits.concurrentInvocations.getOrElse(concurrentInvocationsSystemDefault)))
+              maxActionInstances =
+                Some(user.limits.concurrentInvocations.getOrElse(concurrentInvocationsSystemDefault)))
             pathEndOrSingleSlash { complete(OK, limits) }
           case _ => reject //should never get here
         }

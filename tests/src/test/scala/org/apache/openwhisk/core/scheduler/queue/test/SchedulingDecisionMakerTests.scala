@@ -488,7 +488,10 @@ class SchedulingDecisionMakerTests
 
     val msg = QueueSnapshot(
       initialized = true,
-      incomingMsgCount = new AtomicInteger(0), // it should add a container even if there is no message this is because all messages are dropped in the Paused state
+      incomingMsgCount =
+        new AtomicInteger(
+          0
+        ), // it should add a container even if there is no message this is because all messages are dropped in the Paused state
       currentMsgCount = 0,
       existingContainerCount = 0,
       inProgressContainerCount = 0,
@@ -513,7 +516,10 @@ class SchedulingDecisionMakerTests
 
     val msg = QueueSnapshot(
       initialized = true,
-      incomingMsgCount = new AtomicInteger(0), // it should add a container even if there is no message this is because all messages are dropped in the Waiting state
+      incomingMsgCount =
+        new AtomicInteger(
+          0
+        ), // it should add a container even if there is no message this is because all messages are dropped in the Waiting state
       currentMsgCount = 0,
       existingContainerCount = 0,
       inProgressContainerCount = 0,

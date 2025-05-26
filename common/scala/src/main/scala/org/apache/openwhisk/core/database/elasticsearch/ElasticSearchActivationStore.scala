@@ -52,11 +52,12 @@ import scala.concurrent.{ExecutionContextExecutor, Future, Promise}
 import scala.language.postfixOps
 import scala.util.Try
 
-case class ElasticSearchActivationStoreConfig(protocol: String,
-                                              hosts: String,
-                                              indexPattern: String,
-                                              username: String,
-                                              password: String)
+case class ElasticSearchActivationStoreConfig(
+  protocol: String,
+  hosts: String,
+  indexPattern: String,
+  username: String,
+  password: String)
 
 class ElasticSearchActivationStore(
   httpFlow: Option[Flow[(HttpRequest, Promise[HttpResponse]), (Try[HttpResponse], Promise[HttpResponse]), Any]] = None,
@@ -85,8 +86,8 @@ class ElasticSearchActivationStore(
   private val minStart = 0L
   private val maxStart = Instant.now.toEpochMilli + TimeUnit.DAYS.toMillis(365 * 100) //100 years from now
 
-  override def store(activation: WhiskActivation, context: UserContext)(
-    implicit transid: TransactionId,
+  override def store(activation: WhiskActivation, context: UserContext)(implicit
+    transid: TransactionId,
     notifier: Option[CacheChangeNotification]): Future[DocInfo] = {
 
     val start =
@@ -136,8 +137,8 @@ class ElasticSearchActivationStore(
     res
   }
 
-  private def doStore(ops: Seq[IndexRequest], retry: Int)(
-    implicit transid: TransactionId): Future[Seq[Either[ArtifactStoreException, DocInfo]]] = {
+  private def doStore(ops: Seq[IndexRequest], retry: Int)(implicit
+    transid: TransactionId): Future[Seq[Either[ArtifactStoreException, DocInfo]]] = {
     val count = ops.size
     val start = transid.started(this, LoggingMarkers.DATABASE_BULK_SAVE, s"'activations' saving $count documents")
     val res = client
@@ -190,8 +191,8 @@ class ElasticSearchActivationStore(
     }
   }
 
-  override def get(activationId: ActivationId, context: UserContext)(
-    implicit transid: TransactionId): Future[WhiskActivation] = {
+  override def get(activationId: ActivationId, context: UserContext)(implicit
+    transid: TransactionId): Future[WhiskActivation] = {
 
     val start =
       transid.started(this, LoggingMarkers.DATABASE_GET, s"[GET] 'activations' finding activation: '$activationId'")
@@ -221,11 +222,10 @@ class ElasticSearchActivationStore(
               s"[GET] 'activations' failed to get document: '$activationId'; http status: '${res.status}'")
           throw GetException("Unexpected http response code: " + res.status)
         }
-      } recoverWith {
-      case _: DeserializationException =>
-        transid
-          .finished(this, start, s"[GET] 'activations' failed to get document: '$activationId'; failed to deserialize")
-        throw DocumentUnreadable(Messages.corruptedEntity)
+      } recoverWith { case _: DeserializationException =>
+      transid
+        .finished(this, start, s"[GET] 'activations' failed to get document: '$activationId'; failed to deserialize")
+      throw DocumentUnreadable(Messages.corruptedEntity)
     }
 
     reportFailure(
@@ -234,8 +234,8 @@ class ElasticSearchActivationStore(
       failure => s"[GET] 'activations' internal error, doc: '$activationId', failure: '${failure.getMessage}'")
   }
 
-  override def delete(activationId: ActivationId, context: UserContext)(
-    implicit transid: TransactionId,
+  override def delete(activationId: ActivationId, context: UserContext)(implicit
+    transid: TransactionId,
     notifier: Option[CacheChangeNotification]): Future[Boolean] = {
 
     val start =
@@ -279,12 +279,13 @@ class ElasticSearchActivationStore(
       failure => s"[DEL] 'activations' internal error, doc: '$activationId', failure: '${failure.getMessage}'")
   }
 
-  override def countActivationsInNamespace(namespace: EntityPath,
-                                           name: Option[EntityPath] = None,
-                                           skip: Int,
-                                           since: Option[Instant] = None,
-                                           upto: Option[Instant] = None,
-                                           context: UserContext)(implicit transid: TransactionId): Future[JsObject] = {
+  override def countActivationsInNamespace(
+    namespace: EntityPath,
+    name: Option[EntityPath] = None,
+    skip: Int,
+    since: Option[Instant] = None,
+    upto: Option[Instant] = None,
+    context: UserContext)(implicit transid: TransactionId): Future[JsObject] = {
     require(skip >= 0, "skip should be non negative")
     val start = transid.started(this, LoggingMarkers.DATABASE_QUERY, s"[COUNT] 'activations'")
 

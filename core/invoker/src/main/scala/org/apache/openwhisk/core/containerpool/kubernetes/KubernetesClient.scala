@@ -108,15 +108,16 @@ case class KubernetesInvokerNodeAffinity(enabled: Boolean, key: String, value: S
 /**
  * General configuration for kubernetes client
  */
-case class KubernetesClientConfig(timeouts: KubernetesClientTimeoutConfig,
-                                  userPodNodeAffinity: KubernetesInvokerNodeAffinity,
-                                  portForwardingEnabled: Boolean,
-                                  actionNamespace: Option[String],
-                                  podTemplate: Option[ConfigMapValue],
-                                  cpuScaling: Option[KubernetesCpuScalingConfig],
-                                  pdbEnabled: Boolean,
-                                  fieldRefEnvironment: Option[Map[String, String]],
-                                  ephemeralStorage: Option[KubernetesEphemeralStorageConfig])
+case class KubernetesClientConfig(
+  timeouts: KubernetesClientTimeoutConfig,
+  userPodNodeAffinity: KubernetesInvokerNodeAffinity,
+  portForwardingEnabled: Boolean,
+  actionNamespace: Option[String],
+  podTemplate: Option[ConfigMapValue],
+  cpuScaling: Option[KubernetesCpuScalingConfig],
+  pdbEnabled: Boolean,
+  fieldRefEnvironment: Option[Map[String, String]],
+  ephemeralStorage: Option[KubernetesEphemeralStorageConfig])
 
 /**
  * Serves as an interface to the Kubernetes API by proxying its REST API and/or invoking the kubectl CLI.
@@ -128,8 +129,9 @@ case class KubernetesClientConfig(timeouts: KubernetesClientTimeoutConfig,
  */
 class KubernetesClient(
   config: KubernetesClientConfig = loadConfigOrThrow[KubernetesClientConfig](ConfigKeys.kubernetes),
-  testClient: Option[DefaultKubernetesClient] = None)(executionContext: ExecutionContext)(implicit log: Logging,
-                                                                                          as: ActorSystem)
+  testClient: Option[DefaultKubernetesClient] = None)(executionContext: ExecutionContext)(implicit
+  log: Logging,
+  as: ActorSystem)
     extends KubernetesApi
     with ProcessRunner {
   implicit protected val ec = executionContext
@@ -146,11 +148,12 @@ class KubernetesClient(
 
   private val podBuilder = new WhiskPodBuilder(kubeRestClient, config)
 
-  def run(name: String,
-          image: String,
-          memory: ByteSize = 256.MB,
-          environment: Map[String, String] = Map.empty,
-          labels: Map[String, String] = Map.empty)(implicit transid: TransactionId): Future[KubernetesContainer] = {
+  def run(
+    name: String,
+    image: String,
+    memory: ByteSize = 256.MB,
+    environment: Map[String, String] = Map.empty,
+    labels: Map[String, String] = Map.empty)(implicit transid: TransactionId): Future[KubernetesContainer] = {
 
     val (pod, pdb) = podBuilder.buildPodSpec(name, image, memory, environment, labels, config)
     if (transid.meta.extraLogging) {
@@ -166,12 +169,11 @@ class KubernetesClient(
     //create the pod; catch any failure to end the transaction timer
     Try {
       val created = kubeRestClient.pods.inNamespace(namespace).create(pod)
-      pdb.map(
-        p =>
-          kubeRestClient.policy.podDisruptionBudget
-            .inNamespace(namespace)
-            .withName(name)
-            .create(p))
+      pdb.map(p =>
+        kubeRestClient.policy.podDisruptionBudget
+          .inNamespace(namespace)
+          .withName(name)
+          .create(p))
       created
     } match {
       case Failure(e) =>
@@ -190,28 +192,25 @@ class KubernetesClient(
             transid.finished(this, start, logLevel = InfoLevel)
             toContainer(readyPod)
           }
-          .recoverWith {
-            case e =>
-              transid.failed(this, start, s"Failed create pod for '$name': ${e.getClass} - ${e.getMessage}", ErrorLevel)
-              //log pod events to diagnose pod readiness failures
-              val podEvents = kubeRestClient
-                .v1()
-                .events()
-                .inNamespace(namespace)
-                .withField("involvedObject.name", name)
-                .list()
-                .getItems
-                .asScala
-              if (podEvents.isEmpty) {
-                log.info(this, s"No pod events for failed pod '$name'")
-              } else {
-                podEvents.foreach { podEvent =>
-                  log.info(
-                    this,
-                    s"Pod event for failed pod '$name' ${podEvent.getLastTimestamp}: ${podEvent.getMessage}")
-                }
+          .recoverWith { case e =>
+            transid.failed(this, start, s"Failed create pod for '$name': ${e.getClass} - ${e.getMessage}", ErrorLevel)
+            //log pod events to diagnose pod readiness failures
+            val podEvents = kubeRestClient
+              .v1()
+              .events()
+              .inNamespace(namespace)
+              .withField("involvedObject.name", name)
+              .list()
+              .getItems
+              .asScala
+            if (podEvents.isEmpty) {
+              log.info(this, s"No pod events for failed pod '$name'")
+            } else {
+              podEvents.foreach { podEvent =>
+                log.info(this, s"Pod event for failed pod '$name' ${podEvent.getLastTimestamp}: ${podEvent.getMessage}")
               }
-              Future.failed(e)
+            }
+            Future.failed(e)
           }
       }
     }
@@ -225,8 +224,8 @@ class KubernetesClient(
     deleteByName(podName)
   }
 
-  def rm(labels: Map[String, String], ensureUnpaused: Boolean = false)(
-    implicit transid: TransactionId): Future[Unit] = {
+  def rm(labels: Map[String, String], ensureUnpaused: Boolean = false)(implicit
+    transid: TransactionId): Future[Unit] = {
     val start = transid.started(
       this,
       LoggingMarkers.INVOKER_KUBEAPI_CMD("delete"),
@@ -247,13 +246,12 @@ class KubernetesClient(
         }
       }
     }.map(_ => transid.finished(this, start, logLevel = InfoLevel))
-      .recover {
-        case e =>
-          transid.failed(
-            this,
-            start,
-            s"Failed delete pods with label $labels: ${e.getClass} - ${e.getMessage}",
-            ErrorLevel)
+      .recover { case e =>
+        transid.failed(
+          this,
+          start,
+          s"Failed delete pods with label $labels: ${e.getClass} - ${e.getMessage}",
+          ErrorLevel)
       }
   }
 
@@ -278,13 +276,8 @@ class KubernetesClient(
         }
       }
     }.map(_ => transid.finished(this, start, logLevel = InfoLevel))
-      .recover {
-        case e =>
-          transid.failed(
-            this,
-            start,
-            s"Failed delete pod for '${podName}': ${e.getClass} - ${e.getMessage}",
-            ErrorLevel)
+      .recover { case e =>
+        transid.failed(this, start, s"Failed delete pod for '${podName}': ${e.getClass} - ${e.getMessage}", ErrorLevel)
       }
   }
 
@@ -294,10 +287,10 @@ class KubernetesClient(
   // resume is a no-op with the basic KubernetesClient
   def resume(container: KubernetesContainer)(implicit transid: TransactionId): Future[Unit] = Future.successful({})
 
-  def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean = false)(
-    implicit transid: TransactionId): Source[TypedLogLine, Any] = {
+  def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean = false)(implicit
+    transid: TransactionId): Source[TypedLogLine, Any] = {
 
-    log.debug(this, "Parsing logs from Kubernetes Graph Stage…")
+    log.debug(this, "Parsing logs from Kubernetes Graph Stage???")
 
     Source
       .fromGraph(new KubernetesRestLogSourceStage(container.id, sinceTime, waitForSentinel))
@@ -324,11 +317,12 @@ class KubernetesClient(
   }
 
   // check for ready status every 1 second until timeout (minus the start time, which is the time for the pod create call) has past
-  private def waitForPod(namespace: String,
-                         pod: Pod,
-                         start: Instant,
-                         timeout: FiniteDuration,
-                         deadlineOpt: Option[Deadline] = None): Future[Pod] = {
+  private def waitForPod(
+    namespace: String,
+    pod: Pod,
+    start: Instant,
+    timeout: FiniteDuration,
+    deadlineOpt: Option[Deadline] = None): Future[Pod] = {
     val readyPod = kubeRestClient
       .pods()
       .inNamespace(namespace)
@@ -401,11 +395,12 @@ object KubernetesClient {
 
 trait KubernetesApi {
 
-  def run(name: String,
-          image: String,
-          memory: ByteSize,
-          environment: Map[String, String] = Map.empty,
-          labels: Map[String, String] = Map.empty)(implicit transid: TransactionId): Future[KubernetesContainer]
+  def run(
+    name: String,
+    image: String,
+    memory: ByteSize,
+    environment: Map[String, String] = Map.empty,
+    labels: Map[String, String] = Map.empty)(implicit transid: TransactionId): Future[KubernetesContainer]
 
   def rm(container: KubernetesContainer)(implicit transid: TransactionId): Future[Unit]
   def rm(podName: String)(implicit transid: TransactionId): Future[Unit]
@@ -415,8 +410,8 @@ trait KubernetesApi {
 
   def resume(container: KubernetesContainer)(implicit transid: TransactionId): Future[Unit]
 
-  def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean = false)(
-    implicit transid: TransactionId): Source[TypedLogLine, Any]
+  def logs(container: KubernetesContainer, sinceTime: Option[Instant], waitForSentinel: Boolean = false)(implicit
+    transid: TransactionId): Source[TypedLogLine, Any]
 
   def addLabel(container: KubernetesContainer, labels: Map[String, String]): Future[Unit]
 }
@@ -446,9 +441,10 @@ object KubernetesRestLogSourceStage {
   }
 
   @tailrec
-  def readLines(src: BufferedSource,
-                lastTimestamp: Option[Instant],
-                lines: Queue[TypedLogLine] = Queue.empty[TypedLogLine]): Queue[TypedLogLine] = {
+  def readLines(
+    src: BufferedSource,
+    lastTimestamp: Option[Instant],
+    lines: Queue[TypedLogLine] = Queue.empty[TypedLogLine]): Queue[TypedLogLine] = {
     if (!src.exhausted()) {
       (for {
         line <- Option(src.readUtf8Line()) if !line.isEmpty
@@ -457,7 +453,8 @@ object KubernetesRestLogSourceStage {
         rawTimestamp = line.substring(0, timestampDelimiter)
         timestamp <- parseK8STimestamp(rawTimestamp).toOption if isRelevantLogLine(lastTimestamp, timestamp)
         msg = line.substring(timestampDelimiter + 1)
-        stream = "stdout" // TODO - when we can distinguish stderr: https://github.com/kubernetes/kubernetes/issues/28167
+        stream =
+          "stdout" // TODO - when we can distinguish stderr: https://github.com/kubernetes/kubernetes/issues/28167
       } yield {
         TypedLogLine(timestamp, stream, msg)
       }) match {
@@ -483,8 +480,8 @@ object KubernetesRestLogSourceStage {
 
 }
 
-final class KubernetesRestLogSourceStage(id: ContainerId, sinceTime: Option[Instant], waitForSentinel: Boolean)(
-  implicit val kubeRestClient: DefaultKubernetesClient)
+final class KubernetesRestLogSourceStage(id: ContainerId, sinceTime: Option[Instant], waitForSentinel: Boolean)(implicit
+  val kubeRestClient: DefaultKubernetesClient)
     extends GraphStage[SourceShape[TypedLogLine]] { stage =>
 
   import KubernetesRestLogSourceStage._
@@ -497,7 +494,6 @@ final class KubernetesRestLogSourceStage(id: ContainerId, sinceTime: Option[Inst
 
   override def createLogic(inheritedAttributes: Attributes): GraphStageLogic =
     new TimerGraphStageLogicWithLogging(shape) { logic =>
-
       private val queue = mutable.Queue.empty[TypedLogLine]
       private var lastTimestamp = sinceTime
 

@@ -31,10 +31,11 @@ import scala.util.Try
 
 object BasicAuthenticationDirective extends AuthenticationDirectiveProvider {
 
-  def validateCredentials(credentials: Option[BasicHttpCredentials])(implicit transid: TransactionId,
-                                                                     ec: ExecutionContext,
-                                                                     logging: Logging,
-                                                                     authStore: AuthStore): Future[Option[Identity]] = {
+  def validateCredentials(credentials: Option[BasicHttpCredentials])(implicit
+    transid: TransactionId,
+    ec: ExecutionContext,
+    logging: Logging,
+    authStore: AuthStore): Future[Option[Identity]] = {
     credentials flatMap { pw =>
       Try {
         // authkey deserialization is wrapped in a try to guard against malformed values
@@ -47,10 +48,9 @@ object BasicAuthenticationDirective extends AuthenticationDirectiveProvider {
             logging.debug(this, s"authentication not valid")
             None
           }
-        } recover {
-          case _: NoDocumentException | _: IllegalArgumentException =>
-            logging.debug(this, s"authentication not valid")
-            None
+        } recover { case _: NoDocumentException | _: IllegalArgumentException =>
+          logging.debug(this, s"authentication not valid")
+          None
         }
         future.failed.foreach(t => logging.error(this, s"authentication error: $t"))
         future
@@ -78,9 +78,10 @@ object BasicAuthenticationDirective extends AuthenticationDirectiveProvider {
     Identity.get(authStore, namespace)
   }
 
-  def authenticate(implicit transid: TransactionId,
-                   authStore: AuthStore,
-                   logging: Logging): AuthenticationDirective[Identity] = {
+  def authenticate(implicit
+    transid: TransactionId,
+    authStore: AuthStore,
+    logging: Logging): AuthenticationDirective[Identity] = {
     extractExecutionContext.flatMap { implicit ec =>
       basicAuth(validateCredentials)
     }

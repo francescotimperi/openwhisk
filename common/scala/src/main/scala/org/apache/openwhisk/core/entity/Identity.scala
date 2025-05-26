@@ -32,25 +32,26 @@ import scala.concurrent.Future
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 
-case class UserLimits(invocationsPerMinute: Option[Int] = None,
-                      concurrentInvocations: Option[Int] = None,
-                      firesPerMinute: Option[Int] = None,
-                      allowedKinds: Option[Set[String]] = None,
-                      storeActivations: Option[Boolean] = None,
-                      minActionMemory: Option[MemoryLimit] = None,
-                      maxActionMemory: Option[MemoryLimit] = None,
-                      minActionLogs: Option[LogLimit] = None,
-                      maxActionLogs: Option[LogLimit] = None,
-                      minActionTimeout: Option[TimeLimit] = None,
-                      maxActionTimeout: Option[TimeLimit] = None,
-                      minActionConcurrency: Option[IntraConcurrencyLimit] = None,
-                      maxActionConcurrency: Option[IntraConcurrencyLimit] = None,
-                      maxParameterSize: Option[ByteSize] = None,
-                      maxPayloadSize: Option[ByteSize] = None,
-                      truncationSize: Option[ByteSize] = None,
-                      warmedContainerKeepingCount: Option[Int] = None,
-                      warmedContainerKeepingTimeout: Option[String] = None,
-                      maxActionInstances: Option[Int] = None) {
+case class UserLimits(
+  invocationsPerMinute: Option[Int] = None,
+  concurrentInvocations: Option[Int] = None,
+  firesPerMinute: Option[Int] = None,
+  allowedKinds: Option[Set[String]] = None,
+  storeActivations: Option[Boolean] = None,
+  minActionMemory: Option[MemoryLimit] = None,
+  maxActionMemory: Option[MemoryLimit] = None,
+  minActionLogs: Option[LogLimit] = None,
+  maxActionLogs: Option[LogLimit] = None,
+  minActionTimeout: Option[TimeLimit] = None,
+  maxActionTimeout: Option[TimeLimit] = None,
+  minActionConcurrency: Option[IntraConcurrencyLimit] = None,
+  maxActionConcurrency: Option[IntraConcurrencyLimit] = None,
+  maxParameterSize: Option[ByteSize] = None,
+  maxPayloadSize: Option[ByteSize] = None,
+  truncationSize: Option[ByteSize] = None,
+  warmedContainerKeepingCount: Option[Int] = None,
+  warmedContainerKeepingTimeout: Option[String] = None,
+  maxActionInstances: Option[Int] = None) {
 
   def allowedMaxParameterSize: ByteSize = {
     val namespaceLimit = maxParameterSize getOrElse (Parameters.MAX_SIZE_DEFAULT)
@@ -74,14 +75,16 @@ case class UserLimits(invocationsPerMinute: Option[Int] = None,
   }
 
   def allowedMaxActionConcurrency: Int = {
-    val namespaceLimit = maxActionConcurrency.map(_.maxConcurrent) getOrElse (IntraConcurrencyLimit.MAX_CONCURRENT_DEFAULT)
+    val namespaceLimit =
+      maxActionConcurrency.map(_.maxConcurrent) getOrElse (IntraConcurrencyLimit.MAX_CONCURRENT_DEFAULT)
     if (namespaceLimit > IntraConcurrencyLimit.MAX_CONCURRENT) {
       IntraConcurrencyLimit.MAX_CONCURRENT
     } else namespaceLimit
   }
 
   def allowedMinActionConcurrency: Int = {
-    val namespaceLimit = minActionConcurrency.map(_.maxConcurrent) getOrElse (IntraConcurrencyLimit.MIN_CONCURRENT_DEFAULT)
+    val namespaceLimit =
+      minActionConcurrency.map(_.maxConcurrent) getOrElse (IntraConcurrencyLimit.MIN_CONCURRENT_DEFAULT)
     if (namespaceLimit < IntraConcurrencyLimit.MIN_CONCURRENT) {
       IntraConcurrencyLimit.MIN_CONCURRENT
     } else namespaceLimit
@@ -142,11 +145,12 @@ protected[core] object Namespace extends DefaultJsonProtocol {
   implicit val serdes = jsonFormat2(Namespace.apply)
 }
 
-protected[core] case class Identity(subject: Subject,
-                                    namespace: Namespace,
-                                    authkey: GenericAuthKey,
-                                    rights: Set[Privilege] = Set.empty,
-                                    limits: UserLimits = UserLimits.standardUserLimits)
+protected[core] case class Identity(
+  subject: Subject,
+  namespace: Namespace,
+  authkey: GenericAuthKey,
+  rights: Set[Privilege] = Set.empty,
+  limits: UserLimits = UserLimits.standardUserLimits)
 
 object Identity extends MultipleReadersSingleWriterCache[Option[Identity], DocInfo] with DefaultJsonProtocol {
 
@@ -188,8 +192,8 @@ object Identity extends MultipleReadersSingleWriterCache[Option[Identity], DocIn
       }).map(_.getOrElse(throw new NoDocumentException("namespace does not exist")))
   }
 
-  def get(datastore: AuthStore, authkey: BasicAuthenticationAuthKey)(
-    implicit transid: TransactionId): Future[Identity] = {
+  def get(datastore: AuthStore, authkey: BasicAuthenticationAuthKey)(implicit
+    transid: TransactionId): Future[Identity] = {
     implicit val logger: Logging = datastore.logging
     implicit val ec = datastore.executionContext
 
@@ -210,8 +214,8 @@ object Identity extends MultipleReadersSingleWriterCache[Option[Identity], DocIn
       }).map(_.getOrElse(throw new NoDocumentException("namespace does not exist")))
   }
 
-  def list(datastore: AuthStore, key: List[Any], limit: Int = 2)(
-    implicit transid: TransactionId): Future[List[JsObject]] = {
+  def list(datastore: AuthStore, key: List[Any], limit: Int = 2)(implicit
+    transid: TransactionId): Future[List[JsObject]] = {
     datastore.query(
       viewName,
       startKey = key,

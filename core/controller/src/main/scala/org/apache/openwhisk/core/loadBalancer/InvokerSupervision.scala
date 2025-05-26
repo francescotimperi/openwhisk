@@ -74,10 +74,11 @@ final case class InvokerInfo(buffer: RingBuffer[InvocationFinishedResult])
  * Note: An Invoker that never sends an initial Ping will not be considered
  * by the InvokerPool and thus might not be caught by monitoring.
  */
-class InvokerPool(childFactory: (ActorRefFactory, InvokerInstanceId) => ActorRef,
-                  sendActivationToInvoker: (ActivationMessage, InvokerInstanceId) => Future[ResultMetadata],
-                  pingConsumer: MessageConsumer,
-                  monitor: Option[ActorRef])
+class InvokerPool(
+  childFactory: (ActorRefFactory, InvokerInstanceId) => ActorRef,
+  sendActivationToInvoker: (ActivationMessage, InvokerInstanceId) => Future[ResultMetadata],
+  pingConsumer: MessageConsumer,
+  monitor: Option[ActorRef])
     extends Actor {
 
   import InvokerState._
@@ -196,8 +197,8 @@ object InvokerPool {
       .flatMap { oldAction =>
         WhiskAction.put(db, action.revision(oldAction.rev), Some(oldAction))(tid, notifier = None)
       }
-      .recover {
-        case _: NoDocumentException => WhiskAction.put(db, action, old = None)(tid, notifier = None)
+      .recover { case _: NoDocumentException =>
+        WhiskAction.put(db, action, old = None)(tid, notifier = None)
       }
       .map(_ => {})
       .andThen {
@@ -228,10 +229,11 @@ object InvokerPool {
       }
   }
 
-  def props(f: (ActorRefFactory, InvokerInstanceId) => ActorRef,
-            p: (ActivationMessage, InvokerInstanceId) => Future[ResultMetadata],
-            pc: MessageConsumer,
-            m: Option[ActorRef] = None): Props = {
+  def props(
+    f: (ActorRefFactory, InvokerInstanceId) => ActorRef,
+    p: (ActivationMessage, InvokerInstanceId) => Future[ResultMetadata],
+    pc: MessageConsumer,
+    m: Option[ActorRef] = None): Props = {
     Props(new InvokerPool(f, p, pc, m))
   }
 
@@ -298,8 +300,8 @@ class InvokerActor(invokerInstance: InvokerInstanceId, controllerInstance: Contr
   startWith(Unhealthy, InvokerInfo(new RingBuffer[InvocationFinishedResult](InvokerActor.bufferSize)))
 
   /** An Offline invoker represents an existing but broken invoker. This means, that it does not send pings anymore. */
-  when(Offline) {
-    case Event(ping: PingMessage, _) => if (ping.invokerEnabled) goto(Unhealthy) else stay
+  when(Offline) { case Event(ping: PingMessage, _) =>
+    if (ping.invokerEnabled) goto(Unhealthy) else stay
   }
 
   /** An Unhealthy invoker represents an invoker that was not able to handle actions successfully. */
@@ -318,8 +320,8 @@ class InvokerActor(invokerInstance: InvokerInstanceId, controllerInstance: Contr
   }
 
   /** Handles the completion of an Activation in every state. */
-  whenUnhandled {
-    case Event(cm: InvocationFinishedMessage, info) => handleCompletionMessage(cm.result, info.buffer)
+  whenUnhandled { case Event(cm: InvocationFinishedMessage, info) =>
+    handleCompletionMessage(cm.result, info.buffer)
   }
 
   /** Logs transition changes. */
@@ -355,8 +357,9 @@ class InvokerActor(invokerInstance: InvokerInstanceId, controllerInstance: Contr
    * @param result: result of Activation
    * @param buffer to be used
    */
-  private def handleCompletionMessage(result: InvocationFinishedResult,
-                                      buffer: RingBuffer[InvocationFinishedResult]) = {
+  private def handleCompletionMessage(
+    result: InvocationFinishedResult,
+    buffer: RingBuffer[InvocationFinishedResult]) = {
     buffer.add(result)
 
     // If the action is successful, the Invoker is Healthy. We execute additional test actions

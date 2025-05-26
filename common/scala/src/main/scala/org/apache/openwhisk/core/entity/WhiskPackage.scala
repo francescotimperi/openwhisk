@@ -34,11 +34,12 @@ import org.apache.openwhisk.core.entity.types.EntityStore
  * WhiskPackagePut is a restricted WhiskPackage view that eschews properties
  * that are auto-assigned or derived from URI: namespace and name.
  */
-case class WhiskPackagePut(binding: Option[Binding] = None,
-                           parameters: Option[Parameters] = None,
-                           version: Option[SemVer] = None,
-                           publish: Option[Boolean] = None,
-                           annotations: Option[Parameters] = None) {
+case class WhiskPackagePut(
+  binding: Option[Binding] = None,
+  parameters: Option[Parameters] = None,
+  version: Option[SemVer] = None,
+  publish: Option[Boolean] = None,
+  annotations: Option[Parameters] = None) {
 
   /**
    * Resolves the binding if it contains the default namespace.
@@ -66,14 +67,15 @@ case class WhiskPackagePut(binding: Option[Binding] = None,
  * @throws IllegalArgumentException if any argument is undefined
  */
 @throws[IllegalArgumentException]
-case class WhiskPackage(namespace: EntityPath,
-                        override val name: EntityName,
-                        binding: Option[Binding] = None,
-                        parameters: Parameters = Parameters(),
-                        version: SemVer = SemVer(),
-                        publish: Boolean = false,
-                        annotations: Parameters = Parameters(),
-                        override val updated: Instant = WhiskEntity.currentMillis())
+case class WhiskPackage(
+  namespace: EntityPath,
+  override val name: EntityName,
+  binding: Option[Binding] = None,
+  parameters: Parameters = Parameters(),
+  version: SemVer = SemVer(),
+  publish: Boolean = false,
+  annotations: Parameters = Parameters(),
+  override val updated: Instant = WhiskEntity.currentMillis())
     extends WhiskEntity(name, "package") {
 
   require(binding != null || (binding map { _ != null } getOrElse true), "binding undefined")
@@ -170,8 +172,8 @@ object WhiskPackage
    * @param mergeParameters flag that indicates whether parameters should be merged during package resolution
    * @return the same package if there is no binding, or the actual reference package otherwise
    */
-  def resolveBinding(db: EntityStore, pkg: DocId, mergeParameters: Boolean = false)(
-    implicit ec: ExecutionContext,
+  def resolveBinding(db: EntityStore, pkg: DocId, mergeParameters: Boolean = false)(implicit
+    ec: ExecutionContext,
     transid: TransactionId): Future[WhiskPackage] = {
     WhiskPackage.get(db, pkg) flatMap { wp =>
       // if there is a binding resolve it
@@ -204,8 +206,8 @@ object WhiskPackage
   lazy val publicPackagesView: View = WhiskQueries.entitiesView(collection = s"$collectionName-public")
 
   // overridden to store encrypted parameters.
-  override def put[A >: WhiskPackage](db: ArtifactStore[A], doc: WhiskPackage, old: Option[WhiskPackage])(
-    implicit transid: TransactionId,
+  override def put[A >: WhiskPackage](db: ArtifactStore[A], doc: WhiskPackage, old: Option[WhiskPackage])(implicit
+    transid: TransactionId,
     notifier: Option[CacheChangeNotification]): Future[DocInfo] = {
     super.put(
       db,

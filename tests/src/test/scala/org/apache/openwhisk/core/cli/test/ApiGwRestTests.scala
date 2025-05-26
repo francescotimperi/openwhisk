@@ -86,14 +86,15 @@ class ApiGwRestTests extends ApiGwRestBasicTests with RestUtil with WskActorSyst
     apiResultRest.statusCode shouldBe OK
   }
 
-  def verifyList(rr: RunResult,
-                 namespace: String,
-                 actionName: String,
-                 testurlop: String,
-                 testbasepath: String,
-                 testrelpath: String,
-                 testapiname: String,
-                 newEndpoint: String = ""): Unit = {
+  def verifyList(
+    rr: RunResult,
+    namespace: String,
+    actionName: String,
+    testurlop: String,
+    testbasepath: String,
+    testrelpath: String,
+    testapiname: String,
+    newEndpoint: String = ""): Unit = {
     val apiResultRest = rr.asInstanceOf[RestResult]
     val apiValue = RestResult.getFieldJsObject(apiResultRest.getFieldListJsObject("apis")(0), "value")
     val apidoc = RestResult.getFieldJsObject(apiValue, "apidoc")
@@ -114,11 +115,12 @@ class ApiGwRestTests extends ApiGwRestBasicTests with RestUtil with WskActorSyst
     }
   }
 
-  def verifyPaths(paths: JsObject,
-                  testrelpath: String,
-                  testurlop: String,
-                  actionName: String,
-                  namespace: String = "") = {
+  def verifyPaths(
+    paths: JsObject,
+    testrelpath: String,
+    testurlop: String,
+    actionName: String,
+    namespace: String = "") = {
     val relpath = RestResult.getFieldJsObject(paths, testrelpath)
     val urlop = RestResult.getFieldJsObject(relpath, testurlop)
     val openwhisk = RestResult.getFieldJsObject(urlop, "x-openwhisk")
@@ -131,13 +133,14 @@ class ApiGwRestTests extends ApiGwRestBasicTests with RestUtil with WskActorSyst
     }
   }
 
-  override def verifyApiList(rr: RunResult,
-                             clinamespace: String,
-                             actionName: String,
-                             testurlop: String,
-                             testbasepath: String,
-                             testrelpath: String,
-                             testapiname: String): Unit = {
+  override def verifyApiList(
+    rr: RunResult,
+    clinamespace: String,
+    actionName: String,
+    testurlop: String,
+    testbasepath: String,
+    testrelpath: String,
+    testapiname: String): Unit = {
     verifyList(rr, clinamespace, actionName, testurlop, testbasepath, testrelpath, testapiname)
   }
 
@@ -145,24 +148,26 @@ class ApiGwRestTests extends ApiGwRestBasicTests with RestUtil with WskActorSyst
     rr.stdout should include regex (s""""operationId":\\s*"getPathWithSub_pathsInIt"""")
   }
 
-  override def verifyApiFullList(rr: RunResult,
-                                 clinamespace: String,
-                                 actionName: String,
-                                 testurlop: String,
-                                 testbasepath: String,
-                                 testrelpath: String,
-                                 testapiname: String): Unit = {
+  override def verifyApiFullList(
+    rr: RunResult,
+    clinamespace: String,
+    actionName: String,
+    testurlop: String,
+    testbasepath: String,
+    testrelpath: String,
+    testapiname: String): Unit = {
     verifyList(rr, clinamespace, actionName, testurlop, testbasepath, testrelpath, testapiname)
   }
 
-  override def verifyApiFullListDouble(rr: RunResult,
-                                       clinamespace: String,
-                                       actionName: String,
-                                       testurlop: String,
-                                       testbasepath: String,
-                                       testrelpath: String,
-                                       testapiname: String,
-                                       newEndpoint: String): Unit = {
+  override def verifyApiFullListDouble(
+    rr: RunResult,
+    clinamespace: String,
+    actionName: String,
+    testurlop: String,
+    testbasepath: String,
+    testrelpath: String,
+    testapiname: String,
+    newEndpoint: String): Unit = {
     verifyList(rr, clinamespace, actionName, testurlop, testbasepath, testrelpath, testapiname, newEndpoint)
   }
 
@@ -171,17 +176,19 @@ class ApiGwRestTests extends ApiGwRestBasicTests with RestUtil with WskActorSyst
     apiResultRest.statusCode shouldBe OK
   }
 
-  override def verifyApiDeletedRelpath(rr: RunResult,
-                                       testrelpath: String,
-                                       testbasepath: String,
-                                       op: String = ""): Unit = {
+  override def verifyApiDeletedRelpath(
+    rr: RunResult,
+    testrelpath: String,
+    testbasepath: String,
+    op: String = ""): Unit = {
     verifyApiDeleted(rr)
   }
 
-  override def verifyApiNameGet(rr: RunResult,
-                                testbasepath: String,
-                                actionName: String,
-                                responseType: String = "json"): Unit = {
+  override def verifyApiNameGet(
+    rr: RunResult,
+    testbasepath: String,
+    actionName: String,
+    responseType: String = "json"): Unit = {
     val apiResultRest = rr.asInstanceOf[RestResult]
 
     val apiValue = RestResult.getFieldJsObject(apiResultRest.getFieldListJsObject("apis")(0), "value")

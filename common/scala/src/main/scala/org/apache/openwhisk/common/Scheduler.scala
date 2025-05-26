@@ -43,11 +43,12 @@ object Scheduler {
    * @param alwaysWait always wait for the given amount of time or calculate elapsed time to wait
    * @param closure the closure to be executed
    */
-  private class Worker(initialDelay: FiniteDuration,
-                       interval: FiniteDuration,
-                       alwaysWait: Boolean,
-                       name: String,
-                       closure: () => Future[Any])(implicit logging: Logging, transid: TransactionId)
+  private class Worker(
+    initialDelay: FiniteDuration,
+    interval: FiniteDuration,
+    alwaysWait: Boolean,
+    name: String,
+    closure: () => Future[Any])(implicit logging: Logging, transid: TransactionId)
       extends Actor {
     implicit val ec = context.dispatcher
 
@@ -94,12 +95,13 @@ object Scheduler {
    * @param initialDelay optionally delay the first scheduled iteration by given duration
    * @param f the function to run
    */
-  def scheduleWaitAtMost(interval: FiniteDuration,
-                         initialDelay: FiniteDuration = Duration.Zero,
-                         name: String = "Scheduler")(f: () => Future[Any])(implicit system: ActorSystem,
-                                                                           logging: Logging,
-                                                                           transid: TransactionId =
-                                                                             TransactionId.unknown) = {
+  def scheduleWaitAtMost(
+    interval: FiniteDuration,
+    initialDelay: FiniteDuration = Duration.Zero,
+    name: String = "Scheduler")(f: () => Future[Any])(implicit
+    system: ActorSystem,
+    logging: Logging,
+    transid: TransactionId = TransactionId.unknown) = {
     require(interval > Duration.Zero)
     system.actorOf(Props(new Worker(initialDelay, interval, false, name, f)))
   }
@@ -113,12 +115,13 @@ object Scheduler {
    * @param initialDelay optionally delay the first scheduled iteration by given duration
    * @param f the function to run
    */
-  def scheduleWaitAtLeast(interval: FiniteDuration,
-                          initialDelay: FiniteDuration = Duration.Zero,
-                          name: String = "Scheduler")(f: () => Future[Any])(implicit system: ActorSystem,
-                                                                            logging: Logging,
-                                                                            transid: TransactionId =
-                                                                              TransactionId.unknown) = {
+  def scheduleWaitAtLeast(
+    interval: FiniteDuration,
+    initialDelay: FiniteDuration = Duration.Zero,
+    name: String = "Scheduler")(f: () => Future[Any])(implicit
+    system: ActorSystem,
+    logging: Logging,
+    transid: TransactionId = TransactionId.unknown) = {
     require(interval > Duration.Zero)
     system.actorOf(Props(new Worker(initialDelay, interval, true, name, f)))
   }

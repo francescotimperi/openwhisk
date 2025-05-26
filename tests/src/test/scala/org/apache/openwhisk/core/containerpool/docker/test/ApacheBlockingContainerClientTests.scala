@@ -67,17 +67,19 @@ class ApacheBlockingContainerClientTests
   val mockServer = new LocalServerTestBase {
     override def setUp() = {
       super.setUp()
-      this.serverBootstrap.registerHandler("/init", new HttpRequestHandler() {
-        override def handle(request: HttpRequest, response: HttpResponse, context: HttpContext) = {
-          if (testHang.length > 0) {
-            Thread.sleep(testHang.toMillis)
+      this.serverBootstrap.registerHandler(
+        "/init",
+        new HttpRequestHandler() {
+          override def handle(request: HttpRequest, response: HttpResponse, context: HttpContext) = {
+            if (testHang.length > 0) {
+              Thread.sleep(testHang.toMillis)
+            }
+            response.setStatusCode(testStatusCode);
+            if (testResponse != null) {
+              response.setEntity(new StringEntity(testResponse, StandardCharsets.UTF_8))
+            }
           }
-          response.setStatusCode(testStatusCode);
-          if (testResponse != null) {
-            response.setEntity(new StringEntity(testResponse, StandardCharsets.UTF_8))
-          }
-        }
-      })
+        })
     }
   }
 

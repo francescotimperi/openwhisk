@@ -56,14 +56,15 @@ object DockerContainerId {
 /**
  * Configuration for docker client command timeouts.
  */
-case class DockerClientTimeoutConfig(run: Duration,
-                                     rm: Duration,
-                                     pull: Duration,
-                                     ps: Duration,
-                                     pause: Duration,
-                                     unpause: Duration,
-                                     version: Duration,
-                                     inspect: Duration)
+case class DockerClientTimeoutConfig(
+  run: Duration,
+  rm: Duration,
+  pull: Duration,
+  ps: Duration,
+  pause: Duration,
+  unpause: Duration,
+  version: Duration,
+  inspect: Duration)
 
 /**
  * Configuration for docker client
@@ -78,8 +79,9 @@ case class DockerClientConfig(parallelRuns: Int, timeouts: DockerClientTimeoutCo
  *
  * You only need one instance (and you shouldn't get more).
  */
-class DockerClient(dockerHost: Option[String] = None,
-                   config: DockerClientConfig = loadConfigOrThrow[DockerClientConfig](ConfigKeys.dockerClient))(
+class DockerClient(
+  dockerHost: Option[String] = None,
+  config: DockerClientConfig = loadConfigOrThrow[DockerClientConfig](ConfigKeys.dockerClient))(
   executionContext: ExecutionContext)(implicit log: Logging, as: ActorSystem)
     extends DockerApi
     with ProcessRunner {
@@ -125,8 +127,8 @@ class DockerClient(dockerHost: Option[String] = None,
   // See https://github.com/moby/moby/issues/29369
   // Use a semaphore to make sure that at most 10 `docker run` commands are active
   // the same time.
-  def run(image: String, args: Seq[String] = Seq.empty[String])(
-    implicit transid: TransactionId): Future[ContainerId] = {
+  def run(image: String, args: Seq[String] = Seq.empty[String])(implicit
+    transid: TransactionId): Future[ContainerId] = {
     Future {
       blocking {
         // Acquires a permit from this semaphore, blocking until one is available, or the thread is interrupted.
@@ -181,8 +183,8 @@ class DockerClient(dockerHost: Option[String] = None,
   def rm(id: ContainerId)(implicit transid: TransactionId): Future[Unit] =
     runCmd(Seq("rm", "-f", id.asString), config.timeouts.rm).map(_ => ())
 
-  def ps(filters: Seq[(String, String)] = Seq.empty, all: Boolean = false)(
-    implicit transid: TransactionId): Future[Seq[ContainerId]] = {
+  def ps(filters: Seq[(String, String)] = Seq.empty, all: Boolean = false)(implicit
+    transid: TransactionId): Future[Seq[ContainerId]] = {
     val filterArgs = filters.flatMap { case (attr, value) => Seq("--filter", s"$attr=$value") }
     val allArg = if (all) Seq("--all") else Seq.empty[String]
     val cmd = Seq("ps", "--quiet", "--no-trunc") ++ allArg ++ filterArgs
@@ -196,15 +198,16 @@ class DockerClient(dockerHost: Option[String] = None,
    */
   private val pullsInFlight = TrieMap[String, Future[Unit]]()
   def pull(image: String)(implicit transid: TransactionId): Future[Unit] =
-    pullsInFlight.getOrElseUpdate(image, {
-      runCmd(Seq("pull", image), config.timeouts.pull).map(_ => ()).andThen { case _ => pullsInFlight.remove(image) }
-    })
+    pullsInFlight.getOrElseUpdate(
+      image, {
+        runCmd(Seq("pull", image), config.timeouts.pull).map(_ => ()).andThen { case _ => pullsInFlight.remove(image) }
+      })
 
   def isOomKilled(id: ContainerId)(implicit transid: TransactionId): Future[Boolean] =
     runCmd(Seq("inspect", id.asString, "--format", "{{.State.OOMKilled}}"), config.timeouts.inspect).map(_.toBoolean)
 
-  protected def runCmd(args: Seq[String], timeout: Duration, maskedArgs: Option[Seq[String]] = None)(
-    implicit transid: TransactionId): Future[String] = {
+  protected def runCmd(args: Seq[String], timeout: Duration, maskedArgs: Option[Seq[String]] = None)(implicit
+    transid: TransactionId): Future[String] = {
     val cmd = dockerCmd ++ args
     val start = transid.started(
       this,
@@ -282,8 +285,8 @@ trait DockerApi {
    * @param all Whether or not to return stopped containers as well
    * @return A list of ContainerIds
    */
-  def ps(filters: Seq[(String, String)] = Seq.empty, all: Boolean = false)(
-    implicit transid: TransactionId): Future[Seq[ContainerId]]
+  def ps(filters: Seq[(String, String)] = Seq.empty, all: Boolean = false)(implicit
+    transid: TransactionId): Future[Seq[ContainerId]]
 
   /**
    * Pulls the given image.

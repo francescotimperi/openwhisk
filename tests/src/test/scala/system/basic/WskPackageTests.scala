@@ -181,10 +181,9 @@ class WskPackageTests extends TestHelpers with WskTestHelpers with WskActorSyste
     val merged = HashMap.empty[String, JsValue]
     paramSets.foreach { merged ++= _ }
     val flatDescription = itemDescription.replace("\n", "").replace("\r", "")
-    merged.foreach {
-      case (key: String, value: JsValue) =>
-        val toFind = s""""key":.*"${key}",.*"value":.*${value.toString}"""
-        flatDescription should include regex toFind
+    merged.foreach { case (key: String, value: JsValue) =>
+      val toFind = s""""key":.*"${key}",.*"value":.*${value.toString}"""
+      flatDescription should include regex toFind
     }
   }
 }

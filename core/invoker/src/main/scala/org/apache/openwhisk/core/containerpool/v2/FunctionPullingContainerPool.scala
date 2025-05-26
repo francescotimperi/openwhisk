@@ -60,11 +60,12 @@ object TotalContainerPoolState extends DefaultJsonProtocol {
 
 case class PrewarmedContainerPoolState(total: Int, countsByKind: Map[String, Int])
 case class WarmContainerPoolState(total: Int, containers: List[BasicContainerInfo])
-case class TotalContainerPoolState(totalContainers: Int,
-                                   inProgressCount: Int,
-                                   prewarmedPool: PrewarmedContainerPoolState,
-                                   busyPool: WarmContainerPoolState,
-                                   pausedPool: WarmContainerPoolState) {
+case class TotalContainerPoolState(
+  totalContainers: Int,
+  inProgressCount: Int,
+  prewarmedPool: PrewarmedContainerPoolState,
+  busyPool: WarmContainerPoolState,
+  pausedPool: WarmContainerPoolState) {
   def serialize(): String = TotalContainerPoolState.totalPoolSerdes.write(this).compactPrint
 }
 
@@ -103,8 +104,8 @@ class FunctionPullingContainerPool(
   poolConfig: ContainerPoolConfig,
   instance: InvokerInstanceId,
   prewarmConfig: List[PrewarmingConfig] = List.empty,
-  sendAckToScheduler: (SchedulerInstanceId, ContainerCreationAckMessage) => Future[ResultMetadata])(
-  implicit val logging: Logging)
+  sendAckToScheduler: (SchedulerInstanceId, ContainerCreationAckMessage) => Future[ResultMetadata])(implicit
+  val logging: Logging)
     extends Actor {
   import ContainerPoolV2.memoryConsumptionOf
 
@@ -141,8 +142,8 @@ class FunctionPullingContainerPool(
     val prewarmedSize = prewarmedPool.size
     val busySize = busyPool.size
     val warmedSize = warmedPool.size
-    val warmedPoolMap = warmedPool groupBy {
-      case (_, warmedData) => (warmedData.invocationNamespace, warmedData.action.toString)
+    val warmedPoolMap = warmedPool groupBy { case (_, warmedData) =>
+      (warmedData.invocationNamespace, warmedData.action.toString)
     } mapValues (_.size)
     for ((data, size) <- warmedPoolMap) {
       val tags: Option[Map[String, String]] = Some(Map("namespace" -> data._1, "action" -> data._2))
@@ -268,8 +269,8 @@ class FunctionPullingContainerPool(
         val data = warmed._2
 
         if (data.invocationNamespace == invocationNamespace
-            && data.action.fullyQualifiedName(withVersion = false) == fqn.copy(version = None)
-            && data.revision <= oldRevision) {
+          && data.action.fullyQualifiedName(withVersion = false) == fqn.copy(version = None)
+          && data.revision <= oldRevision) {
           proxy ! GracefulShutdown
         }
       })
@@ -559,19 +560,19 @@ class FunctionPullingContainerPool(
    * @param revision the DocRevision.
    * @return the container iff found
    */
-  private def takeWarmedContainer(action: ExecutableWhiskAction,
-                                  invocationNamespace: String,
-                                  revision: DocRevision): Option[(ActorRef, Data)] = {
+  private def takeWarmedContainer(
+    action: ExecutableWhiskAction,
+    invocationNamespace: String,
+    revision: DocRevision): Option[(ActorRef, Data)] = {
     warmedPool
       .find {
         case (_, WarmData(_, `invocationNamespace`, `action`, `revision`, _, _)) => true
         case _                                                                   => false
       }
-      .map {
-        case (ref, data) =>
-          warmedPool = warmedPool - ref
-          logging.info(this, s"Choose warmed container ${data.container.containerId}")
-          (ref, data)
+      .map { case (ref, data) =>
+        warmedPool = warmedPool - ref
+        logging.info(this, s"Choose warmed container ${data.container.containerId}")
+        (ref, data)
       }
   }
 
@@ -702,9 +703,10 @@ class FunctionPullingContainerPool(
     }
   }
 
-  private def handleChosenContainer(create: ContainerCreationMessage,
-                                    executable: ExecutableWhiskAction,
-                                    container: Option[((ActorRef, Data), String)]) = {
+  private def handleChosenContainer(
+    create: ContainerCreationMessage,
+    executable: ExecutableWhiskAction,
+    container: Option[((ActorRef, Data), String)]) = {
     container match {
       case Some(((proxy, data), containerState)) =>
         // record creationMessage so when container created failed, we can send failed message to scheduler
@@ -766,9 +768,10 @@ object ContainerPoolV2 {
    * @return a list of containers to be removed iff found
    */
   @tailrec
-  protected[containerpool] def remove[A](pool: Map[A, WarmData],
-                                         memory: ByteSize,
-                                         toRemove: List[A] = List.empty): List[A] = {
+  protected[containerpool] def remove[A](
+    pool: Map[A, WarmData],
+    memory: ByteSize,
+    toRemove: List[A] = List.empty): List[A] = {
     if (memory > 0.B && pool.nonEmpty && memoryConsumptionOf(pool) >= memory.toMB) {
       // Remove the oldest container if:
       // - there is more memory required
@@ -796,9 +799,10 @@ object ContainerPoolV2 {
    * @param logging
    * @return a list of expired actor
    */
-  def removeExpired[A](poolConfig: ContainerPoolConfig,
-                       prewarmConfig: List[PrewarmingConfig],
-                       prewarmedPool: Map[A, PreWarmData])(implicit logging: Logging): List[A] = {
+  def removeExpired[A](
+    poolConfig: ContainerPoolConfig,
+    prewarmConfig: List[PrewarmingConfig],
+    prewarmedPool: Map[A, PreWarmData])(implicit logging: Logging): List[A] = {
     val now = Deadline.now
     val expireds = prewarmConfig
       .flatMap { config =>
@@ -851,14 +855,15 @@ object ContainerPoolV2 {
    * @param logging
    * @return the current number and increased number for the kind in the Map
    */
-  def increasePrewarms(init: Boolean,
-                       scheduled: Boolean,
-                       coldStartCount: Map[ColdStartKey, Int],
-                       prewarmConfig: List[PrewarmingConfig],
-                       prewarmedPool: Map[ActorRef, PreWarmData],
-                       prewarmStartingPool: Map[ActorRef, (String, ByteSize)],
-                       prewarmQueue: Queue[(CodeExec[_], ByteSize, Option[FiniteDuration])])(
-    implicit logging: Logging): Map[PrewarmingConfig, (Int, Int)] = {
+  def increasePrewarms(
+    init: Boolean,
+    scheduled: Boolean,
+    coldStartCount: Map[ColdStartKey, Int],
+    prewarmConfig: List[PrewarmingConfig],
+    prewarmedPool: Map[ActorRef, PreWarmData],
+    prewarmStartingPool: Map[ActorRef, (String, ByteSize)],
+    prewarmQueue: Queue[(CodeExec[_], ByteSize, Option[FiniteDuration])])(implicit
+    logging: Logging): Map[PrewarmingConfig, (Int, Int)] = {
     prewarmConfig.map { config =>
       val kind = config.exec.kind
       val memory = config.memoryLimit
@@ -880,7 +885,10 @@ object ContainerPoolV2 {
           if (scheduled) {
             // scheduled/reactive config backfill
             config.reactive
-              .map(c => ContainerPool.getReactiveCold(coldStartCount, c, kind, memory).getOrElse(c.minCount)) //reactive -> desired is either cold start driven, or minCount
+              .map(c =>
+                ContainerPool
+                  .getReactiveCold(coldStartCount, c, kind, memory)
+                  .getOrElse(c.minCount)) //reactive -> desired is either cold start driven, or minCount
               .getOrElse(config.initialCount) //not reactive -> desired is always initial count
           } else {
             // normal backfill after removal - make sure at least minCount or initialCount is started
@@ -899,13 +907,14 @@ object ContainerPoolV2 {
     }.toMap
   }
 
-  def props(factory: ActorRefFactory => ActorRef,
-            invokerHealthService: ActorRef,
-            poolConfig: ContainerPoolConfig,
-            instance: InvokerInstanceId,
-            prewarmConfig: List[PrewarmingConfig] = List.empty,
-            sendAckToScheduler: (SchedulerInstanceId, ContainerCreationAckMessage) => Future[ResultMetadata])(
-    implicit logging: Logging): Props = {
+  def props(
+    factory: ActorRefFactory => ActorRef,
+    invokerHealthService: ActorRef,
+    poolConfig: ContainerPoolConfig,
+    instance: InvokerInstanceId,
+    prewarmConfig: List[PrewarmingConfig] = List.empty,
+    sendAckToScheduler: (SchedulerInstanceId, ContainerCreationAckMessage) => Future[ResultMetadata])(implicit
+    logging: Logging): Props = {
     Props(
       new FunctionPullingContainerPool(
         factory,

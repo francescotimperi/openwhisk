@@ -180,12 +180,13 @@ class MemoryQueueTestsFixture
   var ackedMessageCount = 0
   var lastAckedActivationResult = dummyWhiskActivation
   val ack = new ActiveAck {
-    override def apply(tid: TransactionId,
-                       activationResult: WhiskActivation,
-                       blockingInvoke: Boolean,
-                       controllerInstance: ControllerInstanceId,
-                       userId: UUID,
-                       acknowledgement: AcknowledgementMessage): Future[Any] = {
+    override def apply(
+      tid: TransactionId,
+      activationResult: WhiskActivation,
+      blockingInvoke: Boolean,
+      controllerInstance: ControllerInstanceId,
+      userId: UUID,
+      acknowledgement: AcknowledgementMessage): Future[Any] = {
       ackedMessageCount += 1
       lastAckedActivationResult = activationResult
       Future.successful({})
@@ -239,12 +240,14 @@ class MemoryQueueTestsFixture
     } aggregations
       avgAgg(AverageAggregationName, "duration")).size(0)
 
-    (mockEsClient
-      .execute[SearchRequest, SearchResponse, Future](_: SearchRequest)(
-        _: Functor[Future],
-        _: http.Executor[Future],
-        _: Handler[SearchRequest, SearchResponse],
-        _: Manifest[SearchResponse]))
+    (
+      mockEsClient
+        .execute[SearchRequest, SearchResponse, Future](_: SearchRequest)(
+          _: Functor[Future],
+          _: http.Executor[Future],
+          _: Handler[SearchRequest, SearchResponse],
+          _: Manifest[SearchResponse])
+      )
       .expects(searchRequest, *, *, *, *)
       .returns(
         Future.successful(RequestSuccess(

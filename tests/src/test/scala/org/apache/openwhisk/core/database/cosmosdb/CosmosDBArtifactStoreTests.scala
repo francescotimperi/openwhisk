@@ -96,7 +96,8 @@ class CosmosDBArtifactStoreTests extends FlatSpec with CosmosDBStoreBehaviorBase
     implicit val tid: TransactionId = TransactionId.testing
     implicit val docReader: DocumentReader = WhiskDocumentReader
     implicit val format = WhiskEntityJsonFormat
-    val conf = ConfigFactory.parseString(s"""
+    val conf = ConfigFactory
+      .parseString(s"""
       | whisk.cosmosdb {
       |  collections {
       |     WhiskEntity = {
@@ -104,7 +105,8 @@ class CosmosDBArtifactStoreTests extends FlatSpec with CosmosDBStoreBehaviorBase
       |     }
       |  }
       | }
-         """.stripMargin).withFallback(ConfigFactory.load())
+         """.stripMargin)
+      .withFallback(ConfigFactory.load())
 
     val cosmosDBConfig = CosmosDBConfig(conf, "WhiskEntity")
     cosmosDBConfig.clusterId shouldBe Some("foo")

@@ -56,14 +56,12 @@ abstract class WskActionSequenceTests extends TestHelpers with WskTestHelpers {
 
     assetHelper.withCleaner(wsk.action, fullHelloActionName) {
       val file = Some(TestUtils.getTestActionFilename("hello.js"))
-      (action, _) =>
-        action.create(fullHelloActionName, file)(wp)
+      (action, _) => action.create(fullHelloActionName, file)(wp)
     }
 
     assetHelper.withCleaner(wsk.action, fullCatActionName) {
       val file = Some(TestUtils.getTestActionFilename("cat.js"))
-      (action, _) =>
-        action.create(fullCatActionName, file)(wp)
+      (action, _) => action.create(fullCatActionName, file)(wp)
     }
 
     val artifacts = s"$fullHelloActionName,$fullCatActionName"

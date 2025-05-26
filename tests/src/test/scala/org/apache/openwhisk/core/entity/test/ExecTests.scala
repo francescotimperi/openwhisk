@@ -95,8 +95,7 @@ class ExecTests extends FlatSpec with Matchers with StreamLogging with BeforeAnd
                |  "code": "while (true)",
                |  "binary": false
                |}""".stripMargin.parseJson.asJsObject
-    Exec.serdes.read(j2) should matchPattern {
-      case CodeExecAsAttachment(_, Inline("while (true)"), None, false) =>
+    Exec.serdes.read(j2) should matchPattern { case CodeExecAsAttachment(_, Inline("while (true)"), None, false) =>
     }
 
     //Defaults to binary
@@ -104,8 +103,7 @@ class ExecTests extends FlatSpec with Matchers with StreamLogging with BeforeAnd
                |  "kind": "nodejs:20",
                |  "code": "while (true)"
                |}""".stripMargin.parseJson.asJsObject
-    Exec.serdes.read(j3) should matchPattern {
-      case CodeExecAsAttachment(_, Inline("while (true)"), None, false) =>
+    Exec.serdes.read(j3) should matchPattern { case CodeExecAsAttachment(_, Inline("while (true)"), None, false) =>
     }
   }
 
@@ -169,8 +167,7 @@ class ExecTests extends FlatSpec with Matchers with StreamLogging with BeforeAnd
                |  "binary": false
              |}""".stripMargin.parseJson.asJsObject
 
-    Exec.serdes.read(j1) should matchPattern {
-      case CodeExecAsString(_, "SGVsbG8gT3BlbldoaXNr", None) =>
+    Exec.serdes.read(j1) should matchPattern { case CodeExecAsString(_, "SGVsbG8gT3BlbldoaXNr", None) =>
     }
 
     //Reset config back
@@ -228,8 +225,7 @@ class ExecTests extends FlatSpec with Matchers with StreamLogging with BeforeAnd
                |  "code":  "while (true)",
                |  "binary": false
                |}""".stripMargin.parseJson.asJsObject
-    Exec.serdes.read(j2) should matchPattern {
-      case BlackBoxExec(_, Some(Inline("while (true)")), None, false, false) =>
+    Exec.serdes.read(j2) should matchPattern { case BlackBoxExec(_, Some(Inline("while (true)")), None, false, false) =>
     }
 
     //Empty code should resolve as None
@@ -238,8 +234,7 @@ class ExecTests extends FlatSpec with Matchers with StreamLogging with BeforeAnd
                |  "image": "docker-custom.com/openwhisk-runtime/magic/nodejs:0.0.1",
                |  "code": " "
                |}""".stripMargin.parseJson.asJsObject
-    Exec.serdes.read(j3) should matchPattern {
-      case BlackBoxExec(_, None, None, false, false) =>
+    Exec.serdes.read(j3) should matchPattern { case BlackBoxExec(_, None, None, false, false) =>
     }
 
     val j4 = """{

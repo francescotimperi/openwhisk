@@ -29,10 +29,11 @@ import spray.json._
 
 import scala.concurrent.Future
 
-case class ArtifactWithFileStorageActivationStoreConfig(logFilePrefix: String,
-                                                        logPath: String,
-                                                        userIdField: String,
-                                                        writeResultToFile: Boolean)
+case class ArtifactWithFileStorageActivationStoreConfig(
+  logFilePrefix: String,
+  logPath: String,
+  userIdField: String,
+  writeResultToFile: Boolean)
 
 class ArtifactWithFileStorageActivationStore(
   actorSystem: ActorSystem,
@@ -51,8 +52,8 @@ class ArtifactWithFileStorageActivationStore(
 
   def getLogFile = activationFileStorage.getLogFile
 
-  override def store(activation: WhiskActivation, context: UserContext)(
-    implicit transid: TransactionId,
+  override def store(activation: WhiskActivation, context: UserContext)(implicit
+    transid: TransactionId,
     notifier: Option[CacheChangeNotification]): Future[DocInfo] = {
     val additionalFieldsForLogs =
       Map(config.userIdField -> context.user.namespace.uuid.toJson, "namespace" -> context.user.namespace.name.toJson)

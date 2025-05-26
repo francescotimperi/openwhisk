@@ -90,14 +90,15 @@ object MessageFeed {
  * of outstanding requests is below the pipeline fill threshold.
  */
 @throws[IllegalArgumentException]
-class MessageFeed(description: String,
-                  logging: Logging,
-                  consumer: MessageConsumer,
-                  maximumHandlerCapacity: Int,
-                  longPollDuration: FiniteDuration,
-                  handler: Array[Byte] => Future[Unit],
-                  autoStart: Boolean = true,
-                  logHandoff: Boolean = true)
+class MessageFeed(
+  description: String,
+  logging: Logging,
+  consumer: MessageConsumer,
+  maximumHandlerCapacity: Int,
+  longPollDuration: FiniteDuration,
+  handler: Array[Byte] => Future[Unit],
+  autoStart: Boolean = true,
+  logHandoff: Boolean = true)
     extends FSM[MessageFeed.FeedState, MessageFeed.FeedData] {
   import MessageFeed._
 
@@ -188,14 +189,12 @@ class MessageFeed(description: String,
           FillCompleted(records.toSeq)
         }
       }.andThen {
-          case Failure(e: CommitFailedException) =>
-            logging.error(this, s"failed to commit $description consumer offset: $e")
-          case Failure(e: Throwable) => logging.error(this, s"exception while pulling new $description records: $e")
-        }
-        .recover {
-          case _ => FillCompleted(Seq.empty)
-        }
-        .pipeTo(self)
+        case Failure(e: CommitFailedException) =>
+          logging.error(this, s"failed to commit $description consumer offset: $e")
+        case Failure(e: Throwable) => logging.error(this, s"exception while pulling new $description records: $e")
+      }.recover { case _ =>
+        FillCompleted(Seq.empty)
+      }.pipeTo(self)
     } else {
       logging.error(this, s"dropping fill request until $description feed is drained")
     }

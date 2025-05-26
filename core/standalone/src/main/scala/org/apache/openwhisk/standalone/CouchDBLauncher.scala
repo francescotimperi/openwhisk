@@ -40,18 +40,20 @@ import spray.json._
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class CouchDBLauncher(docker: StandaloneDockerClient, port: Int, dataDir: File)(implicit logging: Logging,
-                                                                                ec: ExecutionContext,
-                                                                                actorSystem: ActorSystem,
-                                                                                tid: TransactionId) {
-  case class CouchDBConfig(image: String,
-                           user: String,
-                           password: String,
-                           prefix: String,
-                           volumesEnabled: Boolean,
-                           subjectViews: List[String],
-                           whiskViews: List[String],
-                           activationViews: List[String])
+class CouchDBLauncher(docker: StandaloneDockerClient, port: Int, dataDir: File)(implicit
+  logging: Logging,
+  ec: ExecutionContext,
+  actorSystem: ActorSystem,
+  tid: TransactionId) {
+  case class CouchDBConfig(
+    image: String,
+    user: String,
+    password: String,
+    prefix: String,
+    volumesEnabled: Boolean,
+    subjectViews: List[String],
+    whiskViews: List[String],
+    activationViews: List[String])
   private val dbConfig = loadConfigOrThrow[CouchDBConfig](StandaloneConfigKeys.couchDBConfigKey)
   private val couchClient = new PoolingRestClient("http", StandaloneDockerSupport.getLocalHostName(), port, 100)
   private val baseHeaders: List[HttpHeader] =
@@ -253,12 +255,13 @@ class CouchDBLauncher(docker: StandaloneDockerClient, port: Int, dataDir: File)(
   }
 }
 
-private class NonEscapingClient(protocol: String,
-                                host: String,
-                                port: Int,
-                                username: String,
-                                password: String,
-                                db: String)(implicit system: ActorSystem, logging: Logging)
+private class NonEscapingClient(
+  protocol: String,
+  host: String,
+  port: Int,
+  username: String,
+  password: String,
+  db: String)(implicit system: ActorSystem, logging: Logging)
     extends CouchDbRestClient(protocol, host, port, username, password, db) {
 
   //Do not escape the design doc id like _design/subjects etc

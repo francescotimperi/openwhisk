@@ -28,8 +28,8 @@ import pureconfig.generic.auto._
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
-class ApiGwLauncher(docker: StandaloneDockerClient, apiGwApiPort: Int, apiGwMgmtPort: Int, serverPort: Int)(
-  implicit logging: Logging,
+class ApiGwLauncher(docker: StandaloneDockerClient, apiGwApiPort: Int, apiGwMgmtPort: Int, serverPort: Int)(implicit
+  logging: Logging,
   ec: ExecutionContext,
   actorSystem: ActorSystem,
   tid: TransactionId)

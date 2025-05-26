@@ -73,8 +73,8 @@ class UserEventTests extends FlatSpec with Matchers with WskTestHelpers with Str
       }
       // checking for any metrics to arrive
       val received =
-        consumer.peek(maxPollInterval).map {
-          case (_, _, _, msg) => EventMessage.parse(new String(msg, StandardCharsets.UTF_8))
+        consumer.peek(maxPollInterval).map { case (_, _, _, msg) =>
+          EventMessage.parse(new String(msg, StandardCharsets.UTF_8))
         }
       received.map(event => {
         event.get.body match {

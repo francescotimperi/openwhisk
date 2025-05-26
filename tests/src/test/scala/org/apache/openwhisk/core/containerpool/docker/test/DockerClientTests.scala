@@ -89,11 +89,10 @@ class DockerClientTests
       ("1" * 63, "String too short"),
       ("1" * 65, "String too long"),
       (("1" * 63) + "x", "Improper characters"),
-      ("abcxdef", "Improper characters and too short")).foreach {
-      case (improperId, clue) =>
-        withClue(s"${clue} - length('${improperId}') = ${improperId.length}: ") {
-          verifyFailure(improperId)
-        }
+      ("abcxdef", "Improper characters and too short")).foreach { case (improperId, clue) =>
+      withClue(s"${clue} - length('${improperId}') = ${improperId.length}: ") {
+        verifyFailure(improperId)
+      }
     }
   }
 
@@ -111,8 +110,8 @@ class DockerClientTests
     firstLine should include("--quiet")
     firstLine should include("--no-trunc")
     firstLine should include("--all")
-    filters.foreach {
-      case (k, v) => firstLine should include(s"--filter $k=$v")
+    filters.foreach { case (k, v) =>
+      firstLine should include(s"--filter $k=$v")
     }
   }
 
@@ -191,8 +190,9 @@ class DockerClientTests
     val dc = new DockerClient()(global) {
       override val dockerCmd = Seq(dockerCommand)
       override def getClientVersion() = "mock-test-client"
-      override def executeProcess(args: Seq[String], timeout: Duration)(implicit ec: ExecutionContext,
-                                                                        as: ActorSystem) = {
+      override def executeProcess(args: Seq[String], timeout: Duration)(implicit
+        ec: ExecutionContext,
+        as: ActorSystem) = {
         runCmdCount += 1
         runCmdCount match {
           case 1 => firstRunPromise.future
@@ -240,8 +240,9 @@ class DockerClientTests
     val dc = new DockerClient()(global) {
       override val dockerCmd = Seq(dockerCommand)
       override def getClientVersion() = "mock-test-client"
-      override def executeProcess(args: Seq[String], timeout: Duration)(implicit ec: ExecutionContext,
-                                                                        as: ActorSystem) = {
+      override def executeProcess(args: Seq[String], timeout: Duration)(implicit
+        ec: ExecutionContext,
+        as: ActorSystem) = {
         runCmdCount += 1
         println(s"runCmdCount=${runCmdCount}, args.last=${args.last}")
         runCmdCount match {
@@ -361,8 +362,8 @@ class DockerClientTests
       (ProcessUnsuccessfulException(ExitStatus(125), "", "Unknown flag: --foo"), "No container ID"),
       (ProcessUnsuccessfulException(ExitStatus(1), "", ""), "Exit code not 125 and no container ID"),
       (ProcessTimeoutException(1.second, ExitStatus(125), id.asString, ""), "Timeout instead of unsuccessful command"))
-      .foreach {
-        case (pre, clue) => runAndVerify(pre, clue)
+      .foreach { case (pre, clue) =>
+        runAndVerify(pre, clue)
       }
   }
 
@@ -393,11 +394,10 @@ class DockerClientTests
       (dc.ps(), "ps"),
       (dc.pull("image"), "pull"),
       (dc.isOomKilled(id), "isOomKilled"))
-      .foreach {
-        case (cmd, clue) =>
-          withClue(s"command '$clue' - ") {
-            the[ProcessTimeoutException] thrownBy await(cmd) shouldBe expectedPTE
-          }
+      .foreach { case (cmd, clue) =>
+        withClue(s"command '$clue' - ") {
+          the[ProcessTimeoutException] thrownBy await(cmd) shouldBe expectedPTE
+        }
       }
   }
 }

@@ -68,8 +68,8 @@ class DockerToActivationFileLogStore(system: ActorSystem, destinationDirectory: 
 
   private def fieldsString(fields: Map[String, JsValue]) =
     fields
-      .map {
-        case (key, value) => s""""$key":${value.compactPrint}"""
+      .map { case (key, value) =>
+        s""""$key":${value.compactPrint}"""
       }
       .mkString(",")
 
@@ -92,36 +92,36 @@ class DockerToActivationFileLogStore(system: ActorSystem, destinationDirectory: 
         LogRotatorSink(() => {
           val maxSize = bufferSize.toBytes
           var bytesRead = maxSize
-          element =>
-            {
-              val size = element.size
-              if (bytesRead + size > maxSize) {
-                bytesRead = size
-                val logFilePath = destinationDirectory.resolve(s"userlogs-${Instant.now.toEpochMilli}.log")
-                logging.info(this, s"Rotating log file to '$logFilePath'")
-                try {
-                  Files.createFile(logFilePath)
-                  Files.setPosixFilePermissions(logFilePath, perms)
-                } catch {
-                  case t: Throwable =>
-                    logging.error(this, s"Couldn't create userlogs file: $t")
-                    throw t
-                }
-                Some(logFilePath)
-              } else {
-                bytesRead += size
-                None
+          element => {
+            val size = element.size
+            if (bytesRead + size > maxSize) {
+              bytesRead = size
+              val logFilePath = destinationDirectory.resolve(s"userlogs-${Instant.now.toEpochMilli}.log")
+              logging.info(this, s"Rotating log file to '$logFilePath'")
+              try {
+                Files.createFile(logFilePath)
+                Files.setPosixFilePermissions(logFilePath, perms)
+              } catch {
+                case t: Throwable =>
+                  logging.error(this, s"Couldn't create userlogs file: $t")
+                  throw t
               }
+              Some(logFilePath)
+            } else {
+              bytesRead += size
+              None
             }
+          }
         })
     })
     .run()
 
-  override def collectLogs(transid: TransactionId,
-                           user: Identity,
-                           activation: WhiskActivation,
-                           container: Container,
-                           action: ExecutableWhiskAction): Future[ActivationLogs] = {
+  override def collectLogs(
+    transid: TransactionId,
+    user: Identity,
+    activation: WhiskActivation,
+    container: Container,
+    action: ExecutableWhiskAction): Future[ActivationLogs] = {
 
     val logLimit = action.limits.logs
     val isDeveloperError = activation.response.isContainerError // container error means developer error
@@ -142,8 +142,8 @@ class DockerToActivationFileLogStore(system: ActorSystem, destinationDirectory: 
 
     val toSeq = Flow[ByteString].via(DockerToActivationLogStore.toFormattedString).toMat(Sink.seq[String])(Keep.right)
     val toFile = Flow[ByteString]
-    // As each element is a JSON-object, we know we can add the manually constructed fields to it by dropping
-    // the closing "}", adding the fields and finally add "}\n" to the end again.
+      // As each element is a JSON-object, we know we can add the manually constructed fields to it by dropping
+      // the closing "}", adding the fields and finally add "}\n" to the end again.
       .map(_.dropRight(1) ++ metadata ++ eventEnd)
       // As the last element of the stream, print the activation record.
       .concat(Source.single(ByteString(augmentedActivation.toJson.compactPrint + "\n")))

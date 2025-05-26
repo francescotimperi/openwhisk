@@ -28,15 +28,16 @@ import scala.util.Random
 
 trait ActivationStoreQueryBehaviors extends ActivationStoreBehaviorBase {
 
-  protected def checkQueryActivations(namespace: String,
-                                      name: Option[String] = None,
-                                      skip: Int = 0,
-                                      limit: Int = 1000,
-                                      includeDocs: Boolean = false,
-                                      since: Option[Instant] = None,
-                                      upto: Option[Instant] = None,
-                                      context: UserContext,
-                                      expected: IndexedSeq[WhiskActivation])(implicit transid: TransactionId): Unit = {
+  protected def checkQueryActivations(
+    namespace: String,
+    name: Option[String] = None,
+    skip: Int = 0,
+    limit: Int = 1000,
+    includeDocs: Boolean = false,
+    since: Option[Instant] = None,
+    upto: Option[Instant] = None,
+    context: UserContext,
+    expected: IndexedSeq[WhiskActivation])(implicit transid: TransactionId): Unit = {
     val result =
       name
         .map { n =>
@@ -71,13 +72,14 @@ trait ActivationStoreQueryBehaviors extends ActivationStoreBehaviorBase {
       if (includeDocs) wa.toExtendedJson() else wa.summaryAsJson)
   }
 
-  protected def checkCountActivations(namespace: String,
-                                      name: Option[EntityPath] = None,
-                                      skip: Int = 0,
-                                      since: Option[Instant] = None,
-                                      upto: Option[Instant] = None,
-                                      context: UserContext,
-                                      expected: Long)(implicit transid: TransactionId): Unit = {
+  protected def checkCountActivations(
+    namespace: String,
+    name: Option[EntityPath] = None,
+    skip: Int = 0,
+    since: Option[Instant] = None,
+    upto: Option[Instant] = None,
+    context: UserContext,
+    expected: Long)(implicit transid: TransactionId): Unit = {
     val result = activationStore
       .countActivationsInNamespace(
         EntityPath(namespace),

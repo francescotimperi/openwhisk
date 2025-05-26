@@ -100,14 +100,15 @@ class FPCPoolBalancerTests
         maxPollInterval: FiniteDuration)(implicit logging: Logging, actorSystem: ActorSystem): MessageConsumer =
         consumer
 
-      override def getProducer(config: WhiskConfig, maxRequestSize: Option[ByteSize])(
-        implicit logging: Logging,
+      override def getProducer(config: WhiskConfig, maxRequestSize: Option[ByteSize])(implicit
+        logging: Logging,
         actorSystem: ActorSystem): MessageProducer = consumer.getProducer()
 
-      override def ensureTopic(config: WhiskConfig,
-                               topic: String,
-                               topicConfig: String,
-                               maxMessageBytes: Option[ByteSize])(implicit logging: Logging): Try[Unit] = Try {}
+      override def ensureTopic(
+        config: WhiskConfig,
+        topic: String,
+        topicConfig: String,
+        maxMessageBytes: Option[ByteSize])(implicit logging: Logging): Try[Unit] = Try {}
     }
   }
 

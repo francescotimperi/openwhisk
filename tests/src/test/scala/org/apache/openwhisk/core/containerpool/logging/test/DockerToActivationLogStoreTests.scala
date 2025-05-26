@@ -136,8 +136,8 @@ class DockerToActivationLogStoreTests extends FlatSpec with Matchers with WskAct
       LogLine(Instant.now.toString, "stderr", Messages.logFailure))
     val container = new TestContainer(Source(toByteString(logs)))
 
-    val ex = the[LogCollectingException] thrownBy await(
-      store.collectLogs(tid, user, successfulActivation, container, action))
+    val ex =
+      the[LogCollectingException] thrownBy await(store.collectLogs(tid, user, successfulActivation, container, action))
     ex.partialLogs shouldBe ActivationLogs(logs.map(_.toFormattedString).toVector)
   }
 
@@ -171,15 +171,17 @@ class DockerToActivationLogStoreTests extends FlatSpec with Matchers with WskAct
       LogLine(Instant.now.toString, "stderr", Messages.truncateLogs(action.limits.logs.asMegaBytes)))
     val container = new TestContainer(Source(toByteString(logs)))
 
-    val ex = the[LogCollectingException] thrownBy await(
-      store.collectLogs(tid, user, successfulActivation, container, action))
+    val ex =
+      the[LogCollectingException] thrownBy await(store.collectLogs(tid, user, successfulActivation, container, action))
     ex.partialLogs shouldBe ActivationLogs(logs.map(_.toFormattedString).toVector)
   }
 
-  class TestContainer(lines: Source[ByteString, Any],
-                      val id: ContainerId = ContainerId("test"),
-                      val addr: ContainerAddress = ContainerAddress("test", 1234))(implicit val ec: ExecutionContext,
-                                                                                   val logging: Logging)
+  class TestContainer(
+    lines: Source[ByteString, Any],
+    val id: ContainerId = ContainerId("test"),
+    val addr: ContainerAddress = ContainerAddress("test", 1234))(implicit
+    val ec: ExecutionContext,
+    val logging: Logging)
       extends Container {
     override def suspend()(implicit transid: TransactionId): Future[Unit] = ???
     override def resume()(implicit transid: TransactionId): Future[Unit] = ???

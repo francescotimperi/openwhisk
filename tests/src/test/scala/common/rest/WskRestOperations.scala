@@ -146,10 +146,11 @@ trait RestListOrGetFromCollectionOperations extends ListOrGetFromCollectionOpera
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def list(namespace: Option[String] = None,
-                    limit: Option[Int] = None,
-                    nameSort: Option[Boolean] = None,
-                    expectedExitCode: Int = OK.intValue)(implicit wp: WskProps): RestResult = {
+  override def list(
+    namespace: Option[String] = None,
+    limit: Option[Int] = None,
+    nameSort: Option[Boolean] = None,
+    expectedExitCode: Int = OK.intValue)(implicit wp: WskProps): RestResult = {
 
     val entPath = namespace map { ns =>
       val (nspace, name) = getNamespaceEntityName(resolve(namespace))
@@ -173,13 +174,14 @@ trait RestListOrGetFromCollectionOperations extends ListOrGetFromCollectionOpera
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def get(name: String,
-                   expectedExitCode: Int = OK.intValue,
-                   summary: Boolean = false,
-                   fieldFilter: Option[String] = None,
-                   url: Option[Boolean] = None,
-                   save: Option[Boolean] = None,
-                   saveAs: Option[String] = None)(implicit wp: WskProps): RestResult = {
+  override def get(
+    name: String,
+    expectedExitCode: Int = OK.intValue,
+    summary: Boolean = false,
+    fieldFilter: Option[String] = None,
+    url: Option[Boolean] = None,
+    save: Option[Boolean] = None,
+    saveAs: Option[String] = None)(implicit wp: WskProps): RestResult = {
     val (ns, entity) = getNamespaceEntityName(name)
     val entPath = Path(s"$basePath/namespaces/$ns/$noun/$entity")
     val resp = requestEntity(GET, entPath)(wp)
@@ -376,12 +378,13 @@ class RestActionOperations(implicit val actorSystem: ActorSystem)
     rr
   }
 
-  override def invoke(name: String,
-                      parameters: Map[String, JsValue] = Map.empty,
-                      parameterFile: Option[String] = None,
-                      blocking: Boolean = false,
-                      result: Boolean = false,
-                      expectedExitCode: Int = Accepted.intValue)(implicit wp: WskProps): RestResult = {
+  override def invoke(
+    name: String,
+    parameters: Map[String, JsValue] = Map.empty,
+    parameterFile: Option[String] = None,
+    blocking: Boolean = false,
+    result: Boolean = false,
+    expectedExitCode: Int = Accepted.intValue)(implicit wp: WskProps): RestResult = {
     super.invokeAction(name, parameters, parameterFile, blocking, result, expectedExitCode = expectedExitCode)
   }
 
@@ -414,15 +417,16 @@ class RestTriggerOperations(implicit val actorSystem: ActorSystem)
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def create(name: String,
-                      parameters: Map[String, JsValue] = Map.empty,
-                      annotations: Map[String, JsValue] = Map.empty,
-                      parameterFile: Option[String] = None,
-                      annotationFile: Option[String] = None,
-                      feed: Option[String] = None,
-                      shared: Option[Boolean] = None,
-                      update: Boolean = false,
-                      expectedExitCode: Int = OK.intValue)(implicit wp: WskProps): RestResult = {
+  override def create(
+    name: String,
+    parameters: Map[String, JsValue] = Map.empty,
+    annotations: Map[String, JsValue] = Map.empty,
+    parameterFile: Option[String] = None,
+    annotationFile: Option[String] = None,
+    feed: Option[String] = None,
+    shared: Option[Boolean] = None,
+    update: Boolean = false,
+    expectedExitCode: Int = OK.intValue)(implicit wp: WskProps): RestResult = {
 
     val (ns, triggerName) = getNamespaceEntityName(name)
     val path = Path(s"$basePath/namespaces/$ns/$noun/$triggerName")
@@ -489,10 +493,11 @@ class RestTriggerOperations(implicit val actorSystem: ActorSystem)
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def fire(name: String,
-                    parameters: Map[String, JsValue] = Map.empty,
-                    parameterFile: Option[String] = None,
-                    expectedExitCode: Int = Accepted.intValue)(implicit wp: WskProps): RestResult = {
+  override def fire(
+    name: String,
+    parameters: Map[String, JsValue] = Map.empty,
+    parameterFile: Option[String] = None,
+    expectedExitCode: Int = Accepted.intValue)(implicit wp: WskProps): RestResult = {
     val path = getNamePath(wp.namespace, noun, name)
     val params = parameterFile map { l =>
       val input = FileUtils.readFileToString(new File(l), StandardCharsets.UTF_8)
@@ -522,13 +527,14 @@ class RestRuleOperations(implicit val actorSystem: ActorSystem)
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def create(name: String,
-                      trigger: String,
-                      action: String,
-                      annotations: Map[String, JsValue] = Map.empty,
-                      shared: Option[Boolean] = None,
-                      update: Boolean = false,
-                      expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RestResult = {
+  override def create(
+    name: String,
+    trigger: String,
+    action: String,
+    annotations: Map[String, JsValue] = Map.empty,
+    shared: Option[Boolean] = None,
+    update: Boolean = false,
+    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RestResult = {
     val path = getNamePath(wp.namespace, noun, name)
     val annos = convertMapIntoKeyValue(annotations)
     val published = shared.getOrElse(false)
@@ -601,20 +607,24 @@ class RestActivationOperations(implicit val actorSystem: ActorSystem)
    * @param duration exits console after duration
    * @param since (optional) time travels back to activation since given duration
    */
-  override def console(duration: Duration,
-                       since: Option[Duration] = None,
-                       expectedExitCode: Int = SUCCESS_EXIT,
-                       actionName: Option[String] = None)(implicit wp: WskProps): RestResult = {
+  override def console(
+    duration: Duration,
+    since: Option[Duration] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    actionName: Option[String] = None)(implicit wp: WskProps): RestResult = {
     require(duration > 1.second, "duration must be at least 1 second")
     val sinceTime = {
       val now = System.currentTimeMillis
       since.map(s => now - s.toMillis).getOrElse(now)
     }
 
-    retry({
-      val result = listActivation(since = Some(Instant.ofEpochMilli(sinceTime)))(wp)
-      if (result.stdout != "[]") result else throw new Throwable()
-    }, (duration / 1.second).toInt, Some(1.second))
+    retry(
+      {
+        val result = listActivation(since = Some(Instant.ofEpochMilli(sinceTime)))(wp)
+        if (result.stdout != "[]") result else throw new Throwable()
+      },
+      (duration / 1.second).toInt,
+      Some(1.second))
   }
 
   /**
@@ -626,12 +636,13 @@ class RestActivationOperations(implicit val actorSystem: ActorSystem)
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  def listActivation(filter: Option[String] = None,
-                     limit: Option[Int] = None,
-                     since: Option[Instant] = None,
-                     skip: Option[Int] = None,
-                     docs: Boolean = true,
-                     expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RestResult = {
+  def listActivation(
+    filter: Option[String] = None,
+    limit: Option[Int] = None,
+    since: Option[Instant] = None,
+    skip: Option[Int] = None,
+    docs: Boolean = true,
+    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RestResult = {
     val entityPath = Path(s"$basePath/namespaces/${wp.namespace}/$noun")
     val paramMap = Map("docs" -> docs.toString) ++
       skip.map(s => Map("skip" -> s.toString)).getOrElse(Map.empty) ++
@@ -697,19 +708,23 @@ class RestActivationOperations(implicit val actorSystem: ActorSystem)
    * @param retries the maximum retries (total timeout is retries + 1 seconds)
    * @return activation ids found, caller must check length of sequence
    */
-  override def pollFor(N: Int,
-                       entity: Option[String],
-                       limit: Option[Int] = Some(30),
-                       since: Option[Instant] = None,
-                       skip: Option[Int] = Some(0),
-                       retries: Int = 10,
-                       pollPeriod: Duration = 1.second)(implicit wp: WskProps): Seq[String] = {
+  override def pollFor(
+    N: Int,
+    entity: Option[String],
+    limit: Option[Int] = Some(30),
+    since: Option[Instant] = None,
+    skip: Option[Int] = Some(0),
+    retries: Int = 10,
+    pollPeriod: Duration = 1.second)(implicit wp: WskProps): Seq[String] = {
     Try {
-      retry({
-        val result =
-          idsActivation(listActivation(filter = entity, limit = limit, since = since, skip = skip, docs = false))
-        if (result.length >= N) result else throw PartialResult(result)
-      }, retries, waitBeforeRetry = Some(pollPeriod))
+      retry(
+        {
+          val result =
+            idsActivation(listActivation(filter = entity, limit = limit, since = since, skip = skip, docs = false))
+          if (result.length >= N) result else throw PartialResult(result)
+        },
+        retries,
+        waitBeforeRetry = Some(pollPeriod))
     } match {
       case Success(ids)                => ids
       case Failure(PartialResult(ids)) => ids
@@ -717,11 +732,12 @@ class RestActivationOperations(implicit val actorSystem: ActorSystem)
     }
   }
 
-  override def get(activationId: Option[String],
-                   expectedExitCode: Int = OK.intValue,
-                   fieldFilter: Option[String] = None,
-                   last: Option[Boolean] = None,
-                   summary: Option[Boolean] = None)(implicit wp: WskProps): RestResult = {
+  override def get(
+    activationId: Option[String],
+    expectedExitCode: Int = OK.intValue,
+    fieldFilter: Option[String] = None,
+    last: Option[Boolean] = None,
+    summary: Option[Boolean] = None)(implicit wp: WskProps): RestResult = {
     val actId = activationId match {
       case Some(_) => activationId
       case None =>
@@ -749,16 +765,21 @@ class RestActivationOperations(implicit val actorSystem: ActorSystem)
    *
    * @return either Left(error message) or Right(activation as JsObject)
    */
-  override def waitForActivation(activationId: String,
-                                 initialWait: Duration = 1 second,
-                                 pollPeriod: Duration = 1 second,
-                                 totalWait: Duration = 30 seconds)(implicit wp: WskProps): Either[String, JsObject] = {
-    val activation = waitfor(() => {
-      val result = get(Some(activationId), expectedExitCode = DONTCARE_EXIT)(wp)
-      if (result.statusCode == NotFound) {
-        null
-      } else result
-    }, initialWait, pollPeriod, totalWait)
+  override def waitForActivation(
+    activationId: String,
+    initialWait: Duration = 1 second,
+    pollPeriod: Duration = 1 second,
+    totalWait: Duration = 30 seconds)(implicit wp: WskProps): Either[String, JsObject] = {
+    val activation = waitfor(
+      () => {
+        val result = get(Some(activationId), expectedExitCode = DONTCARE_EXIT)(wp)
+        if (result.statusCode == NotFound) {
+          null
+        } else result
+      },
+      initialWait,
+      pollPeriod,
+      totalWait)
     Try {
       assert(activation.statusCode == OK)
       assert(activation.getField("activationId") != "")
@@ -769,9 +790,10 @@ class RestActivationOperations(implicit val actorSystem: ActorSystem)
 
   }
 
-  override def logs(activationId: Option[String] = None,
-                    expectedExitCode: Int = OK.intValue,
-                    last: Option[Boolean] = None)(implicit wp: WskProps): RestResult = {
+  override def logs(
+    activationId: Option[String] = None,
+    expectedExitCode: Int = OK.intValue,
+    last: Option[Boolean] = None)(implicit wp: WskProps): RestResult = {
     val rr = activationId match {
       case Some(id) =>
         val resp = requestEntity(GET, getNamePath(wp.namespace, noun, s"$id/logs"))
@@ -784,9 +806,10 @@ class RestActivationOperations(implicit val actorSystem: ActorSystem)
     rr
   }
 
-  override def result(activationId: Option[String] = None,
-                      expectedExitCode: Int = OK.intValue,
-                      last: Option[Boolean] = None)(implicit wp: WskProps): RestResult = {
+  override def result(
+    activationId: Option[String] = None,
+    expectedExitCode: Int = OK.intValue,
+    last: Option[Boolean] = None)(implicit wp: WskProps): RestResult = {
     val rr = activationId match {
       case Some(id) =>
         val resp = requestEntity(GET, getNamePath(wp.namespace, noun, s"$id/result"))
@@ -814,7 +837,7 @@ class RestNamespaceOperations(implicit val actorSystem: ActorSystem) extends Nam
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
   override def list(expectedExitCode: Int = OK.intValue, nameSort: Option[Boolean] = None)(implicit
-                                                                                           wp: WskProps): RestResult = {
+    wp: WskProps): RestResult = {
     val entPath = Path(s"$basePath/namespaces")
     val resp = requestEntity(GET, entPath)
     val result = new RestResult(resp.status, getTransactionId(resp), getRespData(resp))
@@ -848,14 +871,15 @@ class RestPackageOperations(implicit val actorSystem: ActorSystem)
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def create(name: String,
-                      parameters: Map[String, JsValue] = Map.empty,
-                      annotations: Map[String, JsValue] = Map.empty,
-                      parameterFile: Option[String] = None,
-                      annotationFile: Option[String] = None,
-                      shared: Option[Boolean] = None,
-                      update: Boolean = false,
-                      expectedExitCode: Int = OK.intValue)(implicit wp: WskProps): RestResult = {
+  override def create(
+    name: String,
+    parameters: Map[String, JsValue] = Map.empty,
+    annotations: Map[String, JsValue] = Map.empty,
+    parameterFile: Option[String] = None,
+    annotationFile: Option[String] = None,
+    shared: Option[Boolean] = None,
+    update: Boolean = false,
+    expectedExitCode: Int = OK.intValue)(implicit wp: WskProps): RestResult = {
     val path = getNamePath(wp.namespace, noun, name)
     var bodyContent: Map[String, JsValue] = Map.empty
 
@@ -893,11 +917,12 @@ class RestPackageOperations(implicit val actorSystem: ActorSystem)
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def bind(provider: String,
-                    name: String,
-                    parameters: Map[String, JsValue] = Map.empty,
-                    annotations: Map[String, JsValue] = Map.empty,
-                    expectedExitCode: Int = OK.intValue)(implicit wp: WskProps): RestResult = {
+  override def bind(
+    provider: String,
+    name: String,
+    parameters: Map[String, JsValue] = Map.empty,
+    annotations: Map[String, JsValue] = Map.empty,
+    expectedExitCode: Int = OK.intValue)(implicit wp: WskProps): RestResult = {
     val params = convertMapIntoKeyValue(parameters)
     val annos = convertMapIntoKeyValue(annotations)
 
@@ -923,15 +948,16 @@ class RestGatewayOperations(implicit val actorSystem: ActorSystem) extends Gatew
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def create(basepath: Option[String] = None,
-                      relpath: Option[String] = None,
-                      operation: Option[String] = None,
-                      action: Option[String] = None,
-                      apiname: Option[String] = None,
-                      swagger: Option[String] = None,
-                      responsetype: Option[String] = None,
-                      expectedExitCode: Int = SUCCESS_EXIT,
-                      cliCfgFile: Option[String] = None)(implicit wp: WskProps): RestResult = {
+  override def create(
+    basepath: Option[String] = None,
+    relpath: Option[String] = None,
+    operation: Option[String] = None,
+    action: Option[String] = None,
+    apiname: Option[String] = None,
+    swagger: Option[String] = None,
+    responsetype: Option[String] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    cliCfgFile: Option[String] = None)(implicit wp: WskProps): RestResult = {
     val r = action match {
       case Some(action) => {
         val (ns, actionName) = getNamespaceEntityName(action)
@@ -1025,15 +1051,16 @@ class RestGatewayOperations(implicit val actorSystem: ActorSystem) extends Gatew
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def list(basepathOrApiName: Option[String] = None,
-                    relpath: Option[String] = None,
-                    operation: Option[String] = None,
-                    limit: Option[Int] = None,
-                    since: Option[Instant] = None,
-                    full: Option[Boolean] = None,
-                    nameSort: Option[Boolean] = None,
-                    expectedExitCode: Int = SUCCESS_EXIT,
-                    cliCfgFile: Option[String] = None)(implicit wp: WskProps): RestResult = {
+  override def list(
+    basepathOrApiName: Option[String] = None,
+    relpath: Option[String] = None,
+    operation: Option[String] = None,
+    limit: Option[Int] = None,
+    since: Option[Instant] = None,
+    full: Option[Boolean] = None,
+    nameSort: Option[Boolean] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    cliCfgFile: Option[String] = None)(implicit wp: WskProps): RestResult = {
 
     val parms = {
       basepathOrApiName map { b =>
@@ -1069,11 +1096,12 @@ class RestGatewayOperations(implicit val actorSystem: ActorSystem) extends Gatew
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def get(basepathOrApiName: Option[String] = None,
-                   full: Option[Boolean] = None,
-                   expectedExitCode: Int = SUCCESS_EXIT,
-                   cliCfgFile: Option[String] = None,
-                   format: Option[String] = None)(implicit wp: WskProps): RestResult = {
+  override def get(
+    basepathOrApiName: Option[String] = None,
+    full: Option[Boolean] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    cliCfgFile: Option[String] = None,
+    format: Option[String] = None)(implicit wp: WskProps): RestResult = {
     val parms = {
       basepathOrApiName map { b =>
         Map("basepath" -> b.toJson)
@@ -1099,11 +1127,12 @@ class RestGatewayOperations(implicit val actorSystem: ActorSystem) extends Gatew
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  override def delete(basepathOrApiName: String,
-                      relpath: Option[String] = None,
-                      operation: Option[String] = None,
-                      expectedExitCode: Int = SUCCESS_EXIT,
-                      cliCfgFile: Option[String] = None)(implicit wp: WskProps): RestResult = {
+  override def delete(
+    basepathOrApiName: String,
+    relpath: Option[String] = None,
+    operation: Option[String] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    cliCfgFile: Option[String] = None)(implicit wp: WskProps): RestResult = {
     val parms = Map("basepath" -> basepathOrApiName.toJson) ++ {
       relpath map { r =>
         Map("relpath" -> r.toJson)
@@ -1163,10 +1192,11 @@ trait RunRestCmd extends Matchers with ScalaFutures with SwaggerValidator {
 
   def getExt(filePath: String): String = Option(FilenameUtils.getExtension(filePath)).getOrElse("")
 
-  def requestEntity(method: HttpMethod,
-                    path: Path,
-                    params: Map[String, String] = Map.empty,
-                    body: Option[String] = None)(implicit wp: WskProps): HttpResponse = {
+  def requestEntity(
+    method: HttpMethod,
+    path: Path,
+    params: Map[String, String] = Map.empty,
+    body: Option[String] = None)(implicit wp: WskProps): HttpResponse = {
 
     val creds = getHttpCredentials(wp)
 
@@ -1210,12 +1240,13 @@ trait RunRestCmd extends Matchers with ScalaFutures with SwaggerValidator {
     }
   }
 
-  def getParamsAnnos(parameters: Map[String, JsValue] = Map.empty,
-                     annotations: Map[String, JsValue] = Map.empty,
-                     parameterFile: Option[String] = None,
-                     annotationFile: Option[String] = None,
-                     feed: Option[String] = None,
-                     web: Option[String] = None): (Array[JsValue], Array[JsValue]) = {
+  def getParamsAnnos(
+    parameters: Map[String, JsValue] = Map.empty,
+    annotations: Map[String, JsValue] = Map.empty,
+    parameterFile: Option[String] = None,
+    annotationFile: Option[String] = None,
+    feed: Option[String] = None,
+    web: Option[String] = None): (Array[JsValue], Array[JsValue]) = {
     val params = parameterFile.map(convertStringIntoKeyValue(_)).getOrElse(convertMapIntoKeyValue(parameters))
 
     val annos = annotationFile
@@ -1225,18 +1256,20 @@ trait RunRestCmd extends Matchers with ScalaFutures with SwaggerValidator {
     (params, annos)
   }
 
-  def convertStringIntoKeyValue(file: String,
-                                feed: Option[String] = None,
-                                web: Option[String] = None): Array[JsValue] = {
+  def convertStringIntoKeyValue(
+    file: String,
+    feed: Option[String] = None,
+    web: Option[String] = None): Array[JsValue] = {
     val input = FileUtils.readFileToString(new File(file), StandardCharsets.UTF_8)
     val in = input.parseJson.convertTo[Map[String, JsValue]]
     convertMapIntoKeyValue(in, feed, web)
   }
 
-  def convertMapIntoKeyValue(params: Map[String, JsValue],
-                             feed: Option[String] = None,
-                             web: Option[String] = None,
-                             oldParams: List[JsObject] = List.empty): Array[JsValue] = {
+  def convertMapIntoKeyValue(
+    params: Map[String, JsValue],
+    feed: Option[String] = None,
+    web: Option[String] = None,
+    oldParams: List[JsObject] = List.empty): Array[JsValue] = {
     val newParams =
       params
         .map { case (key, value) => JsObject("key" -> key.toJson, "value" -> value) } ++ feed.map(f =>
@@ -1321,13 +1354,14 @@ trait RunRestCmd extends Matchers with ScalaFutures with SwaggerValidator {
     }
   }
 
-  def invokeAction(name: String,
-                   parameters: Map[String, JsValue] = Map.empty,
-                   parameterFile: Option[String] = None,
-                   blocking: Boolean = false,
-                   result: Boolean = false,
-                   web: Boolean = false,
-                   expectedExitCode: Int = Accepted.intValue)(implicit wp: WskProps): RestResult = {
+  def invokeAction(
+    name: String,
+    parameters: Map[String, JsValue] = Map.empty,
+    parameterFile: Option[String] = None,
+    blocking: Boolean = false,
+    result: Boolean = false,
+    web: Boolean = false,
+    expectedExitCode: Int = Accepted.intValue)(implicit wp: WskProps): RestResult = {
     val (ns, actName) = getNamespaceEntityName(name)
 
     val path =
@@ -1425,11 +1459,12 @@ class RestResult(val statusCode: StatusCode, val tid: String, val respData: Stri
   }
 }
 
-class ApiAction(val name: String,
-                val namespace: String,
-                val backendMethod: String = "POST",
-                val backendUrl: String,
-                val authkey: String) {
+class ApiAction(
+  val name: String,
+  val namespace: String,
+  val backendMethod: String = "POST",
+  val backendUrl: String,
+  val authkey: String) {
   def toJson: JsObject = {
     JsObject(
       "name" -> name.toJson,

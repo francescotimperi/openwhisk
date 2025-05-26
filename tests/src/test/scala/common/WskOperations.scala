@@ -65,10 +65,11 @@ trait WaitFor {
    * Often tests call this routine immediately after starting work.
    * Performs an initial wait before entering poll loop.
    */
-  def waitfor[T](step: () => T,
-                 initialWait: Duration = 1 second,
-                 pollPeriod: Duration = 1 second,
-                 totalWait: Duration = 30 seconds): T = {
+  def waitfor[T](
+    step: () => T,
+    initialWait: Duration = 1 second,
+    pollPeriod: Duration = 1 second,
+    totalWait: Duration = 30 seconds): T = {
     Thread.sleep(initialWait.toMillis)
     val endTime = System.currentTimeMillis() + totalWait.toMillis
     while (System.currentTimeMillis() < endTime) {
@@ -182,10 +183,11 @@ trait ListOrGetFromCollectionOperations {
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  def list(namespace: Option[String] = None,
-           limit: Option[Int] = None,
-           nameSort: Option[Boolean] = None,
-           expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult
+  def list(
+    namespace: Option[String] = None,
+    limit: Option[Int] = None,
+    nameSort: Option[Boolean] = None,
+    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult
 
   /**
    * Gets entity from collection.
@@ -194,13 +196,14 @@ trait ListOrGetFromCollectionOperations {
    * @param expectedExitCode (optional) the expected exit code for the command
    * if the code is anything but DONTCARE_EXIT, assert the code is as expected
    */
-  def get(name: String,
-          expectedExitCode: Int = SUCCESS_EXIT,
-          summary: Boolean = false,
-          fieldFilter: Option[String] = None,
-          url: Option[Boolean] = None,
-          save: Option[Boolean] = None,
-          saveAs: Option[String] = None)(implicit wp: WskProps): RunResult
+  def get(
+    name: String,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    summary: Boolean = false,
+    fieldFilter: Option[String] = None,
+    url: Option[Boolean] = None,
+    save: Option[Boolean] = None,
+    saveAs: Option[String] = None)(implicit wp: WskProps): RunResult
 }
 
 trait DeleteFromCollectionOperations {
@@ -227,79 +230,86 @@ trait DeleteFromCollectionOperations {
 
 trait ActionOperations extends DeleteFromCollectionOperations with ListOrGetFromCollectionOperations {
 
-  def create(name: String,
-             artifact: Option[String],
-             kind: Option[String] = None,
-             main: Option[String] = None,
-             docker: Option[String] = None,
-             parameters: Map[String, JsValue] = Map.empty,
-             annotations: Map[String, JsValue] = Map.empty,
-             delAnnotations: Array[String] = Array(),
-             parameterFile: Option[String] = None,
-             annotationFile: Option[String] = None,
-             timeout: Option[Duration] = None,
-             memory: Option[ByteSize] = None,
-             logsize: Option[ByteSize] = None,
-             concurrency: Option[Int] = None,
-             shared: Option[Boolean] = None,
-             update: Boolean = false,
-             web: Option[String] = None,
-             websecure: Option[String] = None,
-             expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult
+  def create(
+    name: String,
+    artifact: Option[String],
+    kind: Option[String] = None,
+    main: Option[String] = None,
+    docker: Option[String] = None,
+    parameters: Map[String, JsValue] = Map.empty,
+    annotations: Map[String, JsValue] = Map.empty,
+    delAnnotations: Array[String] = Array(),
+    parameterFile: Option[String] = None,
+    annotationFile: Option[String] = None,
+    timeout: Option[Duration] = None,
+    memory: Option[ByteSize] = None,
+    logsize: Option[ByteSize] = None,
+    concurrency: Option[Int] = None,
+    shared: Option[Boolean] = None,
+    update: Boolean = false,
+    web: Option[String] = None,
+    websecure: Option[String] = None,
+    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult
 
-  def invoke(name: String,
-             parameters: Map[String, JsValue] = Map.empty,
-             parameterFile: Option[String] = None,
-             blocking: Boolean = false,
-             result: Boolean = false,
-             expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult
+  def invoke(
+    name: String,
+    parameters: Map[String, JsValue] = Map.empty,
+    parameterFile: Option[String] = None,
+    blocking: Boolean = false,
+    result: Boolean = false,
+    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult
 }
 
 trait PackageOperations extends DeleteFromCollectionOperations with ListOrGetFromCollectionOperations {
 
-  def create(name: String,
-             parameters: Map[String, JsValue] = Map.empty,
-             annotations: Map[String, JsValue] = Map.empty,
-             parameterFile: Option[String] = None,
-             annotationFile: Option[String] = None,
-             shared: Option[Boolean] = None,
-             update: Boolean = false,
-             expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult
+  def create(
+    name: String,
+    parameters: Map[String, JsValue] = Map.empty,
+    annotations: Map[String, JsValue] = Map.empty,
+    parameterFile: Option[String] = None,
+    annotationFile: Option[String] = None,
+    shared: Option[Boolean] = None,
+    update: Boolean = false,
+    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult
 
-  def bind(provider: String,
-           name: String,
-           parameters: Map[String, JsValue] = Map.empty,
-           annotations: Map[String, JsValue] = Map.empty,
-           expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult
+  def bind(
+    provider: String,
+    name: String,
+    parameters: Map[String, JsValue] = Map.empty,
+    annotations: Map[String, JsValue] = Map.empty,
+    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult
 }
 
 trait TriggerOperations extends DeleteFromCollectionOperations with ListOrGetFromCollectionOperations {
 
-  def create(name: String,
-             parameters: Map[String, JsValue] = Map.empty,
-             annotations: Map[String, JsValue] = Map.empty,
-             parameterFile: Option[String] = None,
-             annotationFile: Option[String] = None,
-             feed: Option[String] = None,
-             shared: Option[Boolean] = None,
-             update: Boolean = false,
-             expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult
+  def create(
+    name: String,
+    parameters: Map[String, JsValue] = Map.empty,
+    annotations: Map[String, JsValue] = Map.empty,
+    parameterFile: Option[String] = None,
+    annotationFile: Option[String] = None,
+    feed: Option[String] = None,
+    shared: Option[Boolean] = None,
+    update: Boolean = false,
+    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult
 
-  def fire(name: String,
-           parameters: Map[String, JsValue] = Map.empty,
-           parameterFile: Option[String] = None,
-           expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult
+  def fire(
+    name: String,
+    parameters: Map[String, JsValue] = Map.empty,
+    parameterFile: Option[String] = None,
+    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult
 }
 
 trait RuleOperations extends DeleteFromCollectionOperations with ListOrGetFromCollectionOperations {
 
-  def create(name: String,
-             trigger: String,
-             action: String,
-             annotations: Map[String, JsValue] = Map.empty,
-             shared: Option[Boolean] = None,
-             update: Boolean = false,
-             expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult
+  def create(
+    name: String,
+    trigger: String,
+    action: String,
+    annotations: Map[String, JsValue] = Map.empty,
+    shared: Option[Boolean] = None,
+    update: Boolean = false,
+    expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult
 
   def enable(name: String, expectedExitCode: Int = SUCCESS_EXIT)(implicit wp: WskProps): RunResult
 
@@ -312,27 +322,30 @@ trait ActivationOperations {
 
   def extractActivationId(result: RunResult): Option[String]
 
-  def pollFor(N: Int,
-              entity: Option[String],
-              limit: Option[Int] = None,
-              since: Option[Instant] = None,
-              skip: Option[Int] = None,
-              retries: Int,
-              pollPeriod: Duration = 1.second)(implicit wp: WskProps): Seq[String]
+  def pollFor(
+    N: Int,
+    entity: Option[String],
+    limit: Option[Int] = None,
+    since: Option[Instant] = None,
+    skip: Option[Int] = None,
+    retries: Int,
+    pollPeriod: Duration = 1.second)(implicit wp: WskProps): Seq[String]
 
-  def waitForActivation(activationId: String, initialWait: Duration, pollPeriod: Duration, totalWait: Duration)(
-    implicit wp: WskProps): Either[String, JsObject]
+  def waitForActivation(activationId: String, initialWait: Duration, pollPeriod: Duration, totalWait: Duration)(implicit
+    wp: WskProps): Either[String, JsObject]
 
-  def get(activationId: Option[String] = None,
-          expectedExitCode: Int = SUCCESS_EXIT,
-          fieldFilter: Option[String] = None,
-          last: Option[Boolean] = None,
-          summary: Option[Boolean] = None)(implicit wp: WskProps): RunResult
+  def get(
+    activationId: Option[String] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    fieldFilter: Option[String] = None,
+    last: Option[Boolean] = None,
+    summary: Option[Boolean] = None)(implicit wp: WskProps): RunResult
 
-  def console(duration: Duration,
-              since: Option[Duration] = None,
-              expectedExitCode: Int = SUCCESS_EXIT,
-              actionName: Option[String] = None)(implicit wp: WskProps): RunResult
+  def console(
+    duration: Duration,
+    since: Option[Duration] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    actionName: Option[String] = None)(implicit wp: WskProps): RunResult
 
   def logs(activationId: Option[String] = None, expectedExitCode: Int = SUCCESS_EXIT, last: Option[Boolean] = None)(
     implicit wp: WskProps): RunResult
@@ -350,35 +363,39 @@ trait NamespaceOperations {
 
 trait GatewayOperations {
 
-  def create(basepath: Option[String] = None,
-             relpath: Option[String] = None,
-             operation: Option[String] = None,
-             action: Option[String] = None,
-             apiname: Option[String] = None,
-             swagger: Option[String] = None,
-             responsetype: Option[String] = None,
-             expectedExitCode: Int = SUCCESS_EXIT,
-             cliCfgFile: Option[String] = None)(implicit wp: WskProps): RunResult
+  def create(
+    basepath: Option[String] = None,
+    relpath: Option[String] = None,
+    operation: Option[String] = None,
+    action: Option[String] = None,
+    apiname: Option[String] = None,
+    swagger: Option[String] = None,
+    responsetype: Option[String] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    cliCfgFile: Option[String] = None)(implicit wp: WskProps): RunResult
 
-  def list(basepathOrApiName: Option[String] = None,
-           relpath: Option[String] = None,
-           operation: Option[String] = None,
-           limit: Option[Int] = None,
-           since: Option[Instant] = None,
-           full: Option[Boolean] = None,
-           nameSort: Option[Boolean] = None,
-           expectedExitCode: Int = SUCCESS_EXIT,
-           cliCfgFile: Option[String] = None)(implicit wp: WskProps): RunResult
+  def list(
+    basepathOrApiName: Option[String] = None,
+    relpath: Option[String] = None,
+    operation: Option[String] = None,
+    limit: Option[Int] = None,
+    since: Option[Instant] = None,
+    full: Option[Boolean] = None,
+    nameSort: Option[Boolean] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    cliCfgFile: Option[String] = None)(implicit wp: WskProps): RunResult
 
-  def get(basepathOrApiName: Option[String] = None,
-          full: Option[Boolean] = None,
-          expectedExitCode: Int = SUCCESS_EXIT,
-          cliCfgFile: Option[String] = None,
-          format: Option[String] = None)(implicit wp: WskProps): RunResult
+  def get(
+    basepathOrApiName: Option[String] = None,
+    full: Option[Boolean] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    cliCfgFile: Option[String] = None,
+    format: Option[String] = None)(implicit wp: WskProps): RunResult
 
-  def delete(basepathOrApiName: String,
-             relpath: Option[String] = None,
-             operation: Option[String] = None,
-             expectedExitCode: Int = SUCCESS_EXIT,
-             cliCfgFile: Option[String] = None)(implicit wp: WskProps): RunResult
+  def delete(
+    basepathOrApiName: String,
+    relpath: Option[String] = None,
+    operation: Option[String] = None,
+    expectedExitCode: Int = SUCCESS_EXIT,
+    cliCfgFile: Option[String] = None)(implicit wp: WskProps): RunResult
 }

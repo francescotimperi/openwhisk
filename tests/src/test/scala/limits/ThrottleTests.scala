@@ -334,28 +334,34 @@ class NamespaceSpecificThrottleTests
     // One invoke should be allowed, the second one throttled.
     // Due to the current implementation of the rate throttling,
     // it is possible that the counter gets deleted, because the minute switches.
-    retry({
-      val results = (1 to deployedControllers + 1).map { _ =>
-        wsk.action.invoke(actionName, expectedExitCode = TestUtils.DONTCARE_EXIT)
-      }
-      results.map(_.exitCode) should contain(TestUtils.THROTTLED)
-      results.map(_.stderr).mkString should {
-        include(prefix(tooManyRequests(0, 0))) and include("allowed: 1")
-      }
-    }, 2, Some(1.second))
+    retry(
+      {
+        val results = (1 to deployedControllers + 1).map { _ =>
+          wsk.action.invoke(actionName, expectedExitCode = TestUtils.DONTCARE_EXIT)
+        }
+        results.map(_.exitCode) should contain(TestUtils.THROTTLED)
+        results.map(_.stderr).mkString should {
+          include(prefix(tooManyRequests(0, 0))) and include("allowed: 1")
+        }
+      },
+      2,
+      Some(1.second))
 
     // One fire should be allowed, the second one throttled.
     // Due to the current implementation of the rate throttling,
     // it is possible, that the counter gets deleted, because the minute switches.
-    retry({
-      val results = (1 to deployedControllers + 1).map { _ =>
-        wsk.trigger.fire(triggerName, expectedExitCode = TestUtils.DONTCARE_EXIT)
-      }
-      results.map(_.exitCode) should contain(TestUtils.THROTTLED)
-      results.map(_.stderr).mkString should {
-        include(prefix(tooManyRequests(0, 0))) and include("allowed: 1")
-      }
-    }, 2, Some(1.second))
+    retry(
+      {
+        val results = (1 to deployedControllers + 1).map { _ =>
+          wsk.trigger.fire(triggerName, expectedExitCode = TestUtils.DONTCARE_EXIT)
+        }
+        results.map(_.exitCode) should contain(TestUtils.THROTTLED)
+        results.map(_.stderr).mkString should {
+          include(prefix(tooManyRequests(0, 0))) and include("allowed: 1")
+        }
+      },
+      2,
+      Some(1.second))
   }
 
   // One sequence invocation should count as one invocation for rate throttling purposes.
@@ -385,15 +391,18 @@ class NamespaceSpecificThrottleTests
       // One invoke should be allowed, the second one throttled.
       // Due to the current implementation of the rate throttling,
       // it is possible that the counter gets deleted, because the minute switches.
-      retry({
-        val results = (1 to deployedControllers + 1).map { _ =>
-          wsk.action.invoke(sequenceName, expectedExitCode = TestUtils.DONTCARE_EXIT)
-        }
-        results.map(_.exitCode) should contain(TestUtils.THROTTLED)
-        results.map(_.stderr).mkString should {
-          include(prefix(tooManyRequests(0, 0))) and include("allowed: 1")
-        }
-      }, 2, Some(1.second))
+      retry(
+        {
+          val results = (1 to deployedControllers + 1).map { _ =>
+            wsk.action.invoke(sequenceName, expectedExitCode = TestUtils.DONTCARE_EXIT)
+          }
+          results.map(_.exitCode) should contain(TestUtils.THROTTLED)
+          results.map(_.stderr).mkString should {
+            include(prefix(tooManyRequests(0, 0))) and include("allowed: 1")
+          }
+        },
+        2,
+        Some(1.second))
   }
 
   it should "not store an activation if disabled for this namespace" in withAssetCleaner(activationDisabled) {

@@ -97,8 +97,8 @@ class MongoDBAsyncStreamSource(stream: AsyncInputStream, chunkSize: Int)(implici
 }
 
 object MongoDBAsyncStreamSource {
-  def apply(stream: AsyncInputStream, chunkSize: Int = 512 * 1024)(
-    implicit ec: ExecutionContext): Source[ByteString, Future[IOResult]] = {
+  def apply(stream: AsyncInputStream, chunkSize: Int = 512 * 1024)(implicit
+    ec: ExecutionContext): Source[ByteString, Future[IOResult]] = {
     Source.fromGraph(new MongoDBAsyncStreamSource(stream, chunkSize))
   }
 }

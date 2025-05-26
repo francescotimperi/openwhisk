@@ -35,25 +35,22 @@ class IndexingPolicyTests extends FlatSpec with Matchers {
 
   it should "not match when same path are different" in {
     val policy =
-      IndexingPolicy(
-        includedPaths =
-          Set(IncludedPath("foo", Index(Range, String, -1)), IncludedPath("bar", Index(Range, String, -1))))
+      IndexingPolicy(includedPaths =
+        Set(IncludedPath("foo", Index(Range, String, -1)), IncludedPath("bar", Index(Range, String, -1))))
 
     val policy2 =
-      IndexingPolicy(
-        includedPaths = Set(
-          IncludedPath("foo2", Index(Range, String, -1)),
-          IncludedPath("bar", Set(Index(Range, String, -1), Index(Range, String, -1)))))
+      IndexingPolicy(includedPaths = Set(
+        IncludedPath("foo2", Index(Range, String, -1)),
+        IncludedPath("bar", Set(Index(Range, String, -1), Index(Range, String, -1)))))
 
     IndexingPolicy.isSame(policy, policy2) shouldBe false
   }
 
   it should "convert and match java IndexingPolicy" in {
     val policy =
-      IndexingPolicy(
-        includedPaths = Set(
-          IncludedPath("foo", Index(Range, String, -1)),
-          IncludedPath("bar", Set(Index(Range, String, -1), Index(Range, String, -1)))))
+      IndexingPolicy(includedPaths = Set(
+        IncludedPath("foo", Index(Range, String, -1)),
+        IncludedPath("bar", Set(Index(Range, String, -1), Index(Range, String, -1)))))
 
     val jpolicy = policy.asJava()
     val policy2 = IndexingPolicy(jpolicy)

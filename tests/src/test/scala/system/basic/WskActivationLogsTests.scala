@@ -48,12 +48,16 @@ class WskActivationLogsTests extends TestHelpers with WskTestHelpers with WskAct
       // Needs to be retried because there might be an SPI being plugged in which is handling logs not consistent with
       // the database where the activation itself comes from (activation in CouchDB, logs in Elasticsearch for
       // example).
-      retry({
-        val logs = wsk.activation.logs(Some(activation.activationId)).stdout
+      retry(
+        {
+          val logs = wsk.activation.logs(Some(activation.activationId)).stdout
 
-        logs should include regex logFormat.format("stdout", "this is stdout")
-        logs should include regex logFormat.format("stderr", "this is stderr")
-      }, 60 * 5, Some(1.second)) // retry for 5 minutes
+          logs should include regex logFormat.format("stdout", "this is stdout")
+          logs should include regex logFormat.format("stderr", "this is stderr")
+        },
+        60 * 5,
+        Some(1.second)
+      ) // retry for 5 minutes
     }
   }
 }

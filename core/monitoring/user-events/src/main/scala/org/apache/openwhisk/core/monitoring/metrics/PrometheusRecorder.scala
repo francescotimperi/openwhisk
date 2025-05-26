@@ -78,9 +78,10 @@ case class PrometheusRecorder(kamon: PrometheusReporter, config: MetricConfig)
     val memory = activation.memory.toString
     val namespace = activation.namespace
     val action = activation.action
-    activationMetrics.getOrElseUpdate(name, {
-      ActivationPromMetrics(namespace, action, kind, memory, initiator)
-    })
+    activationMetrics.getOrElseUpdate(
+      name, {
+        ActivationPromMetrics(namespace, action, kind, memory, initiator)
+      })
   }
 
   case class LimitPromMetrics(namespace: String) {
@@ -97,11 +98,12 @@ case class PrometheusRecorder(kamon: PrometheusReporter, config: MetricConfig)
     }
   }
 
-  case class ActivationPromMetrics(namespace: String,
-                                   action: String,
-                                   kind: String,
-                                   memory: String,
-                                   initiatorNamespace: String) {
+  case class ActivationPromMetrics(
+    namespace: String,
+    action: String,
+    kind: String,
+    memory: String,
+    initiatorNamespace: String) {
 
     private val activations = promMetrics.activationCounter.labels(namespace, initiatorNamespace, action, kind, memory)
     private val coldStarts = promMetrics.coldStartCounter.labels(namespace, initiatorNamespace, action)

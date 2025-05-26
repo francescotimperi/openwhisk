@@ -109,7 +109,14 @@ class UserCommandTests extends FlatSpec with WhiskAdminCliTestBase {
     resultOk("user", "create", "--auth", key2.compact, "--namespace", "foo", subject) shouldBe key2.compact
 
     //Adding same namespace should fail
-    resultNotOk("user", "create", "--auth", key2.compact, "--namespace", "foo", subject) shouldBe CommandMessages.namespaceExists
+    resultNotOk(
+      "user",
+      "create",
+      "--auth",
+      key2.compact,
+      "--namespace",
+      "foo",
+      subject) shouldBe CommandMessages.namespaceExists
 
     //Adding same namespace with force flag should update the namespace with specified uuid:key
     val newKey = resultOk("user", "create", "--force", "--auth", key2.compact, "--namespace", "foo", subject)
@@ -169,7 +176,12 @@ class UserCommandTests extends FlatSpec with WhiskAdminCliTestBase {
 
     put(authStore, auth)
 
-    resultOk("user", "delete", "--namespace", ns1.namespace.name.asString, subject) shouldBe CommandMessages.namespaceDeleted
+    resultOk(
+      "user",
+      "delete",
+      "--namespace",
+      ns1.namespace.name.asString,
+      subject) shouldBe CommandMessages.namespaceDeleted
 
     val authFromDB = authStore.get[WhiskAuth](DocInfo(DocId(subject))).futureValue
     authFromDB.namespaces shouldBe Set(ns2)

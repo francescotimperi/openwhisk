@@ -37,10 +37,10 @@ import scala.collection.JavaConverters._
  *  - Enable custom comparison between existing policy and desired policy as policy instances
  *    obtained from CosmosDB have extra index type configured per included path. Hence the comparison
  *    needs to be customized
- *
  */
-case class IndexingPolicy(includedPaths: Set[IncludedPath],
-                          excludedPaths: Set[ExcludedPath] = Set(ExcludedPath("/*"))) {
+case class IndexingPolicy(
+  includedPaths: Set[IncludedPath],
+  excludedPaths: Set[ExcludedPath] = Set(ExcludedPath("/*"))) {
 
   def asJava(): JIndexingPolicy = {
     val policy = new JIndexingPolicy()

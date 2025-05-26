@@ -84,9 +84,9 @@ class MockYARNRM(port: Int, delayMS: Int) {
                 if (!this.services.contains(serviceName)) {
                   writeResponse(httpExchange, 404, YARNResponseDefinition("Service not found"))
                 } else if (!this
-                             .services(serviceName)
-                             .components
-                             .exists(c => c.name.equals(incomingComponentDef.name))) {
+                    .services(serviceName)
+                    .components
+                    .exists(c => c.name.equals(incomingComponentDef.name))) {
                   writeResponse(httpExchange, 404, YARNResponseDefinition("Component not found"))
                 } else {
                   val containerToRemove = incomingComponentDef.decommissioned_instances.head
@@ -206,8 +206,8 @@ class MockYARNRM(port: Int, delayMS: Int) {
         .getOrElse(List[ContainerDefinition]())
         .map(container => {
           if (container.state.equals("INIT") && this.flexCompletionTimes
-                .getOrElse(serviceName, mutable.Map[String, DateTime]())
-                .getOrElse(comp.name, DateTime.MinValue) < DateTime.now) {
+              .getOrElse(serviceName, mutable.Map[String, DateTime]())
+              .getOrElse(comp.name, DateTime.MinValue) < DateTime.now) {
             val newContainer = container.copy(state = "READY")
             newContainer
           } else

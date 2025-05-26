@@ -169,24 +169,26 @@ trait WhiskActionsApi extends WhiskCollectionAPI with PostActionActivation with 
             val right = collection.determineRight(m, Some(innername))
             onComplete(entitlementProvider.check(user, right, packageResource)) {
               case Success(_) =>
-                getEntity(WhiskPackage.get(entityStore, packageDocId), Some {
-                  if (right == Privilege.READ || right == Privilege.ACTIVATE) { wp: WhiskPackage =>
-                    val actionResource = Resource(wp.fullPath, collection, Some(innername))
-                    dispatchOp(user, right, actionResource)
+                getEntity(
+                  WhiskPackage.get(entityStore, packageDocId),
+                  Some {
+                    if (right == Privilege.READ || right == Privilege.ACTIVATE) { wp: WhiskPackage =>
+                      val actionResource = Resource(wp.fullPath, collection, Some(innername))
+                      dispatchOp(user, right, actionResource)
 
-                  } else {
-                    // these packaged action operations do not need merging with the package,
-                    // but may not be permitted if this is a binding, or if the subject does
-                    // not have PUT and DELETE rights to the package itself
-                    (wp: WhiskPackage) =>
-                      wp.binding map { _ =>
-                        terminate(BadRequest, Messages.notAllowedOnBinding)
-                      } getOrElse {
-                        val actionResource = Resource(wp.fullPath, collection, Some(innername))
-                        dispatchOp(user, right, actionResource)
-                      }
-                  }
-                })
+                    } else {
+                      // these packaged action operations do not need merging with the package,
+                      // but may not be permitted if this is a binding, or if the subject does
+                      // not have PUT and DELETE rights to the package itself
+                      (wp: WhiskPackage) =>
+                        wp.binding map { _ =>
+                          terminate(BadRequest, Messages.notAllowedOnBinding)
+                        } getOrElse {
+                          val actionResource = Resource(wp.fullPath, collection, Some(innername))
+                          dispatchOp(user, right, actionResource)
+                        }
+                    }
+                  })
               case Failure(f) => super.handleEntitlementFailure(f)
             }
           }
@@ -220,9 +222,15 @@ trait WhiskActionsApi extends WhiskCollectionAPI with PostActionActivation with 
 
         onComplete(check) {
           case Success(_) =>
-            putEntity(WhiskAction, entityStore, entityName.toDocId, overwrite, update(user, request), () => {
-              make(user, entityName, request)
-            })
+            putEntity(
+              WhiskAction,
+              entityStore,
+              entityName.toDocId,
+              overwrite,
+              update(user, request),
+              () => {
+                make(user, entityName, request)
+              })
           case Failure(f) =>
             super.handleEntitlementFailure(f)
         }
@@ -241,16 +249,17 @@ trait WhiskActionsApi extends WhiskCollectionAPI with PostActionActivation with 
    * - 502 Bad Gateway
    * - 500 Internal Server Error
    */
-  override def activate(user: Identity, entityName: FullyQualifiedEntityName, env: Option[Parameters])(
-    implicit transid: TransactionId) = {
+  override def activate(user: Identity, entityName: FullyQualifiedEntityName, env: Option[Parameters])(implicit
+    transid: TransactionId) = {
     parameter(
       'blocking ? false,
       'result ? false,
       'timeout.as[FiniteDuration] ? controllerActivationConfig.maxWaitForBlockingActivation) {
       (blocking, result, waitOverride) =>
         entity(as[Option[JsObject]]) { payload =>
-          getEntity(WhiskActionMetaData.resolveActionAndMergeParameters(entityStore, entityName), Some {
-            act: WhiskActionMetaData =>
+          getEntity(
+            WhiskActionMetaData.resolveActionAndMergeParameters(entityStore, entityName),
+            Some { act: WhiskActionMetaData =>
               // resolve the action --- special case for sequences that may contain components with '_' as default package
               val action = act.resolve(user.namespace)
               onComplete(entitleReferencedEntitiesMetaData(user, Privilege.ACTIVATE, Some(action.exec))) {
@@ -272,17 +281,18 @@ trait WhiskActionsApi extends WhiskCollectionAPI with PostActionActivation with 
                 case Failure(f) =>
                   super.handleEntitlementFailure(f)
               }
-          })
+            })
         }
     }
   }
 
-  private def doInvoke(user: Identity,
-                       actionWithMergedParams: WhiskActionMetaData,
-                       payload: Option[JsObject],
-                       blocking: Boolean,
-                       waitOverride: FiniteDuration,
-                       result: Boolean)(implicit transid: TransactionId): RequestContext => Future[RouteResult] = {
+  private def doInvoke(
+    user: Identity,
+    actionWithMergedParams: WhiskActionMetaData,
+    payload: Option[JsObject],
+    blocking: Boolean,
+    waitOverride: FiniteDuration,
+    result: Boolean)(implicit transid: TransactionId): RequestContext => Future[RouteResult] = {
     val waitForResponse = if (blocking) Some(waitOverride) else None
     onComplete(invokeAction(user, actionWithMergedParams, payload, waitForResponse, cause = None)) {
       case Success(Left(activationId)) =>
@@ -343,8 +353,8 @@ trait WhiskActionsApi extends WhiskCollectionAPI with PostActionActivation with 
   }
 
   /** Checks for package binding case. we don't want to allow get for a package binding in shared package */
-  private def fetchEntity(entityName: FullyQualifiedEntityName, env: Option[Parameters], code: Boolean)(
-    implicit transid: TransactionId) = {
+  private def fetchEntity(entityName: FullyQualifiedEntityName, env: Option[Parameters], code: Boolean)(implicit
+    transid: TransactionId) = {
     val resolvedPkg: Future[Either[String, FullyQualifiedEntityName]] = if (entityName.path.defaultPackage) {
       Future.successful(Right(entityName))
     } else {
@@ -363,21 +373,23 @@ trait WhiskActionsApi extends WhiskCollectionAPI with PostActionActivation with 
           case Left(f) => terminate(Forbidden, f)
           case Right(_) =>
             if (code) {
-              getEntity(WhiskAction.resolveActionAndMergeParameters(entityStore, entityName), Some {
-                action: WhiskAction =>
+              getEntity(
+                WhiskAction.resolveActionAndMergeParameters(entityStore, entityName),
+                Some { action: WhiskAction =>
                   val mergedAction = env map {
                     action inherit _
                   } getOrElse action
                   complete(OK, mergedAction)
-              })
+                })
             } else {
-              getEntity(WhiskActionMetaData.resolveActionAndMergeParameters(entityStore, entityName), Some {
-                action: WhiskActionMetaData =>
+              getEntity(
+                WhiskActionMetaData.resolveActionAndMergeParameters(entityStore, entityName),
+                Some { action: WhiskActionMetaData =>
                   val mergedAction = env map {
                     action inherit _
                   } getOrElse action
                   complete(OK, mergedAction)
-              })
+                })
             }
         }
       case Failure(t: Throwable) =>
@@ -394,8 +406,8 @@ trait WhiskActionsApi extends WhiskCollectionAPI with PostActionActivation with 
    * - 404 Not Found
    * - 500 Internal Server Error
    */
-  override def fetch(user: Identity, entityName: FullyQualifiedEntityName, env: Option[Parameters])(
-    implicit transid: TransactionId) = {
+  override def fetch(user: Identity, entityName: FullyQualifiedEntityName, env: Option[Parameters])(implicit
+    transid: TransactionId) = {
     parameter('code ? true) { code =>
       //check if execute only is enabled, and if there is a discrepancy between the current user's namespace
       //and that of the entity we are trying to fetch
@@ -435,8 +447,9 @@ trait WhiskActionsApi extends WhiskCollectionAPI with PostActionActivation with 
   }
 
   /** Replaces default namespaces in a vector of components from a sequence with appropriate namespace. */
-  private def resolveDefaultNamespace(components: Vector[FullyQualifiedEntityName],
-                                      user: Identity): Vector[FullyQualifiedEntityName] = {
+  private def resolveDefaultNamespace(
+    components: Vector[FullyQualifiedEntityName],
+    user: Identity): Vector[FullyQualifiedEntityName] = {
     // if components are part of the default namespace, they contain `_`; replace it!
     val resolvedComponents = components map { c =>
       FullyQualifiedEntityName(c.path.resolveNamespace(user.namespace), c.name)
@@ -447,8 +460,8 @@ trait WhiskActionsApi extends WhiskCollectionAPI with PostActionActivation with 
   /**
    * Creates a WhiskAction instance from the PUT request.
    */
-  private def makeWhiskAction(content: WhiskActionPut, entityName: FullyQualifiedEntityName)(
-    implicit transid: TransactionId) = {
+  private def makeWhiskAction(content: WhiskActionPut, entityName: FullyQualifiedEntityName)(implicit
+    transid: TransactionId) = {
     val exec = content.exec.get
     val limits = content.limits map { l =>
       ActionLimits(
@@ -481,8 +494,8 @@ trait WhiskActionsApi extends WhiskCollectionAPI with PostActionActivation with 
   }
 
   /** For a sequence action, gather referenced entities and authorize access. */
-  private def entitleReferencedEntities(user: Identity, right: Privilege, exec: Option[Exec])(
-    implicit transid: TransactionId) = {
+  private def entitleReferencedEntities(user: Identity, right: Privilege, exec: Option[Exec])(implicit
+    transid: TransactionId) = {
     exec match {
       case Some(seq: SequenceExec) =>
         logging.debug(this, "checking if sequence components are accessible")
@@ -502,8 +515,8 @@ trait WhiskActionsApi extends WhiskCollectionAPI with PostActionActivation with 
   }
 
   /** Creates a WhiskAction from PUT content, generating default values where necessary. */
-  private def make(user: Identity, entityName: FullyQualifiedEntityName, content: WhiskActionPut)(
-    implicit transid: TransactionId) = {
+  private def make(user: Identity, entityName: FullyQualifiedEntityName, content: WhiskActionPut)(implicit
+    transid: TransactionId) = {
     checkInstanceConcurrencyLessThanNamespaceConcurrency(user, content) flatMap { _ =>
       content.exec map {
         case seq: SequenceExec =>
@@ -570,9 +583,11 @@ trait WhiskActionsApi extends WhiskCollectionAPI with PostActionActivation with 
     // once the version of sequences with "pipe.js" is removed.
     val parameters = content.exec map {
       case seq: SequenceExec =>
-        Parameters("_actions", JsArray(seq.components map { c =>
-          JsString("/" + c.toString)
-        }))
+        Parameters(
+          "_actions",
+          JsArray(seq.components map { c =>
+            JsString("/" + c.toString)
+          }))
       case _ =>
         content.parameters getOrElse {
           action.exec match {
@@ -623,21 +638,23 @@ trait WhiskActionsApi extends WhiskCollectionAPI with PostActionActivation with 
     // and should hit the cache to ameliorate the cost; this can be improved
     // but requires communicating back from the authorization service the
     // resolved namespace
-    getEntity(WhiskPackage.get(entityStore, pkgName.toDocId), Some { (wp: WhiskPackage) =>
-      val pkgns = wp.binding map { b =>
-        logging.debug(this, s"list actions in package binding '${wp.name}' -> '$b'")
-        b.namespace.addPath(b.name)
-      } getOrElse {
-        logging.debug(this, s"list actions in package '${wp.name}'")
-        pkgName.path.addPath(wp.name)
-      }
-      // list actions in resolved namespace
-      list(user, pkgns)
-    })
+    getEntity(
+      WhiskPackage.get(entityStore, pkgName.toDocId),
+      Some { (wp: WhiskPackage) =>
+        val pkgns = wp.binding map { b =>
+          logging.debug(this, s"list actions in package binding '${wp.name}' -> '$b'")
+          b.namespace.addPath(b.name)
+        } getOrElse {
+          logging.debug(this, s"list actions in package '${wp.name}'")
+          pkgName.path.addPath(wp.name)
+        }
+        // list actions in resolved namespace
+        list(user, pkgns)
+      })
   }
 
-  private def checkActionLimits(user: Identity, content: WhiskActionPut)(
-    implicit transid: TransactionId): Future[Unit] = {
+  private def checkActionLimits(user: Identity, content: WhiskActionPut)(implicit
+    transid: TransactionId): Future[Unit] = {
     logging.debug(this, "checking the namespace and system limit for action")
     try {
       // check namespace limits
@@ -690,22 +707,20 @@ trait WhiskActionsApi extends WhiskCollectionAPI with PostActionActivation with 
     }
   }
 
-  private def checkInstanceConcurrencyLessThanNamespaceConcurrency(user: Identity, content: WhiskActionPut)(
-    implicit transid: TransactionId): Future[Unit] = {
+  private def checkInstanceConcurrencyLessThanNamespaceConcurrency(user: Identity, content: WhiskActionPut)(implicit
+    transid: TransactionId): Future[Unit] = {
     val namespaceConcurrencyLimit =
       user.limits.concurrentInvocations.getOrElse(whiskConfig.actionInvokeConcurrentLimit.toInt)
     content.limits
-      .map(
-        l =>
-          l.instances
-            .map(
-              m =>
-                if (m.maxConcurrentInstances > namespaceConcurrencyLimit)
-                  Future failed RejectRequest(
-                    BadRequest,
-                    maxActionInstanceConcurrencyExceedsNamespace(namespaceConcurrencyLimit))
-                else Future.successful({}))
-            .getOrElse(Future.successful({})))
+      .map(l =>
+        l.instances
+          .map(m =>
+            if (m.maxConcurrentInstances > namespaceConcurrencyLimit)
+              Future failed RejectRequest(
+                BadRequest,
+                maxActionInstanceConcurrencyExceedsNamespace(namespaceConcurrencyLimit))
+            else Future.successful({}))
+          .getOrElse(Future.successful({})))
       .getOrElse(Future.successful({}))
   }
 

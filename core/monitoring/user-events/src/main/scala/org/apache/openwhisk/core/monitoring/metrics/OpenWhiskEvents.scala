@@ -33,11 +33,12 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object OpenWhiskEvents extends SLF4JLogging {
 
-  case class MetricConfig(port: Int,
-                          enableKamon: Boolean,
-                          ignoredNamespaces: Set[String],
-                          renameTags: Map[String, String],
-                          retry: RetryConfig)
+  case class MetricConfig(
+    port: Int,
+    enableKamon: Boolean,
+    ignoredNamespaces: Set[String],
+    renameTags: Map[String, String],
+    retry: RetryConfig)
 
   case class RetryConfig(minBackoff: FiniteDuration, maxBackoff: FiniteDuration, randomFactor: Double, maxRestarts: Int)
 

@@ -288,7 +288,7 @@ class SchemaTests extends FlatSpec with BeforeAndAfter with ExecHelpers with Mat
       "_ ",
       "a?b",
       "x#x",
-      "a§b",
+      "a??b",
       "a  ",
       "a()b",
       "a{}b",
@@ -319,13 +319,12 @@ class SchemaTests extends FlatSpec with BeforeAndAfter with ExecHelpers with Mat
       JsString("n/a/b"),
       JsString("/a/b"),
       JsString("/n/a/b"),
-      JsString("b")) //JsObject("namespace" -> "a".toJson, "name" -> "b".toJson))
+      JsString("b")
+    ) //JsObject("namespace" -> "a".toJson, "name" -> "b".toJson))
 
     FullyQualifiedEntityName.serdes.read(names(0)) shouldBe FullyQualifiedEntityName(EntityPath("a"), EntityName("b"))
-    FullyQualifiedEntityName.serdes.read(names(1)) shouldBe FullyQualifiedEntityName(
-      EntityPath("a"),
-      EntityName("b"),
-      Some(SemVer()))
+    FullyQualifiedEntityName.serdes
+      .read(names(1)) shouldBe FullyQualifiedEntityName(EntityPath("a"), EntityName("b"), Some(SemVer()))
     FullyQualifiedEntityName.serdes.read(names(2)) shouldBe FullyQualifiedEntityName(EntityPath("a"), EntityName("b"))
     FullyQualifiedEntityName.serdes.read(names(3)) shouldBe FullyQualifiedEntityName(EntityPath("n/a"), EntityName("b"))
     FullyQualifiedEntityName.serdes.read(names(4)) shouldBe FullyQualifiedEntityName(EntityPath("a"), EntityName("b"))

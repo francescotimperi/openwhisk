@@ -111,9 +111,10 @@ class CacheInvalidationTests extends FlatSpec with Matchers with WskTestHelpers 
     Await.result(request, timeout)
   }
 
-  def deleteAction(name: String,
-                   controllerInstance: Int = 0,
-                   expectedCode: Option[StatusCode] = Some(StatusCodes.OK)) = {
+  def deleteAction(
+    name: String,
+    controllerInstance: Int = 0,
+    expectedCode: Option[StatusCode] = Some(StatusCodes.OK)) = {
     val request = Http()
       .singleRequest(
         HttpRequest(

@@ -214,11 +214,12 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
   }
 
   // action names that start with 'export_' will automatically have an web-export annotation added by the test harness
-  protected def stubAction(namespace: EntityPath,
-                           name: EntityName,
-                           customOptions: Boolean = true,
-                           requireAuthentication: Boolean = false,
-                           requireAuthenticationAsBoolean: Boolean = true) = {
+  protected def stubAction(
+    namespace: EntityPath,
+    name: EntityName,
+    customOptions: Boolean = true,
+    requireAuthentication: Boolean = false,
+    requireAuthenticationAsBoolean: Boolean = true) = {
 
     val annotations = Parameters(Annotations.FinalParamsAnnotationName, JsTrue)
     WhiskAction(
@@ -230,30 +231,30 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
         if (name.asString.startsWith("export_")) {
           annotations ++
             Parameters("web-export", JsTrue) ++ {
-            if (requireAuthentication) {
-              Parameters(
-                "require-whisk-auth",
-                (if (requireAuthenticationAsBoolean) JsTrue else JsString(requireAuthenticationKey)))
-            } else Parameters()
-          } ++ {
-            if (customOptions) {
-              Parameters("web-custom-options", JsTrue)
-            } else Parameters()
-          }
+              if (requireAuthentication) {
+                Parameters(
+                  "require-whisk-auth",
+                  (if (requireAuthenticationAsBoolean) JsTrue else JsString(requireAuthenticationKey)))
+              } else Parameters()
+            } ++ {
+              if (customOptions) {
+                Parameters("web-custom-options", JsTrue)
+              } else Parameters()
+            }
         } else if (name.asString.startsWith("raw_export_")) {
           annotations ++
             Parameters("web-export", JsTrue) ++
             Parameters("raw-http", JsTrue) ++ {
-            if (requireAuthentication) {
-              Parameters(
-                "require-whisk-auth",
-                (if (requireAuthenticationAsBoolean) JsTrue else JsString(requireAuthenticationKey)))
-            } else Parameters()
-          } ++ {
-            if (customOptions) {
-              Parameters("web-custom-options", JsTrue)
-            } else Parameters()
-          }
+              if (requireAuthentication) {
+                Parameters(
+                  "require-whisk-auth",
+                  (if (requireAuthenticationAsBoolean) JsTrue else JsString(requireAuthenticationKey)))
+              } else Parameters()
+            } ++ {
+              if (customOptions) {
+                Parameters("web-custom-options", JsTrue)
+              } else Parameters()
+            }
         } else annotations
       })
   }
@@ -328,13 +329,14 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
     }
   }
 
-  def metaPayload(method: String,
-                  params: JsObject,
-                  identity: Option[Identity],
-                  path: String = "",
-                  body: Option[JsObject] = None,
-                  pkgName: String = null,
-                  headers: List[HttpHeader] = List.empty) = {
+  def metaPayload(
+    method: String,
+    params: JsObject,
+    identity: Option[Identity],
+    path: String = "",
+    body: Option[JsObject] = None,
+    pkgName: String = null,
+    headers: List[HttpHeader] = List.empty) = {
     val packageActionParams = Option(pkgName)
       .filter(_ != null)
       .flatMap(n => packages.find(_.name == EntityName(n)))
@@ -488,7 +490,9 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
           }
         }
 
-        m(s"$testRoutePath/${path}.json") ~> addHeader(WhiskAction.requireWhiskAuthHeader, requireAuthenticationKey) ~> Route
+        m(s"$testRoutePath/${path}.json") ~> addHeader(
+          WhiskAction.requireWhiskAuthHeader,
+          requireAuthenticationKey) ~> Route
           .seal(routes(creds)) ~> check {
           if (m == Options) {
             status should be(OK) // options should always respond
@@ -607,7 +611,8 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
         Seq(s"$systemId/proxy/export_c.json").foreach { path =>
           allowedMethodsWithEntity.foreach { m =>
             invocationsAllowed += 1
-            m(s"$testRoutePath/$path", HttpEntity(ContentTypes.`application/json`, arg)) ~> Route.seal(routes(creds)) ~> check {
+            m(s"$testRoutePath/$path", HttpEntity(ContentTypes.`application/json`, arg)) ~> Route.seal(
+              routes(creds)) ~> check {
               status should be(OK)
               val response = responseAs[JsObject]
               response shouldBe JsObject(
@@ -793,12 +798,14 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
       allowedMethodsWithEntity.foreach { m =>
         invocationsAllowed += 1
 
-        m(s"$testRoutePath/$systemId/${reference.name}/export_c.json?x=overridden") ~> Route.seal(routes(creds)) ~> check {
+        m(s"$testRoutePath/$systemId/${reference.name}/export_c.json?x=overridden") ~> Route.seal(
+          routes(creds)) ~> check {
           status should be(BadRequest)
           responseAs[ErrorResponse].error shouldBe Messages.parametersNotAllowed
         }
 
-        m(s"$testRoutePath/$systemId/${reference.name}/export_c.json?y=overridden") ~> Route.seal(routes(creds)) ~> check {
+        m(s"$testRoutePath/$systemId/${reference.name}/export_c.json?y=overridden") ~> Route.seal(
+          routes(creds)) ~> check {
           status should be(BadRequest)
           responseAs[ErrorResponse].error shouldBe Messages.parametersNotAllowed
         }
@@ -814,7 +821,8 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
           responseAs[ErrorResponse].error shouldBe Messages.parametersNotAllowed
         }
 
-        m(s"$testRoutePath/$systemId/${reference.name}/export_c.json?empty=overridden") ~> Route.seal(routes(creds)) ~> check {
+        m(s"$testRoutePath/$systemId/${reference.name}/export_c.json?empty=overridden") ~> Route.seal(
+          routes(creds)) ~> check {
           status should be(OK)
           val response = responseAs[JsObject]
           response shouldBe JsObject(
@@ -1053,7 +1061,8 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
             }
 
             // repeat with accept header, which should be ignored for content-negotiation
-            m(s"$testRoutePath/$path") ~> addHeader("Accept", "application/json") ~> Route.seal(routes(creds)) ~> check {
+            m(s"$testRoutePath/$path") ~> addHeader("Accept", "application/json") ~> Route.seal(
+              routes(creds)) ~> check {
               withClue(s"with accept header, failed for: $bodyResult") {
                 confirmEmptyResponse()
               }
@@ -1202,7 +1211,8 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
             invocationsAllowed += 1
             actionResult = Some(JsObject(webApiDirectives.statusCode -> statusCode.intValue.toJson))
 
-            m(s"$testRoutePath/$path") ~> addHeader("Accept", "application/json") ~> Route.seal(routes(creds)) ~> check {
+            m(s"$testRoutePath/$path") ~> addHeader("Accept", "application/json") ~> Route.seal(
+              routes(creds)) ~> check {
               status should be(statusCode)
               headers.size shouldBe 1
               headers.exists(_.is(ActivationIdHeader)) should be(true)
@@ -1220,7 +1230,8 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
                 "headers" -> JsObject("Set-Cookie" -> "a=b".toJson, "content-type" -> "application/json".toJson),
                 webApiDirectives.statusCode -> statusCode.intValue.toJson))
 
-            m(s"$testRoutePath/$path") ~> addHeader("Accept", "application/json") ~> Route.seal(routes(creds)) ~> check {
+            m(s"$testRoutePath/$path") ~> addHeader("Accept", "application/json") ~> Route.seal(
+              routes(creds)) ~> check {
               status should be(statusCode)
               headers should contain(RawHeader("Set-Cookie", "a=b"))
               headers.exists(_.is(ActivationIdHeader)) should be(true)
@@ -1237,29 +1248,28 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
       Seq(
         (JsObject("content-type" -> "application/json".toJson), OK),
         (JsObject.empty, OK),
-        (JsObject("content-type" -> "text/html".toJson), BadRequest)).foreach {
-        case (headers, expectedCode) =>
-          Seq(s"$systemId/proxy/export_c.http").foreach { path =>
-            allowedMethods.foreach { m =>
-              invocationsAllowed += 1
-              actionResult = Some(
-                JsObject(
-                  "headers" -> headers,
-                  webApiDirectives.statusCode -> OK.intValue.toJson,
-                  "body" -> JsObject("field" -> "value".toJson)))
+        (JsObject("content-type" -> "text/html".toJson), BadRequest)).foreach { case (headers, expectedCode) =>
+        Seq(s"$systemId/proxy/export_c.http").foreach { path =>
+          allowedMethods.foreach { m =>
+            invocationsAllowed += 1
+            actionResult = Some(
+              JsObject(
+                "headers" -> headers,
+                webApiDirectives.statusCode -> OK.intValue.toJson,
+                "body" -> JsObject("field" -> "value".toJson)))
 
-              m(s"$testRoutePath/$path") ~> Route.seal(routes(creds)) ~> check {
-                status should be(expectedCode)
+            m(s"$testRoutePath/$path") ~> Route.seal(routes(creds)) ~> check {
+              status should be(expectedCode)
 
-                if (expectedCode == OK) {
-                  header("content-type").map(_.toString shouldBe "content-type: application/json")
-                  responseAs[JsObject] shouldBe JsObject("field" -> "value".toJson)
-                } else {
-                  confirmErrorWithTid(responseAs[JsObject], Some(Messages.httpContentTypeError))
-                }
+              if (expectedCode == OK) {
+                header("content-type").map(_.toString shouldBe "content-type: application/json")
+                responseAs[JsObject] shouldBe JsObject("field" -> "value".toJson)
+              } else {
+                confirmErrorWithTid(responseAs[JsObject], Some(Messages.httpContentTypeError))
               }
             }
           }
+        }
       }
     }
     it should s"handle http web action with base64 encoded known '+json' response (auth? ${creds.isDefined})" in {
@@ -1290,29 +1300,28 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
 
       Seq(
         (JsObject("content-type" -> "application/json-patch+json".toJson), OK),
-        (JsObject("content-type" -> "text/html".toJson), BadRequest)).foreach {
-        case (headers, expectedCode) =>
-          Seq(s"$systemId/proxy/export_c.http").foreach { path =>
-            allowedMethods.foreach { m =>
-              invocationsAllowed += 1
-              actionResult = Some(
-                JsObject(
-                  "headers" -> headers,
-                  webApiDirectives.statusCode -> OK.intValue.toJson,
-                  "body" -> JsObject("field" -> "value".toJson)))
+        (JsObject("content-type" -> "text/html".toJson), BadRequest)).foreach { case (headers, expectedCode) =>
+        Seq(s"$systemId/proxy/export_c.http").foreach { path =>
+          allowedMethods.foreach { m =>
+            invocationsAllowed += 1
+            actionResult = Some(
+              JsObject(
+                "headers" -> headers,
+                webApiDirectives.statusCode -> OK.intValue.toJson,
+                "body" -> JsObject("field" -> "value".toJson)))
 
-              m(s"$testRoutePath/$path") ~> Route.seal(routes(creds)) ~> check {
-                status should be(expectedCode)
+            m(s"$testRoutePath/$path") ~> Route.seal(routes(creds)) ~> check {
+              status should be(expectedCode)
 
-                if (expectedCode == OK) {
-                  mediaType.value shouldBe "application/json-patch+json"
-                  responseAs[String].parseJson shouldBe JsObject("field" -> "value".toJson)
-                } else {
-                  confirmErrorWithTid(responseAs[JsObject], Some(Messages.httpContentTypeError))
-                }
+              if (expectedCode == OK) {
+                mediaType.value shouldBe "application/json-patch+json"
+                responseAs[String].parseJson shouldBe JsObject("field" -> "value".toJson)
+              } else {
+                confirmErrorWithTid(responseAs[JsObject], Some(Messages.httpContentTypeError))
               }
             }
           }
+        }
       }
     }
 
@@ -1321,29 +1330,28 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
 
       Seq(
         (JsObject("content-type" -> "application/hal+json".toJson), OK),
-        (JsObject("content-type" -> "text/html".toJson), BadRequest)).foreach {
-        case (headers, expectedCode) =>
-          Seq(s"$systemId/proxy/export_c.http").foreach { path =>
-            allowedMethods.foreach { m =>
-              invocationsAllowed += 1
-              actionResult = Some(
-                JsObject(
-                  "headers" -> headers,
-                  webApiDirectives.statusCode -> OK.intValue.toJson,
-                  "body" -> JsObject("field" -> "value".toJson)))
+        (JsObject("content-type" -> "text/html".toJson), BadRequest)).foreach { case (headers, expectedCode) =>
+        Seq(s"$systemId/proxy/export_c.http").foreach { path =>
+          allowedMethods.foreach { m =>
+            invocationsAllowed += 1
+            actionResult = Some(
+              JsObject(
+                "headers" -> headers,
+                webApiDirectives.statusCode -> OK.intValue.toJson,
+                "body" -> JsObject("field" -> "value".toJson)))
 
-              m(s"$testRoutePath/$path") ~> Route.seal(routes(creds)) ~> check {
-                status should be(expectedCode)
+            m(s"$testRoutePath/$path") ~> Route.seal(routes(creds)) ~> check {
+              status should be(expectedCode)
 
-                if (expectedCode == OK) {
-                  mediaType.value shouldBe "application/hal+json"
-                  responseAs[String].parseJson shouldBe JsObject("field" -> "value".toJson)
-                } else {
-                  confirmErrorWithTid(responseAs[JsObject], Some(Messages.httpContentTypeError))
-                }
+              if (expectedCode == OK) {
+                mediaType.value shouldBe "application/hal+json"
+                responseAs[String].parseJson shouldBe JsObject("field" -> "value".toJson)
+              } else {
+                confirmErrorWithTid(responseAs[JsObject], Some(Messages.httpContentTypeError))
               }
             }
           }
+        }
       }
 
       Seq(s"$systemId/proxy/export_c.http").foreach { path =>
@@ -1618,7 +1626,8 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
             responseAs[ErrorResponse].error shouldBe Messages.parametersNotAllowed
           }
 
-          m(s"$testRoutePath/$systemId/proxy/export_c.json", JsObject(p -> "YYY".toJson)) ~> Route.seal(routes(creds)) ~> check {
+          m(s"$testRoutePath/$systemId/proxy/export_c.json", JsObject(p -> "YYY".toJson)) ~> Route.seal(
+            routes(creds)) ~> check {
             status should be(BadRequest)
             responseAs[ErrorResponse].error shouldBe Messages.parametersNotAllowed
           }
@@ -1649,7 +1658,8 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
           responseAs[ErrorResponse].error shouldBe Messages.parametersNotAllowed
         }
 
-        m(s"$testRoutePath/$systemId/proxy/export_c.json?y=overridden", contentZ) ~> Route.seal(routes(creds)) ~> check {
+        m(s"$testRoutePath/$systemId/proxy/export_c.json?y=overridden", contentZ) ~> Route.seal(
+          routes(creds)) ~> check {
           status should be(BadRequest)
           responseAs[ErrorResponse].error shouldBe Messages.parametersNotAllowed
         }
@@ -1702,7 +1712,8 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
             pkgName = "proxy"))
       }
 
-      Post(s"$testRoutePath/$systemId/proxy/export_c.json?a=b&c=d", JsObject.empty) ~> Route.seal(routes(creds)) ~> check {
+      Post(s"$testRoutePath/$systemId/proxy/export_c.json?a=b&c=d", JsObject.empty) ~> Route.seal(
+        routes(creds)) ~> check {
         status should be(OK)
         val response = responseAs[JsObject]
         response shouldBe JsObject(
@@ -1745,7 +1756,8 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
         Options(s"$testRoutePath/$path") ~> addHeader(`Access-Control-Request-Headers`("x-custom-header")) ~> Route
           .seal(routes(creds)) ~> check {
           header("Access-Control-Allow-Origin") shouldBe empty
-          header("Access-Control-Allow-Methods").get.toString shouldBe "Access-Control-Allow-Methods: OPTIONS, GET, PATCH"
+          header(
+            "Access-Control-Allow-Methods").get.toString shouldBe "Access-Control-Allow-Methods: OPTIONS, GET, PATCH"
           header("Access-Control-Request-Headers") shouldBe empty
         }
       }
@@ -1839,16 +1851,16 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
         invocationsAllowed += 2
         actionResult = Some(JsObject("html" -> xml.toJson))
 
-        Seq((html, MediaTypes.`text/html`), (xml, MediaTypes.`text/html`)).foreach {
-          case (res, expectedMediaType) =>
-            actionResult = Some(JsObject("html" -> res.toJson))
+        Seq((html, MediaTypes.`text/html`), (xml, MediaTypes.`text/html`)).foreach { case (res, expectedMediaType) =>
+          actionResult = Some(JsObject("html" -> res.toJson))
 
-            Get(s"$testRoutePath/$path") ~> addHeader("Accept", expectedMediaType.value) ~> Route.seal(routes(creds)) ~> check {
-              status should be(OK)
-              contentType shouldBe ContentTypes.`text/html(UTF-8)`
-              responseAs[String] shouldBe res
-              mediaType shouldBe expectedMediaType
-            }
+          Get(s"$testRoutePath/$path") ~> addHeader("Accept", expectedMediaType.value) ~> Route.seal(
+            routes(creds)) ~> check {
+            status should be(OK)
+            contentType shouldBe ContentTypes.`text/html(UTF-8)`
+            responseAs[String] shouldBe res
+            mediaType shouldBe expectedMediaType
+          }
         }
       }
     }
@@ -1881,9 +1893,11 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
           "action" -> "raw_export_c".toJson,
           "content" -> metaPayload(
             Post.method.name.toLowerCase,
-            Map(webApiDirectives.query -> "".toJson, webApiDirectives.body -> Base64.getEncoder.encodeToString {
-              JsObject("x" -> JsString("overridden"), "key2" -> JsString("value2")).compactPrint.getBytes
-            }.toJson).toJson.asJsObject,
+            Map(
+              webApiDirectives.query -> "".toJson,
+              webApiDirectives.body -> Base64.getEncoder.encodeToString {
+                JsObject("x" -> JsString("overridden"), "key2" -> JsString("value2")).compactPrint.getBytes
+              }.toJson).toJson.asJsObject,
             creds,
             pkgName = "proxy",
             headers = List(`Content-Type`(ContentTypes.`application/json`))))
@@ -1909,9 +1923,11 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
             "action" -> "raw_export_c".toJson,
             "content" -> metaPayload(
               Post.method.name.toLowerCase,
-              Map(webApiDirectives.body -> Base64.getEncoder.encodeToString {
-                str.getBytes
-              }.toJson, webApiDirectives.query -> queryString.toJson).toJson.asJsObject,
+              Map(
+                webApiDirectives.body -> Base64.getEncoder.encodeToString {
+                  str.getBytes
+                }.toJson,
+                webApiDirectives.query -> queryString.toJson).toJson.asJsObject,
               creds,
               pkgName = "proxy",
               headers = List(`Content-Type`(ContentTypes.`application/json`))))
@@ -1975,7 +1991,8 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
         invocationsAllowed += 1
         actionResult = Some(JsObject("html" -> xml.toJson))
 
-        Get(s"$testRoutePath/$path") ~> addHeader("Accept", MediaTypes.`text/xml`.value) ~> Route.seal(routes(creds)) ~> check {
+        Get(s"$testRoutePath/$path") ~> addHeader("Accept", MediaTypes.`text/xml`.value) ~> Route.seal(
+          routes(creds)) ~> check {
           status should be(NotAcceptable)
         }
       }
@@ -2071,8 +2088,8 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
       extends EntitlementProvider(config, loadBalancer, ControllerInstanceId("0")) {
 
     // The check method checks both throttle and entitlement.
-    protected[core] override def check(user: Identity, right: Privilege, resource: Resource)(
-      implicit transid: TransactionId): Future[Unit] = {
+    protected[core] override def check(user: Identity, right: Privilege, resource: Resource)(implicit
+      transid: TransactionId): Future[Unit] = {
       val subject = user.subject
 
       // first, check entitlement
@@ -2089,16 +2106,16 @@ trait WebActionsApiBaseTests extends ControllerTestCommon with BeforeAndAfterEac
       }
     }
 
-    protected[core] override def grant(user: Identity, right: Privilege, resource: Resource)(
-      implicit transid: TransactionId) = ???
+    protected[core] override def grant(user: Identity, right: Privilege, resource: Resource)(implicit
+      transid: TransactionId) = ???
 
     /** Revokes subject right to resource by removing them from the entitlement matrix. */
-    protected[core] override def revoke(user: Identity, right: Privilege, resource: Resource)(
-      implicit transid: TransactionId) = ???
+    protected[core] override def revoke(user: Identity, right: Privilege, resource: Resource)(implicit
+      transid: TransactionId) = ???
 
     /** Checks if subject has explicit grant for a resource. */
-    protected override def entitled(user: Identity, right: Privilege, resource: Resource)(
-      implicit transid: TransactionId) = ???
+    protected override def entitled(user: Identity, right: Privilege, resource: Resource)(implicit
+      transid: TransactionId) = ???
   }
 
 }

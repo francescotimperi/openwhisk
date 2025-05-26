@@ -24,7 +24,7 @@ trait ConcurrencyHelpers {
   def concurrently[T](times: Int, timeout: FiniteDuration)(op: => T)(implicit ec: ExecutionContext): Iterable[T] =
     Await.result(Future.sequence((1 to times).map(_ => Future(op))), timeout)
 
-  def concurrently[B, T](over: Iterable[B], timeout: FiniteDuration)(op: B => T)(
-    implicit ec: ExecutionContext): Iterable[T] =
+  def concurrently[B, T](over: Iterable[B], timeout: FiniteDuration)(op: B => T)(implicit
+    ec: ExecutionContext): Iterable[T] =
     Await.result(Future.sequence(over.map(v => Future(op(v)))), timeout)
 }

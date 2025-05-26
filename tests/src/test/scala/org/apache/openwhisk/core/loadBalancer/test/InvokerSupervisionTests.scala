@@ -87,8 +87,8 @@ class InvokerSupervisionTests
     Await.result(pool.ask(GetStatus).mapTo[IndexedSeq[(InvokerInstanceId, InvokerState)]], timeout.duration)
 
   /** Helper to generate a list of (InstanceId, InvokerState) */
-  def zipWithInstance(list: IndexedSeq[InvokerState]) = list.zipWithIndex.map {
-    case (state, index) => new InvokerHealth(InvokerInstanceId(index, userMemory = defaultUserMemory), state)
+  def zipWithInstance(list: IndexedSeq[InvokerState]) = list.zipWithIndex.map { case (state, index) =>
+    new InvokerHealth(InvokerInstanceId(index, userMemory = defaultUserMemory), state)
   }
 
   val pC = new TestConnector("pingFeedTtest", 4, false) {}

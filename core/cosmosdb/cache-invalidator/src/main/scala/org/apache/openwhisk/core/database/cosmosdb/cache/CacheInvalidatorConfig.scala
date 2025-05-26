@@ -23,12 +23,13 @@ import com.typesafe.config.ConfigUtil.joinPath
 import pureconfig._
 import pureconfig.generic.auto._
 
-case class ConnectionInfo(endpoint: String,
-                          key: String,
-                          db: String,
-                          throughput: Int,
-                          connectionMode: ConnectionMode,
-                          consistencyLevel: ConsistencyLevel)
+case class ConnectionInfo(
+  endpoint: String,
+  key: String,
+  db: String,
+  throughput: Int,
+  connectionMode: ConnectionMode,
+  consistencyLevel: ConsistencyLevel)
 
 case class FeedConfig(hostname: String, leaseCollection: String, startFromBeginning: Boolean)
 

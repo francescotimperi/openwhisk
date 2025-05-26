@@ -70,13 +70,14 @@ class ReplicatorTests
   }
 
   /** Runs the replicator script to replicate databases */
-  def runReplicator(sourceDbUrl: DatabaseUrl,
-                    targetDbUrl: DatabaseUrl,
-                    dbPrefix: String,
-                    expires: FiniteDuration,
-                    continuous: Boolean = false,
-                    exclude: List[String] = List.empty,
-                    excludeBaseName: List[String] = List.empty) = {
+  def runReplicator(
+    sourceDbUrl: DatabaseUrl,
+    targetDbUrl: DatabaseUrl,
+    dbPrefix: String,
+    expires: FiniteDuration,
+    continuous: Boolean = false,
+    exclude: List[String] = List.empty,
+    excludeBaseName: List[String] = List.empty) = {
     println(
       s"Running replicator: ${sourceDbUrl.safeUrl}, ${targetDbUrl.safeUrl}, $dbPrefix, $expires, $continuous, $exclude, $excludeBaseName")
 
@@ -129,8 +130,8 @@ class ReplicatorTests
       dbPrefix)
 
     val line = """([\w-]+) -> ([\w-]+) \(([\w-]+)\)""".r.unanchored
-    val replays = rr.stdout.linesIterator.collect {
-      case line(backup, target, id) => (backup, target, id)
+    val replays = rr.stdout.linesIterator.collect { case line(backup, target, id) =>
+      (backup, target, id)
     }.toList
 
     println(s"Replays created: $replays")
@@ -141,15 +142,17 @@ class ReplicatorTests
   /** Wait for a replication to finish */
   def waitForReplication(dbName: String) = {
     val timeout = 5.minutes
-    val replicationResult = waitfor(() => {
-      val replicatorDoc = replicatorClient.getDoc(dbName).futureValue
-      replicatorDoc shouldBe 'right
+    val replicationResult = waitfor(
+      () => {
+        val replicatorDoc = replicatorClient.getDoc(dbName).futureValue
+        replicatorDoc shouldBe 'right
 
-      val state = replicatorDoc.right.get.fields.get("_replication_state")
-      println(s"Waiting for replication, state: $state")
+        val state = replicatorDoc.right.get.fields.get("_replication_state")
+        println(s"Waiting for replication, state: $state")
 
-      state.contains("completed".toJson)
-    }, totalWait = timeout)
+        state.contains("completed".toJson)
+      },
+      totalWait = timeout)
 
     assert(replicationResult, s"replication did not finish in $timeout")
   }

@@ -34,9 +34,11 @@ import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
 trait S3Minio extends FlatSpec with BeforeAndAfterAll with StreamLogging {
-  def makeS3Store[D <: DocumentSerializer: ClassTag]()(implicit actorSystem: ActorSystem,
-                                                       logging: Logging): AttachmentStore = {
-    val config = ConfigFactory.parseString(s"""
+  def makeS3Store[D <: DocumentSerializer: ClassTag]()(implicit
+    actorSystem: ActorSystem,
+    logging: Logging): AttachmentStore = {
+    val config = ConfigFactory
+      .parseString(s"""
       |whisk {
       |     s3 {
       |      alpakka {
@@ -57,7 +59,8 @@ trait S3Minio extends FlatSpec with BeforeAndAfterAll with StreamLogging {
       |      $prefixConfig
       |     }
       |}
-      """.stripMargin).withFallback(ConfigFactory.load())
+      """.stripMargin)
+      .withFallback(ConfigFactory.load())
     S3AttachmentStoreProvider.makeStore[D](config)
   }
 

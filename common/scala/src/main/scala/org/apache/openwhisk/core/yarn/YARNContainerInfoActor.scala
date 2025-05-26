@@ -28,11 +28,12 @@ import scala.concurrent.ExecutionContext
 case class GetContainerInfo(yarnComponentActorRef: ActorRef)
 
 //This actor is separate from the YARNComponentActor so that container create commands can be issued in parallel
-class YARNContainerInfoActor(actorSystem: ActorSystem,
-                             logging: Logging,
-                             yarnConfig: YARNConfig,
-                             serviceName: String,
-                             imageName: ImageName)
+class YARNContainerInfoActor(
+  actorSystem: ActorSystem,
+  logging: Logging,
+  yarnConfig: YARNConfig,
+  serviceName: String,
+  imageName: ImageName)
     extends Actor {
 
   implicit val as: ActorSystem = actorSystem

@@ -47,14 +47,15 @@ import pureconfig.generic.auto._
  * @param defaultListLimit the default limit on number of entities returned from a collection on a list operation
  * @param defaultListSkip the default skip on number of entities returned from a collection on a list operation
  */
-protected[core] case class Collection protected (val path: String,
-                                                 val defaultListLimit: Int = Collection.DEFAULT_LIST_LIMIT,
-                                                 val defaultListSkip: Int = Collection.DEFAULT_SKIP_LIMIT) {
+protected[core] case class Collection protected (
+  val path: String,
+  val defaultListLimit: Int = Collection.DEFAULT_LIST_LIMIT,
+  val defaultListSkip: Int = Collection.DEFAULT_SKIP_LIMIT) {
   override def toString = path
 
   /** Determines the right to request for the resources and context. */
-  protected[core] def determineRight(op: HttpMethod, resource: Option[String])(
-    implicit transid: TransactionId): Privilege = {
+  protected[core] def determineRight(op: HttpMethod, resource: Option[String])(implicit
+    transid: TransactionId): Privilege = {
     op match {
       case GET => Privilege.READ
       case PUT =>
@@ -91,7 +92,8 @@ protected[core] case class Collection protected (val path: String,
    * is permitted on the resource.
    */
   protected[core] def implicitRights(user: Identity, namespaces: Set[String], right: Privilege, resource: Resource)(
-    implicit ep: EntitlementProvider,
+    implicit
+    ep: EntitlementProvider,
     ec: ExecutionContext,
     transid: TransactionId): Future[Boolean] = Future.successful {
     // if the resource root namespace is in any of the allowed namespaces
@@ -137,8 +139,8 @@ protected[core] object Collection {
     register(new PackageCollection(entityStore))
 
     register(new Collection(ACTIVATIONS) {
-      protected[core] override def determineRight(op: HttpMethod,
-                                                  resource: Option[String])(implicit transid: TransactionId) = {
+      protected[core] override def determineRight(op: HttpMethod, resource: Option[String])(implicit
+        transid: TransactionId) = {
         if (op == GET) Privilege.READ else Privilege.REJECT
       }
 
@@ -146,8 +148,8 @@ protected[core] object Collection {
     })
 
     register(new Collection(NAMESPACES) {
-      protected[core] override def determineRight(op: HttpMethod,
-                                                  resource: Option[String])(implicit transid: TransactionId) = {
+      protected[core] override def determineRight(op: HttpMethod, resource: Option[String])(implicit
+        transid: TransactionId) = {
         resource map { _ =>
           Privilege.REJECT
         } getOrElse {
@@ -159,8 +161,8 @@ protected[core] object Collection {
     })
 
     register(new Collection(LIMITS) {
-      protected[core] override def determineRight(op: HttpMethod,
-                                                  resource: Option[String])(implicit transid: TransactionId) = {
+      protected[core] override def determineRight(op: HttpMethod, resource: Option[String])(implicit
+        transid: TransactionId) = {
         if (op == GET) Privilege.READ else Privilege.REJECT
       }
     })

@@ -25,12 +25,13 @@ import spray.json.DefaultJsonProtocol._
 import scala.concurrent.{ExecutionContext, Future}
 
 class HealthActionAck(producer: MessageProducer)(implicit logging: Logging, ec: ExecutionContext) extends ActiveAck {
-  override def apply(tid: TransactionId,
-                     activationResult: WhiskActivation,
-                     blockingInvoke: Boolean,
-                     controllerInstance: ControllerInstanceId,
-                     userId: UUID,
-                     acknowledgement: AcknowledgementMessage): Future[Any] = {
+  override def apply(
+    tid: TransactionId,
+    activationResult: WhiskActivation,
+    blockingInvoke: Boolean,
+    controllerInstance: ControllerInstanceId,
+    userId: UUID,
+    acknowledgement: AcknowledgementMessage): Future[Any] = {
     implicit val transid: TransactionId = tid
 
     logging.debug(this, s"health action was successfully invoked")

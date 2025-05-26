@@ -54,32 +54,35 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 
 case class AzureCDNConfig(domainName: String)
-case class AzBlobConfig(endpoint: String,
-                        accountKey: String,
-                        containerName: String,
-                        accountName: String,
-                        connectionString: Option[String],
-                        prefix: Option[String],
-                        retryConfig: AzBlobRetryConfig,
-                        azureCdnConfig: Option[AzureCDNConfig] = None) {
+case class AzBlobConfig(
+  endpoint: String,
+  accountKey: String,
+  containerName: String,
+  accountName: String,
+  connectionString: Option[String],
+  prefix: Option[String],
+  retryConfig: AzBlobRetryConfig,
+  azureCdnConfig: Option[AzureCDNConfig] = None) {
   def prefixFor[D](implicit tag: ClassTag[D]): String = {
     val className = tag.runtimeClass.getSimpleName.toLowerCase
     prefix.map(p => s"$p/$className").getOrElse(className)
   }
 }
-case class AzBlobRetryConfig(retryPolicyType: RetryPolicyType,
-                             maxTries: Int,
-                             tryTimeout: FiniteDuration,
-                             retryDelay: FiniteDuration,
-                             secondaryHost: Option[String])
+case class AzBlobRetryConfig(
+  retryPolicyType: RetryPolicyType,
+  maxTries: Int,
+  tryTimeout: FiniteDuration,
+  retryDelay: FiniteDuration,
+  secondaryHost: Option[String])
 object AzureBlobAttachmentStoreProvider extends AttachmentStoreProvider {
-  override def makeStore[D <: DocumentSerializer: ClassTag]()(implicit actorSystem: ActorSystem,
-                                                              logging: Logging): AttachmentStore = {
+  override def makeStore[D <: DocumentSerializer: ClassTag]()(implicit
+    actorSystem: ActorSystem,
+    logging: Logging): AttachmentStore = {
     makeStore[D](actorSystem.settings.config)
   }
 
-  def makeStore[D <: DocumentSerializer: ClassTag](config: Config)(implicit actorSystem: ActorSystem,
-                                                                   logging: Logging): AttachmentStore = {
+  def makeStore[D <: DocumentSerializer: ClassTag](
+    config: Config)(implicit actorSystem: ActorSystem, logging: Logging): AttachmentStore = {
     val azConfig = loadConfigOrThrow[AzBlobConfig](config, ConfigKeys.azBlob)
     new AzureBlobAttachmentStore(createClient(azConfig), azConfig.prefixFor[D], azConfig)
   }
@@ -99,19 +102,19 @@ object AzureBlobAttachmentStoreProvider extends AttachmentStoreProvider {
 
     builder
       .containerName(config.containerName)
-      .retryOptions(new RequestRetryOptions(
-        config.retryConfig.retryPolicyType,
-        config.retryConfig.maxTries,
-        config.retryConfig.tryTimeout.toSeconds.toInt,
-        config.retryConfig.retryDelay.toMillis,
-        config.retryConfig.retryDelay.toMillis,
-        config.retryConfig.secondaryHost.orNull))
+      .retryOptions(
+        new RequestRetryOptions(
+          config.retryConfig.retryPolicyType,
+          config.retryConfig.maxTries,
+          config.retryConfig.tryTimeout.toSeconds.toInt,
+          config.retryConfig.retryDelay.toMillis,
+          config.retryConfig.retryDelay.toMillis,
+          config.retryConfig.secondaryHost.orNull))
       .buildAsyncClient()
   }
 }
 
-class AzureBlobAttachmentStore(client: BlobContainerAsyncClient, prefix: String, config: AzBlobConfig)(
-  implicit
+class AzureBlobAttachmentStore(client: BlobContainerAsyncClient, prefix: String, config: AzBlobConfig)(implicit
   system: ActorSystem,
   logging: Logging)
     extends AttachmentStore {
@@ -149,8 +152,8 @@ class AzureBlobAttachmentStore(client: BlobContainerAsyncClient, prefix: String,
       failure => s"[ATT_PUT] '$prefix' internal error, name: '$name', doc: '$docId', failure: '${failure.getMessage}'")
   }
 
-  override protected[core] def readAttachment[T](docId: DocId, name: String, sink: Sink[ByteString, Future[T]])(
-    implicit transid: TransactionId): Future[T] = {
+  override protected[core] def readAttachment[T](docId: DocId, name: String, sink: Sink[ByteString, Future[T]])(implicit
+    transid: TransactionId): Future[T] = {
     require(name != null, "name undefined")
     val start =
       transid.started(
@@ -169,7 +172,8 @@ class AzureBlobAttachmentStore(client: BlobContainerAsyncClient, prefix: String,
         transid
           .finished(this, start, s"[ATT_GET] '$prefix' completed: found attachment '$name' of document 'id: $docId'")
         s
-      }, {
+      },
+      {
         case e: NoDocumentException =>
           transid
             .finished(
@@ -210,36 +214,32 @@ class AzureBlobAttachmentStore(client: BlobContainerAsyncClient, prefix: String,
           .delete()
           .toFuture
           .toScala
-          .map(
-            _ =>
-              transid.finished(
-                this,
-                startDelete,
-                s"[ATT_DELETE] completed: deleting attachment '${b.getName}' of document 'id: $docId'"))
-          .recover {
-            case t =>
-              transid.failed(
-                this,
-                startDelete,
-                s"[ATT_DELETE] failed: deleting attachment '${b.getName}' of document 'id: $docId' error: $t")
+          .map(_ =>
+            transid.finished(
+              this,
+              startDelete,
+              s"[ATT_DELETE] completed: deleting attachment '${b.getName}' of document 'id: $docId'"))
+          .recover { case t =>
+            transid.failed(
+              this,
+              startDelete,
+              s"[ATT_DELETE] failed: deleting attachment '${b.getName}' of document 'id: $docId' error: $t")
           }
 
       }
-      .recover {
-        case t =>
-          logging.error(this, s"[ATT_DELETE] :error in delete ${t}")
-          throw t
+      .recover { case t =>
+        logging.error(this, s"[ATT_DELETE] :error in delete ${t}")
+        throw t
       }
       .runWith(Sink.seq)
       .map(_ => true)
 
-    f.foreach(
-      _ =>
-        transid.finished(
-          this,
-          start,
-          s"[ATTS_DELETE] completed: deleting ${count} attachments of document 'id: $docId'",
-          InfoLevel))
+    f.foreach(_ =>
+      transid.finished(
+        this,
+        start,
+        s"[ATTS_DELETE] completed: deleting ${count} attachments of document 'id: $docId'",
+        InfoLevel))
 
     reportFailure(
       f,
@@ -248,7 +248,7 @@ class AzureBlobAttachmentStore(client: BlobContainerAsyncClient, prefix: String,
   }
 
   override protected[core] def deleteAttachment(docId: DocId, name: String)(implicit
-                                                                            transid: TransactionId): Future[Boolean] = {
+    transid: TransactionId): Future[Boolean] = {
     val start =
       transid.started(this, DATABASE_ATT_DELETE, s"[ATT_DELETE] deleting attachment '$name' of document 'id: $docId'")
 
@@ -273,8 +273,7 @@ class AzureBlobAttachmentStore(client: BlobContainerAsyncClient, prefix: String,
   private def getBlobClient(docId: DocId, name: String) =
     client.getBlobAsyncClient(objectKey(docId, name)).getBlockBlobAsyncClient
 
-  private def getAttachmentSource(objectKey: String, config: AzBlobConfig)(
-    implicit
+  private def getAttachmentSource(objectKey: String, config: AzBlobConfig)(implicit
     tid: TransactionId): Future[Option[Source[ByteString, Any]]] = {
     val blobClient = client.getBlobAsyncClient(objectKey).getBlockBlobAsyncClient
 

@@ -51,18 +51,20 @@ import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success}
 
-case class ScheduledPair(msg: ContainerCreationMessage,
-                         invokerId: Option[InvokerInstanceId],
-                         err: Option[ContainerCreationError] = None)
+case class ScheduledPair(
+  msg: ContainerCreationMessage,
+  invokerId: Option[InvokerInstanceId],
+  err: Option[ContainerCreationError] = None)
 
 case class BlackboxFractionConfig(managedFraction: Double, blackboxFraction: Double)
 
-class ContainerManager(jobManagerFactory: ActorRefFactory => ActorRef,
-                       provider: MessagingProvider,
-                       schedulerInstanceId: SchedulerInstanceId,
-                       etcdClient: EtcdClient,
-                       config: WhiskConfig,
-                       watcherService: ActorRef)(implicit actorSystem: ActorSystem, logging: Logging)
+class ContainerManager(
+  jobManagerFactory: ActorRefFactory => ActorRef,
+  provider: MessagingProvider,
+  schedulerInstanceId: SchedulerInstanceId,
+  etcdClient: EtcdClient,
+  config: WhiskConfig,
+  watcherService: ActorRef)(implicit actorSystem: ActorSystem, logging: Logging)
     extends Actor {
   private implicit val ec: ExecutionContextExecutor = context.dispatcher
 
@@ -111,10 +113,11 @@ class ContainerManager(jobManagerFactory: ActorRefFactory => ActorRef,
         case `warmKey` => warmedContainers += key
         case `invokerKey` =>
           val invoker = InvokerKeys.getInstanceId(key)
-          warmedInvokers.getOrElseUpdate(invoker.instance, {
-            warmUpInvoker(invoker)
-            invoker.toString
-          })
+          warmedInvokers.getOrElseUpdate(
+            invoker.instance, {
+              warmUpInvoker(invoker)
+              invoker.toString
+            })
       }
 
     case WatchEndpointRemoved(watchKey, key, _, true) =>
@@ -144,10 +147,9 @@ class ContainerManager(jobManagerFactory: ActorRefFactory => ActorRef,
     logging.info(this, s"received ${msgs.size} creation message [${msgs.head.invocationNamespace}:${msgs.head.action}]")
     ContainerManager
       .getAvailableInvokers(etcdClient, memory, invocationNamespace)
-      .recover({
-        case t: Throwable =>
-          logging.error(this, s"Unable to get available invokers: ${t.getMessage}.")
-          List.empty[InvokerHealth]
+      .recover({ case t: Throwable =>
+        logging.error(this, s"Unable to get available invokers: ${t.getMessage}.")
+        List.empty[InvokerHealth]
       })
       .foreach { invokers =>
         if (invokers.isEmpty) {
@@ -206,9 +208,10 @@ class ContainerManager(jobManagerFactory: ActorRefFactory => ActorRef,
       }
   }
 
-  private def getInvokersWithOldContainer(invocationNamespace: String,
-                                          fqn: FullyQualifiedEntityName,
-                                          currentRevision: DocRevision): Future[List[Int]] = {
+  private def getInvokersWithOldContainer(
+    invocationNamespace: String,
+    fqn: FullyQualifiedEntityName,
+    currentRevision: DocRevision): Future[List[Int]] = {
     val namespacePrefix = containerPrefix(ContainerKeys.namespacePrefix, invocationNamespace, fqn)
     val warmedPrefix = containerPrefix(ContainerKeys.warmedPrefix, invocationNamespace, fqn)
 
@@ -258,9 +261,10 @@ class ContainerManager(jobManagerFactory: ActorRefFactory => ActorRef,
     ContainerKeyMeta(revision, invokerId, containerId)
   }
 
-  private def sendCreationContainerToInvoker(producer: MessageProducer,
-                                             invoker: Int,
-                                             msg: ContainerCreationMessage): Future[ResultMetadata] = {
+  private def sendCreationContainerToInvoker(
+    producer: MessageProducer,
+    invoker: Int,
+    msg: ContainerCreationMessage): Future[ResultMetadata] = {
     implicit val transid: TransactionId = msg.transid
 
     val topic = s"${Scheduler.topicPrefix}invoker$invoker"
@@ -279,9 +283,10 @@ class ContainerManager(jobManagerFactory: ActorRefFactory => ActorRef,
     }
   }
 
-  private def sendDeletionContainerToInvoker(producer: MessageProducer,
-                                             invoker: Int,
-                                             msg: ContainerDeletionMessage): Future[ResultMetadata] = {
+  private def sendDeletionContainerToInvoker(
+    producer: MessageProducer,
+    invoker: Int,
+    msg: ContainerDeletionMessage): Future[ResultMetadata] = {
     implicit val transid: TransactionId = msg.transid
 
     val topic = s"${Scheduler.topicPrefix}invoker$invoker"
@@ -312,10 +317,11 @@ class ContainerManager(jobManagerFactory: ActorRefFactory => ActorRef,
     // warm up exist invokers
     ContainerManager.getAvailableInvokers(etcdClient, MemoryLimit.MIN_MEMORY).map { invokers =>
       invokers.foreach { invoker =>
-        warmedInvokers.getOrElseUpdate(invoker.id.instance, {
-          warmUpInvoker(invoker.id)
-          invoker.id.toString
-        })
+        warmedInvokers.getOrElseUpdate(
+          invoker.id.instance, {
+            warmUpInvoker(invoker.id)
+            invoker.id.toString
+          })
       }
     }
 
@@ -331,28 +337,29 @@ object ContainerManager {
   private val managedFraction: Double = Math.max(0.0, Math.min(1.0, fractionConfig.managedFraction))
   private val blackboxFraction: Double = Math.max(1.0 - managedFraction, Math.min(1.0, fractionConfig.blackboxFraction))
 
-  def props(jobManagerFactory: ActorRefFactory => ActorRef,
-            provider: MessagingProvider,
-            schedulerInstanceId: SchedulerInstanceId,
-            etcdClient: EtcdClient,
-            config: WhiskConfig,
-            watcherService: ActorRef)(implicit actorSystem: ActorSystem, logging: Logging): Props =
+  def props(
+    jobManagerFactory: ActorRefFactory => ActorRef,
+    provider: MessagingProvider,
+    schedulerInstanceId: SchedulerInstanceId,
+    etcdClient: EtcdClient,
+    config: WhiskConfig,
+    watcherService: ActorRef)(implicit actorSystem: ActorSystem, logging: Logging): Props =
     Props(new ContainerManager(jobManagerFactory, provider, schedulerInstanceId, etcdClient, config, watcherService))
 
   /**
    * The rng algorithm is responsible for the invoker distribution, and the better the distribution, the smaller the number of rescheduling.
-   *
    */
   def rng(mod: Int): Int = ThreadLocalRandom.current().nextInt(mod)
 
   // Partition messages that can use warmed containers.
   // return: (list of messages that cannot use warmed containers, list of messages that can take advantage of warmed containers)
-  protected[container] def filterWarmedCreations(warmedContainers: Set[String],
-                                                 inProgressWarmedContainers: TrieMap[String, String],
-                                                 invokers: List[InvokerHealth],
-                                                 msgs: List[ContainerCreationMessage])(
-    implicit logging: Logging): (List[(ContainerCreationMessage, Option[Int], Option[String])],
-                                 List[(ContainerCreationMessage, Option[Int], Option[String])]) = {
+  protected[container] def filterWarmedCreations(
+    warmedContainers: Set[String],
+    inProgressWarmedContainers: TrieMap[String, String],
+    invokers: List[InvokerHealth],
+    msgs: List[ContainerCreationMessage])(implicit logging: Logging): (
+    List[(ContainerCreationMessage, Option[Int], Option[String])],
+    List[(ContainerCreationMessage, Option[Int], Option[String])]) = {
     val warmedApplied = msgs.map { msg =>
       val warmedPrefix =
         containerPrefix(ContainerKeys.warmedPrefix, msg.invocationNamespace, msg.action, Some(msg.revision))
@@ -373,13 +380,12 @@ object ContainerManager {
       val chosenInvoker = container
         .map(_.split("/").takeRight(3).apply(0))
         // filter warmed containers in disabled invokers
-        .filter(
-          invoker =>
-            invokers
+        .filter(invoker =>
+          invokers
             // filterWarmedCreations method is supposed to receive healthy invokers only but this will make sure again only healthy invokers are used.
-              .filter(invoker => invoker.status.isUsable)
-              .map(_.id.instance)
-              .contains(invoker.toInt))
+            .filter(invoker => invoker.status.isUsable)
+            .map(_.id.instance)
+            .contains(invoker.toInt))
 
       if (chosenInvoker.nonEmpty && container.nonEmpty) {
         (msg, Some(chosenInvoker.get.toInt), Some(container.get))
@@ -393,9 +399,10 @@ object ContainerManager {
     }
   }
 
-  protected[container] def updateInvokerMemory(invokerId: Int,
-                                               requiredMemory: Long,
-                                               invokers: List[InvokerHealth]): List[InvokerHealth] = {
+  protected[container] def updateInvokerMemory(
+    invokerId: Int,
+    requiredMemory: Long,
+    invokers: List[InvokerHealth]): List[InvokerHealth] = {
     // it must be compared to the instance unique id
     val index = invokers.indexOf(invokers.filter(p => p.id.instance == invokerId).head)
     val invoker = invokers(index)
@@ -413,9 +420,10 @@ object ContainerManager {
     }
   }
 
-  protected[container] def updateInvokerMemory(invokerId: Option[InvokerInstanceId],
-                                               requiredMemory: Long,
-                                               invokers: List[InvokerHealth]): List[InvokerHealth] = {
+  protected[container] def updateInvokerMemory(
+    invokerId: Option[InvokerInstanceId],
+    requiredMemory: Long,
+    invokers: List[InvokerHealth]): List[InvokerHealth] = {
     invokerId match {
       case Some(instanceId) =>
         updateInvokerMemory(instanceId.instance, requiredMemory, invokers)
@@ -438,8 +446,8 @@ object ContainerManager {
    * @param minMemory Minimum memory for all invokers
    * @return A pair of messages and assigned invokers
    */
-  def schedule(invokers: List[InvokerHealth], msgs: List[ContainerCreationMessage], minMemory: ByteSize)(
-    implicit logging: Logging): List[ScheduledPair] = {
+  def schedule(invokers: List[InvokerHealth], msgs: List[ContainerCreationMessage], minMemory: ByteSize)(implicit
+    logging: Logging): List[ScheduledPair] = {
     logging.info(this, s"usable total invoker size: ${invokers.size}")
     val noTaggedInvokers = invokers.filter(_.id.tags.isEmpty)
     val managed = Math.max(1, Math.ceil(noTaggedInvokers.size.toDouble * managedFraction).toInt)
@@ -467,20 +475,18 @@ object ContainerManager {
           val wantedInvokers = if (isBlackboxInvocation) {
             logging.info(this, s"[${msg.invocationNamespace}/${msg.action}] looking for blackbox invokers to schedule.")
             candidates
-              .filter(
-                c =>
-                  blackboxInvokers
-                    .map(b => b.id.instance)
-                    .contains(c.id.instance) && c.id.userMemory.toMB >= msg.whiskActionMetaData.limits.memory.megabytes)
+              .filter(c =>
+                blackboxInvokers
+                  .map(b => b.id.instance)
+                  .contains(c.id.instance) && c.id.userMemory.toMB >= msg.whiskActionMetaData.limits.memory.megabytes)
               .toSet
           } else {
             logging.info(this, s"[${msg.invocationNamespace}/${msg.action}] looking for managed invokers to schedule.")
             candidates
-              .filter(
-                c =>
-                  managedInvokers
-                    .map(m => m.id.instance)
-                    .contains(c.id.instance) && c.id.userMemory.toMB >= msg.whiskActionMetaData.limits.memory.megabytes)
+              .filter(c =>
+                managedInvokers
+                  .map(m => m.id.instance)
+                  .contains(c.id.instance) && c.id.userMemory.toMB >= msg.whiskActionMetaData.limits.memory.megabytes)
               .toSet
           }
           val taggedInvokers = candidates.filter(_.id.tags.nonEmpty)
@@ -577,8 +583,8 @@ object ContainerManager {
     }
   }
 
-  private def sendState(msg: ContainerCreationMessage, err: ContainerCreationError, reason: String)(
-    implicit logging: Logging): Unit = {
+  private def sendState(msg: ContainerCreationMessage, err: ContainerCreationError, reason: String)(implicit
+    logging: Logging): Unit = {
     val state = FailedCreationJob(msg.creationId, msg.invocationNamespace, msg.action, msg.revision, err, reason)
     QueuePool.get(MemoryQueueKey(state.invocationNamespace, state.action.toDocId.asDocInfo(state.revision))) match {
       case Some(memoryQueueValue) if memoryQueueValue.isLeader =>
@@ -624,8 +630,8 @@ object ContainerManager {
       }
   }
 
-  protected[scheduler] def getAvailableInvokers(etcd: EtcdClient, minMemory: ByteSize)(
-    implicit executor: ExecutionContext): Future[List[InvokerHealth]] = {
+  protected[scheduler] def getAvailableInvokers(etcd: EtcdClient, minMemory: ByteSize)(implicit
+    executor: ExecutionContext): Future[List[InvokerHealth]] = {
     etcd
       .getPrefix(InvokerKeys.prefix)
       .map { res =>

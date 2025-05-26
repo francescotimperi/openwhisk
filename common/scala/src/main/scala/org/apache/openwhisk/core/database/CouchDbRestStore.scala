@@ -47,16 +47,17 @@ import scala.util.Try
  * @param dbName the name of the database to operate on
  * @param serializerEvidence confirms the document abstraction is serializable to a Document with an id
  */
-class CouchDbRestStore[DocumentAbstraction <: DocumentSerializer](dbProtocol: String,
-                                                                  dbHost: String,
-                                                                  dbPort: Int,
-                                                                  dbUsername: String,
-                                                                  dbPassword: String,
-                                                                  dbName: String,
-                                                                  useBatching: Boolean = false,
-                                                                  val inliningConfig: InliningConfig,
-                                                                  val attachmentStore: Option[AttachmentStore])(
-  implicit system: ActorSystem,
+class CouchDbRestStore[DocumentAbstraction <: DocumentSerializer](
+  dbProtocol: String,
+  dbHost: String,
+  dbPort: Int,
+  dbUsername: String,
+  dbPassword: String,
+  dbName: String,
+  useBatching: Boolean = false,
+  val inliningConfig: InliningConfig,
+  val attachmentStore: Option[AttachmentStore])(implicit
+  system: ActorSystem,
   val logging: Logging,
   jsonFormat: RootJsonFormat[DocumentAbstraction],
   docReader: DocumentReader)
@@ -110,11 +111,9 @@ class CouchDbRestStore[DocumentAbstraction <: DocumentSerializer](dbProtocol: St
     } else {
       val request: CouchDbRestClient => Future[Either[StatusCode, JsObject]] = rev match {
         case Some(r) =>
-          client =>
-            client.putDoc(id, r, asJson)
+          client => client.putDoc(id, r, asJson)
         case None =>
-          client =>
-            client.putDoc(id, asJson)
+          client => client.putDoc(id, asJson)
       }
       request(client).map {
         case Right(response) =>
@@ -140,8 +139,8 @@ class CouchDbRestStore[DocumentAbstraction <: DocumentSerializer](dbProtocol: St
         transid.failed(this, start, s"[PUT] '$dbName' internal error, failure: '${failure.getMessage}'", ErrorLevel))
   }
 
-  private def put(ds: Seq[JsObject], retry: Int)(
-    implicit transid: TransactionId): Future[Seq[Either[ArtifactStoreException, DocInfo]]] = {
+  private def put(ds: Seq[JsObject], retry: Int)(implicit
+    transid: TransactionId): Future[Seq[Either[ArtifactStoreException, DocInfo]]] = {
     val count = ds.size
     val start = transid.started(this, LoggingMarkers.DATABASE_BULK_SAVE, s"'$dbName' saving $count documents")
 
@@ -221,9 +220,10 @@ class CouchDbRestStore[DocumentAbstraction <: DocumentSerializer](dbProtocol: St
           ErrorLevel))
   }
 
-  override protected[database] def get[A <: DocumentAbstraction](doc: DocInfo,
-                                                                 attachmentHandler: Option[(A, Attached) => A] = None)(
-    implicit transid: TransactionId,
+  override protected[database] def get[A <: DocumentAbstraction](
+    doc: DocInfo,
+    attachmentHandler: Option[(A, Attached) => A] = None)(implicit
+    transid: TransactionId,
     ma: Manifest[A]): Future[A] = {
 
     val start = transid.started(this, LoggingMarkers.DATABASE_GET, s"[GET] '$dbName' finding document: '$doc'")
@@ -250,8 +250,8 @@ class CouchDbRestStore[DocumentAbstraction <: DocumentSerializer](dbProtocol: St
           transid.failed(this, start, s"[GET] '$dbName' failed to get document: '${doc}'; http status: '${code}'")
           throw new GetException("Unexpected http response code: " + code)
       }
-    } recoverWith {
-      case e: DeserializationException => throw DocumentUnreadable(Messages.corruptedEntity)
+    } recoverWith { case e: DeserializationException =>
+      throw DocumentUnreadable(Messages.corruptedEntity)
     }
 
     reportFailure(
@@ -264,15 +264,16 @@ class CouchDbRestStore[DocumentAbstraction <: DocumentSerializer](dbProtocol: St
           ErrorLevel))
   }
 
-  override protected[core] def query(table: String,
-                                     startKey: List[Any],
-                                     endKey: List[Any],
-                                     skip: Int,
-                                     limit: Int,
-                                     includeDocs: Boolean,
-                                     descending: Boolean,
-                                     reduce: Boolean,
-                                     stale: StaleParameter)(implicit transid: TransactionId): Future[List[JsObject]] = {
+  override protected[core] def query(
+    table: String,
+    startKey: List[Any],
+    endKey: List[Any],
+    skip: Int,
+    limit: Int,
+    includeDocs: Boolean,
+    descending: Boolean,
+    reduce: Boolean,
+    stale: StaleParameter)(implicit transid: TransactionId): Future[List[JsObject]] = {
 
     require(!(reduce && includeDocs), "reduce and includeDocs cannot both be true")
     require(skip >= 0, "skip should be non negative")
@@ -408,8 +409,8 @@ class CouchDbRestStore[DocumentAbstraction <: DocumentSerializer](dbProtocol: St
     }
   }
 
-  private def attach(doc: DocInfo, name: String, contentType: ContentType, docStream: Source[ByteString, _])(
-    implicit transid: TransactionId): Future[DocInfo] = {
+  private def attach(doc: DocInfo, name: String, contentType: ContentType, docStream: Source[ByteString, _])(implicit
+    transid: TransactionId): Future[DocInfo] = {
 
     val start = transid.started(
       this,
@@ -470,8 +471,8 @@ class CouchDbRestStore[DocumentAbstraction <: DocumentSerializer](dbProtocol: St
     }
   }
 
-  private def readAttachmentFromCouch[T](doc: DocInfo, attachmentUri: Uri, sink: Sink[ByteString, Future[T]])(
-    implicit transid: TransactionId): Future[T] = {
+  private def readAttachmentFromCouch[T](doc: DocInfo, attachmentUri: Uri, sink: Sink[ByteString, Future[T]])(implicit
+    transid: TransactionId): Future[T] = {
 
     val name = attachmentUri.path
     val start = transid.started(
@@ -525,9 +526,10 @@ class CouchDbRestStore[DocumentAbstraction <: DocumentSerializer](dbProtocol: St
     attachmentStore.foreach(_.shutdown())
   }
 
-  private def processAttachments[A <: DocumentAbstraction](doc: A,
-                                                           js: JsObject,
-                                                           attachmentHandler: (A, Attached) => A): A = {
+  private def processAttachments[A <: DocumentAbstraction](
+    doc: A,
+    js: JsObject,
+    attachmentHandler: (A, Attached) => A): A = {
     js.fields
       .get("_attachments")
       .map {

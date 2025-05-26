@@ -39,12 +39,14 @@ class KamonRecorderTests extends KafkaSpecBase with BeforeAndAfterEach with Kamo
   override protected def beforeEach(): Unit = {
     super.beforeEach()
     TestReporter.reset()
-    val newConfig = ConfigFactory.parseString("""kamon {
+    val newConfig = ConfigFactory
+      .parseString("""kamon {
         |  metric {
         |    tick-interval = 50 ms
         |    optimistic-tick-alignment = no
         |  }
-        |}""".stripMargin).withFallback(ConfigFactory.load())
+        |}""".stripMargin)
+      .withFallback(ConfigFactory.load())
     Kamon.registerModule("test", TestReporter)
     Kamon.reconfigure(newConfig)
     reporter = TestReporter

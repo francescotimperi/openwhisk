@@ -49,19 +49,20 @@ import org.apache.openwhisk.core.database.{ArtifactStore, CacheChangeNotificatio
  * @throws IllegalArgumentException if any required argument is undefined
  */
 @throws[IllegalArgumentException]
-case class WhiskActivation(namespace: EntityPath,
-                           override val name: EntityName,
-                           subject: Subject,
-                           activationId: ActivationId,
-                           start: Instant,
-                           end: Instant,
-                           cause: Option[ActivationId] = None,
-                           response: ActivationResponse = ActivationResponse.success(),
-                           logs: ActivationLogs = ActivationLogs(),
-                           version: SemVer = SemVer(),
-                           publish: Boolean = false,
-                           annotations: Parameters = Parameters(),
-                           duration: Option[Long] = None)
+case class WhiskActivation(
+  namespace: EntityPath,
+  override val name: EntityName,
+  subject: Subject,
+  activationId: ActivationId,
+  start: Instant,
+  end: Instant,
+  cause: Option[ActivationId] = None,
+  response: ActivationResponse = ActivationResponse.success(),
+  logs: ActivationLogs = ActivationLogs(),
+  version: SemVer = SemVer(),
+  publish: Boolean = false,
+  annotations: Parameters = Parameters(),
+  duration: Option[Long] = None)
     extends WhiskEntity(EntityName(activationId.asString), "activation") {
 
   require(cause != null, "cause undefined")
@@ -192,16 +193,17 @@ object WhiskActivation
    * @return list of records as JSON object if docs parameter is false, as Left
    *         and a list of the WhiskActivations if including the full record, as Right
    */
-  def listActivationsMatchingName(db: ArtifactStore[WhiskActivation],
-                                  namespace: EntityPath,
-                                  path: EntityPath,
-                                  skip: Int,
-                                  limit: Int,
-                                  includeDocs: Boolean = false,
-                                  since: Option[Instant] = None,
-                                  upto: Option[Instant] = None,
-                                  stale: StaleParameter = StaleParameter.No)(
-    implicit transid: TransactionId): Future[Either[List[JsObject], List[WhiskActivation]]] = {
+  def listActivationsMatchingName(
+    db: ArtifactStore[WhiskActivation],
+    namespace: EntityPath,
+    path: EntityPath,
+    skip: Int,
+    limit: Int,
+    includeDocs: Boolean = false,
+    since: Option[Instant] = None,
+    upto: Option[Instant] = None,
+    stale: StaleParameter = StaleParameter.No)(implicit
+    transid: TransactionId): Future[Either[List[JsObject], List[WhiskActivation]]] = {
     import WhiskQueries.TOP
     val convert = if (includeDocs) Some((o: JsObject) => Try { serdes.read(o) }) else None
     val startKey = List(namespace.addPath(path).asString, since map { _.toEpochMilli } getOrElse 0)
@@ -209,8 +211,8 @@ object WhiskActivation
     query(db, filtersView, startKey, endKey, skip, limit, reduce = false, stale, convert)
   }
 
-  def put[Wsuper >: WhiskActivation](db: ArtifactStore[Wsuper], doc: WhiskActivation)(
-    implicit transid: TransactionId,
+  def put[Wsuper >: WhiskActivation](db: ArtifactStore[Wsuper], doc: WhiskActivation)(implicit
+    transid: TransactionId,
     notifier: Option[CacheChangeNotification]): Future[DocInfo] =
     //As activations are not updated we just pass None for the old document
     super.put(db, doc, None)

@@ -190,12 +190,13 @@ class ActivationCompatTests extends FlatSpec with Matchers with WhiskInstants wi
       start = nowInMillis(),
       end = nowInMillis(),
       response = ActivationResponse.success(Some(JsObject("res" -> JsNumber(1)))),
-      annotations = Parameters("limits", ActionLimits(TimeLimit(1.second), MemoryLimit(128.MB), LogLimit(1.MB)).toJson) ++
-        Parameters(WhiskActivation.waitTimeAnnotation, 5.toJson) ++
-        Parameters(WhiskActivation.initTimeAnnotation, 10.toJson) ++
-        Parameters(WhiskActivation.kindAnnotation, "testkind") ++
-        Parameters(WhiskActivation.pathAnnotation, "ns2/a") ++
-        Parameters(WhiskActivation.causedByAnnotation, "sequence"),
+      annotations =
+        Parameters("limits", ActionLimits(TimeLimit(1.second), MemoryLimit(128.MB), LogLimit(1.MB)).toJson) ++
+          Parameters(WhiskActivation.waitTimeAnnotation, 5.toJson) ++
+          Parameters(WhiskActivation.initTimeAnnotation, 10.toJson) ++
+          Parameters(WhiskActivation.kindAnnotation, "testkind") ++
+          Parameters(WhiskActivation.pathAnnotation, "ns2/a") ++
+          Parameters(WhiskActivation.causedByAnnotation, "sequence"),
       duration = Some(123))
 
     val activation = Activation.from(whiskActivation).get

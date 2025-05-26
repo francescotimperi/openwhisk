@@ -131,7 +131,6 @@ protected[core] case class View(ddoc: String, view: String) {
  * and hence either the fields are ordered according to the set of queries that are
  * desired: all entities in a namespace (by type), further refined by date, further
  * refined by name.
- *
  */
 object WhiskQueries {
   val TOP = "\ufff0"

@@ -95,15 +95,16 @@ trait ArtifactStore[DocumentAbstraction] {
    * @param transid the transaction id for logging
    * @return a future that completes with List[JsObject] of all documents from view between start and end key (list may be empty)
    */
-  protected[core] def query(table: String,
-                            startKey: List[Any],
-                            endKey: List[Any],
-                            skip: Int,
-                            limit: Int,
-                            includeDocs: Boolean,
-                            descending: Boolean,
-                            reduce: Boolean,
-                            stale: StaleParameter)(implicit transid: TransactionId): Future[List[JsObject]]
+  protected[core] def query(
+    table: String,
+    startKey: List[Any],
+    endKey: List[Any],
+    skip: Int,
+    limit: Int,
+    includeDocs: Boolean,
+    descending: Boolean,
+    reduce: Boolean,
+    stale: StaleParameter)(implicit transid: TransactionId): Future[List[JsObject]]
 
   /**
    * Counts all documents from database view that match a start key, up to an end key, using a future.
@@ -137,8 +138,8 @@ trait ArtifactStore[DocumentAbstraction] {
   /**
    * Retrieves a saved attachment, streaming it into the provided Sink.
    */
-  protected[core] def readAttachment[T](doc: DocInfo, attached: Attached, sink: Sink[ByteString, Future[T]])(
-    implicit transid: TransactionId): Future[T]
+  protected[core] def readAttachment[T](doc: DocInfo, attached: Attached, sink: Sink[ByteString, Future[T]])(implicit
+    transid: TransactionId): Future[T]
 
   /**
    * Deletes all attachments linked to given document

@@ -39,11 +39,12 @@ import scala.concurrent.Future
  * Communicates with Invoker directly without Kafka in the middle. Invoker does not exist as a separate entity, it is built together with Controller
  * Uses LeanMessagingProvider to use in-memory queue instead of Kafka
  */
-class LeanBalancer(config: WhiskConfig,
-                   feedFactory: FeedFactory,
-                   controllerInstance: ControllerInstanceId,
-                   implicit val messagingProvider: MessagingProvider = SpiLoader.get[MessagingProvider])(
-  implicit actorSystem: ActorSystem,
+class LeanBalancer(
+  config: WhiskConfig,
+  feedFactory: FeedFactory,
+  controllerInstance: ControllerInstanceId,
+  implicit val messagingProvider: MessagingProvider = SpiLoader.get[MessagingProvider])(implicit
+  actorSystem: ActorSystem,
   logging: Logging)
     extends CommonLoadBalancer(config, feedFactory, controllerInstance) {
 
@@ -56,8 +57,8 @@ class LeanBalancer(config: WhiskConfig,
   val invokerName = InvokerInstanceId(0, None, None, poolConfig.userMemory)
 
   /** 1. Publish a message to the loadbalancer */
-  override def publish(action: ExecutableWhiskActionMetaData, msg: ActivationMessage)(
-    implicit transid: TransactionId): Future[Future[Either[ActivationId, WhiskActivation]]] = {
+  override def publish(action: ExecutableWhiskActionMetaData, msg: ActivationMessage)(implicit
+    transid: TransactionId): Future[Future[Either[ActivationId, WhiskActivation]]] = {
 
     /** 2. Update local state with the activation to be executed scheduled. */
     val activationResult = setupActivation(msg, action, invokerName)
@@ -87,8 +88,9 @@ class LeanBalancer(config: WhiskConfig,
 
 object LeanBalancer extends LoadBalancerProvider {
 
-  override def instance(whiskConfig: WhiskConfig, instance: ControllerInstanceId)(implicit actorSystem: ActorSystem,
-                                                                                  logging: Logging): LoadBalancer = {
+  override def instance(whiskConfig: WhiskConfig, instance: ControllerInstanceId)(implicit
+    actorSystem: ActorSystem,
+    logging: Logging): LoadBalancer = {
 
     new LeanBalancer(whiskConfig, createFeedFactory(whiskConfig, instance), instance)
   }

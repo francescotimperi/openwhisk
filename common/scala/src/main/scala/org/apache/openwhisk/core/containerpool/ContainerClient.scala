@@ -25,11 +25,12 @@ import org.apache.openwhisk.core.entity.ActivationResponse._
 import org.apache.openwhisk.core.entity.ByteSize
 
 trait ContainerClient {
-  def post(endpoint: String,
-           body: JsValue,
-           maxResponse: ByteSize,
-           truncation: ByteSize,
-           retry: Boolean,
-           reschedule: Boolean)(implicit tid: TransactionId): Future[Either[ContainerHttpError, ContainerResponse]]
+  def post(
+    endpoint: String,
+    body: JsValue,
+    maxResponse: ByteSize,
+    truncation: ByteSize,
+    retry: Boolean,
+    reschedule: Boolean)(implicit tid: TransactionId): Future[Either[ContainerHttpError, ContainerResponse]]
   def close(): Future[Unit]
 }

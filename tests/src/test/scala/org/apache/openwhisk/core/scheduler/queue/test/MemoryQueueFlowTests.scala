@@ -363,15 +363,19 @@ class MemoryQueueFlowTests
     dataMgmtService.expectMsg(RegisterData(namespaceThrottlingKey, true.toString, failoverEnabled = false))
     probe.expectMsg(Transition(fsm, Running, NamespaceThrottled))
 
-    awaitAssert({
-      ackedMessageCount shouldBe 1
-      lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString(tooManyConcurrentRequests)))
-      storedMessageCount shouldBe 1
-      lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString(tooManyConcurrentRequests)))
+    awaitAssert(
+      {
+        ackedMessageCount shouldBe 1
+        lastAckedActivationResult.response.result shouldBe Some(
+          JsObject("error" -> JsString(tooManyConcurrentRequests)))
+        storedMessageCount shouldBe 1
+        lastAckedActivationResult.response.result shouldBe Some(
+          JsObject("error" -> JsString(tooManyConcurrentRequests)))
 
-      // all activations are dropped with an error
-      fsm.underlyingActor.queue.size shouldBe 0
-    }, 5.seconds)
+        // all activations are dropped with an error
+        fsm.underlyingActor.queue.size shouldBe 0
+      },
+      5.seconds)
 
     fsm ! GracefulShutdown
 
@@ -604,21 +608,29 @@ class MemoryQueueFlowTests
     // if messages arrive in the ActionThrottled state, they are immediately dropped.
     fsm ! messages(10)
 
-    awaitAssert({
-      ackedMessageCount shouldBe 1
-      lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString(tooManyConcurrentRequests)))
-      storedMessageCount shouldBe 1
-      lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString(tooManyConcurrentRequests)))
-    }, 5.seconds)
+    awaitAssert(
+      {
+        ackedMessageCount shouldBe 1
+        lastAckedActivationResult.response.result shouldBe Some(
+          JsObject("error" -> JsString(tooManyConcurrentRequests)))
+        storedMessageCount shouldBe 1
+        lastAckedActivationResult.response.result shouldBe Some(
+          JsObject("error" -> JsString(tooManyConcurrentRequests)))
+      },
+      5.seconds)
 
     fsm ! messages(11)
 
-    awaitAssert({
-      ackedMessageCount shouldBe 2
-      lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString(tooManyConcurrentRequests)))
-      storedMessageCount shouldBe 2
-      lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString(tooManyConcurrentRequests)))
-    }, 5.seconds)
+    awaitAssert(
+      {
+        ackedMessageCount shouldBe 2
+        lastAckedActivationResult.response.result shouldBe Some(
+          JsObject("error" -> JsString(tooManyConcurrentRequests)))
+        storedMessageCount shouldBe 2
+        lastAckedActivationResult.response.result shouldBe Some(
+          JsObject("error" -> JsString(tooManyConcurrentRequests)))
+      },
+      5.seconds)
 
     // handle 3 messages to disable the action throttling
     (0 to 2).foreach { index =>
@@ -730,13 +742,15 @@ class MemoryQueueFlowTests
     fsm ! messages(1)
     fsm ! StateTimeout
 
-    awaitAssert({
-      ackedMessageCount shouldBe 1
-      lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString(namespaceLimitUnderZero)))
-      storedMessageCount shouldBe 1
-      lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString(namespaceLimitUnderZero)))
-      fsm.underlyingActor.queue.length shouldBe 1
-    }, 5.seconds)
+    awaitAssert(
+      {
+        ackedMessageCount shouldBe 1
+        lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString(namespaceLimitUnderZero)))
+        storedMessageCount shouldBe 1
+        lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString(namespaceLimitUnderZero)))
+        fsm.underlyingActor.queue.length shouldBe 1
+      },
+      5.seconds)
     // limit is increased by an operator
     limit = 10
 
@@ -843,13 +857,15 @@ class MemoryQueueFlowTests
     clock.plusSeconds((queueConfig.maxRetentionMs) / 1000)
     fsm ! DropOld
 
-    awaitAssert({
-      ackedMessageCount shouldBe 2
-      lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString(namespaceLimitUnderZero)))
-      storedMessageCount shouldBe 2
-      lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString(namespaceLimitUnderZero)))
-      fsm.underlyingActor.queue.length shouldBe 0
-    }, 5.seconds)
+    awaitAssert(
+      {
+        ackedMessageCount shouldBe 2
+        lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString(namespaceLimitUnderZero)))
+        storedMessageCount shouldBe 2
+        lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString(namespaceLimitUnderZero)))
+        fsm.underlyingActor.queue.length shouldBe 0
+      },
+      5.seconds)
 
     // In this case data clean up happens first.
     fsm ! StateTimeout
@@ -944,13 +960,15 @@ class MemoryQueueFlowTests
     clock.plusSeconds(FiniteDuration(retentionTimeout, MILLISECONDS).toSeconds)
     fsm ! StateTimeout
 
-    awaitAssert({
-      ackedMessageCount shouldBe 2
-      lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString("whisk error")))
-      storedMessageCount shouldBe 2
-      lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString("whisk error")))
-      fsm.underlyingActor.queue.length shouldBe 0
-    }, FiniteDuration(retentionTimeout, MILLISECONDS))
+    awaitAssert(
+      {
+        ackedMessageCount shouldBe 2
+        lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString("whisk error")))
+        storedMessageCount shouldBe 2
+        lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString("whisk error")))
+        fsm.underlyingActor.queue.length shouldBe 0
+      },
+      FiniteDuration(retentionTimeout, MILLISECONDS))
 
     clock.plusSeconds(flushGrace.toSeconds * 2)
     fsm ! StateTimeout
@@ -1031,13 +1049,15 @@ class MemoryQueueFlowTests
     // activation received in Flushing state won't be flushed immediately if Flushing state is caused by a whisk error
     fsm ! StateTimeout
 
-    awaitAssert({
-      ackedMessageCount shouldBe 1
-      lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString("whisk error")))
-      storedMessageCount shouldBe 1
-      lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString("whisk error")))
-      fsm.underlyingActor.queue.length shouldBe 1
-    }, FiniteDuration(retentionTimeout, MILLISECONDS))
+    awaitAssert(
+      {
+        ackedMessageCount shouldBe 1
+        lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString("whisk error")))
+        storedMessageCount shouldBe 1
+        lastAckedActivationResult.response.result shouldBe Some(JsObject("error" -> JsString("whisk error")))
+        fsm.underlyingActor.queue.length shouldBe 1
+      },
+      FiniteDuration(retentionTimeout, MILLISECONDS))
 
     // Succeed to create a container
     containerManager.expectMsgPF() {

@@ -57,13 +57,15 @@ class KafkaProducerConnector(
     Future {
       blocking {
         try {
-          producer.send(record, new Callback {
-            override def onCompletion(metadata: RecordMetadata, exception: Exception): Unit = {
-              if (exception == null)
-                produced.trySuccess(ResultMetadata(metadata.topic(), metadata.partition(), metadata.offset()))
-              else produced.tryFailure(exception)
-            }
-          })
+          producer.send(
+            record,
+            new Callback {
+              override def onCompletion(metadata: RecordMetadata, exception: Exception): Unit = {
+                if (exception == null)
+                  produced.trySuccess(ResultMetadata(metadata.topic(), metadata.partition(), metadata.offset()))
+                else produced.tryFailure(exception)
+              }
+            })
         } catch {
           case e: Throwable =>
             produced.tryFailure(e)

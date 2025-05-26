@@ -34,19 +34,21 @@ import spray.json._
 import pureconfig._
 import pureconfig.generic.auto._
 
-case class ElasticSearchLogFieldConfig(userLogs: String,
-                                       message: String,
-                                       tenantId: String,
-                                       activationId: String,
-                                       stream: String,
-                                       time: String)
+case class ElasticSearchLogFieldConfig(
+  userLogs: String,
+  message: String,
+  tenantId: String,
+  activationId: String,
+  stream: String,
+  time: String)
 
-case class ElasticSearchLogStoreConfig(protocol: String,
-                                       host: String,
-                                       port: Int,
-                                       path: String,
-                                       logSchema: ElasticSearchLogFieldConfig,
-                                       requiredHeaders: Seq[String] = Seq.empty)
+case class ElasticSearchLogStoreConfig(
+  protocol: String,
+  host: String,
+  port: Int,
+  path: String,
+  logSchema: ElasticSearchLogFieldConfig,
+  requiredHeaders: Seq[String] = Seq.empty)
 
 /**
  * ElasticSearch based implementation of a DockerToActivationFileLogStore. When using the JSON log driver, docker writes
@@ -98,12 +100,13 @@ class ElasticSearchLogStore(
 
   private def generatePath(user: Identity) = elasticSearchConfig.path.format(user.namespace.uuid.asString)
 
-  override def fetchLogs(namespace: String,
-                         activationId: ActivationId,
-                         start: Option[Instant],
-                         end: Option[Instant],
-                         activationLogs: Option[ActivationLogs],
-                         context: UserContext): Future[ActivationLogs] = {
+  override def fetchLogs(
+    namespace: String,
+    activationId: ActivationId,
+    start: Option[Instant],
+    end: Option[Instant],
+    activationLogs: Option[ActivationLogs],
+    context: UserContext): Future[ActivationLogs] = {
     val headers = extractRequiredHeaders(context.request.headers)
 
     // Return logs from ElasticSearch, or return logs from activation if required headers are not present

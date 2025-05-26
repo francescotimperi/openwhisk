@@ -340,7 +340,8 @@ class SequenceApiTests extends ControllerTestCommon with WhiskActionsApi {
 
     // create an action sequence s
     val sSeqName = s"${aname()}_s"
-    val sSeq = makeSimpleSequence(sSeqName, namespace, Vector(xSeqName, xSeqName), false) // x is installed in the db already
+    val sSeq =
+      makeSimpleSequence(sSeqName, namespace, Vector(xSeqName, xSeqName), false) // x is installed in the db already
     val content = WhiskActionPut(Some(sSeq.exec))
 
     Console.withOut(stream) {
@@ -419,7 +420,8 @@ class SequenceApiTests extends ControllerTestCommon with WhiskActionsApi {
       logContains("atomic action count 1")(stream)
     }
     // update sequence s to s -> a, x, y, a, b
-    val newS = makeSimpleSequence(sAct, namespace, Vector(aAct, xAct, yAct, aAct, bAct), false) // a, x, y, b  in the db already
+    val newS =
+      makeSimpleSequence(sAct, namespace, Vector(aAct, xAct, yAct, aAct, bAct), false) // a, x, y, b  in the db already
     val newSContent = WhiskActionPut(Some(newS.exec))
     stream.reset()
     Console.withOut(stream) {
@@ -433,11 +435,14 @@ class SequenceApiTests extends ControllerTestCommon with WhiskActionsApi {
   }
 
   private def logContains(w: String)(implicit stream: java.io.ByteArrayOutputStream): Boolean = {
-    org.apache.openwhisk.utils.retry({
-      val log = stream.toString()
-      val result = log.contains(w)
-      assert(result) // throws exception required to retry
-      result
-    }, 10, Some(100 milliseconds))
+    org.apache.openwhisk.utils.retry(
+      {
+        val log = stream.toString()
+        val result = log.contains(w)
+        assert(result) // throws exception required to retry
+        result
+      },
+      10,
+      Some(100 milliseconds))
   }
 }

@@ -29,8 +29,8 @@ import scala.reflect.ClassTag
 
 trait AttachmentStoreProvider extends Spi {
   def makeStore[D <: DocumentSerializer: ClassTag]()(implicit
-                                                     actorSystem: ActorSystem,
-                                                     logging: Logging): AttachmentStore
+    actorSystem: ActorSystem,
+    logging: Logging): AttachmentStore
 }
 
 case class AttachResult(digest: String, length: Long)
@@ -52,8 +52,8 @@ trait AttachmentStore {
   /**
    * Retrieves a saved attachment, streaming it into the provided Sink.
    */
-  protected[core] def readAttachment[T](doc: DocId, name: String, sink: Sink[ByteString, Future[T]])(
-    implicit transid: TransactionId): Future[T]
+  protected[core] def readAttachment[T](doc: DocId, name: String, sink: Sink[ByteString, Future[T]])(implicit
+    transid: TransactionId): Future[T]
 
   /**
    * Deletes all attachments linked to given document

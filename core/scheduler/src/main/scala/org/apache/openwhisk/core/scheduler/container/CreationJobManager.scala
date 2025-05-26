@@ -45,11 +45,12 @@ case object GetPoolStatus
 
 case class JobEntry(action: FullyQualifiedEntityName, timer: Cancellable)
 
-class CreationJobManager(feedFactory: (ActorRefFactory, String, String, Int, Array[Byte] => Future[Unit]) => ActorRef,
-                         schedulerInstanceId: SchedulerInstanceId,
-                         dataManagementService: ActorRef,
-                         baseTimeout: FiniteDuration,
-                         blackboxMultiple: Int)(implicit actorSystem: ActorSystem, logging: Logging)
+class CreationJobManager(
+  feedFactory: (ActorRefFactory, String, String, Int, Array[Byte] => Future[Unit]) => ActorRef,
+  schedulerInstanceId: SchedulerInstanceId,
+  dataManagementService: ActorRef,
+  baseTimeout: FiniteDuration,
+  blackboxMultiple: Int)(implicit actorSystem: ActorSystem, logging: Logging)
     extends Actor {
   private implicit val ec: ExecutionContext = actorSystem.dispatcher
   private val retryLimit = 5
@@ -64,24 +65,24 @@ class CreationJobManager(feedFactory: (ActorRefFactory, String, String, Int, Arr
 
   override def receive: Receive = {
     case RegisterCreationJob(
-        ContainerCreationMessage(_, invocationNamespace, action, revision, actionMetaData, _, _, _, _, creationId)) =>
+          ContainerCreationMessage(_, invocationNamespace, action, revision, actionMetaData, _, _, _, _, creationId)) =>
       val isBlackboxInvocation = actionMetaData.toExecutableWhiskAction.exists(a => a.exec.pull)
       registerJob(invocationNamespace, action, revision, creationId, isBlackboxInvocation)
 
     case FinishCreationJob(
-        ContainerCreationAckMessage(
-          tid,
-          creationId,
-          invocationNamespace,
-          action,
-          revision,
-          actionMetaData,
-          _,
-          schedulerHost,
-          rpcPort,
-          retryCount,
-          error,
-          reason)) =>
+          ContainerCreationAckMessage(
+            tid,
+            creationId,
+            invocationNamespace,
+            action,
+            revision,
+            actionMetaData,
+            _,
+            schedulerHost,
+            rpcPort,
+            retryCount,
+            error,
+            reason)) =>
       if (error.isEmpty) {
         logging.info(this, s"[$action] [$creationId] create container successfully")
         deleteJob(
@@ -131,11 +132,12 @@ class CreationJobManager(feedFactory: (ActorRefFactory, String, String, Int, Arr
       ackFeed ! GracefulShutdown
   }
 
-  private def registerJob(invocationNamespace: String,
-                          action: FullyQualifiedEntityName,
-                          revision: DocRevision,
-                          creationId: CreationId,
-                          isBlackboxInvocation: Boolean) = {
+  private def registerJob(
+    invocationNamespace: String,
+    action: FullyQualifiedEntityName,
+    revision: DocRevision,
+    creationId: CreationId,
+    isBlackboxInvocation: Boolean) = {
     creationJobPool getOrElseUpdate (creationId, {
       val key = inProgressContainer(invocationNamespace, action, revision, schedulerInstanceId, creationId)
       dataManagementService ! RegisterData(key, "", failoverEnabled = false)
@@ -143,11 +145,12 @@ class CreationJobManager(feedFactory: (ActorRefFactory, String, String, Int, Arr
     })
   }
 
-  private def deleteJob(invocationNamespace: String,
-                        action: FullyQualifiedEntityName,
-                        revision: DocRevision,
-                        creationId: CreationId,
-                        state: CreationJobState) = {
+  private def deleteJob(
+    invocationNamespace: String,
+    action: FullyQualifiedEntityName,
+    revision: DocRevision,
+    creationId: CreationId,
+    state: CreationJobState) = {
     val key = inProgressContainer(invocationNamespace, action, revision, schedulerInstanceId, creationId)
 
     // If there is a JobEntry, delete it.
@@ -172,11 +175,12 @@ class CreationJobManager(feedFactory: (ActorRefFactory, String, String, Int, Arr
     }
   }
 
-  protected def createTimer(invocationNamespace: String,
-                            action: FullyQualifiedEntityName,
-                            revision: DocRevision,
-                            creationId: CreationId,
-                            isBlackbox: Boolean): Cancellable = {
+  protected def createTimer(
+    invocationNamespace: String,
+    action: FullyQualifiedEntityName,
+    revision: DocRevision,
+    creationId: CreationId,
+    isBlackbox: Boolean): Cancellable = {
     val timeout =
       if (isBlackbox) FiniteDuration(baseTimeout.toSeconds * blackboxMultiple, TimeUnit.SECONDS) else baseTimeout
     actorSystem.scheduler.scheduleOnce(timeout) {
@@ -186,13 +190,14 @@ class CreationJobManager(feedFactory: (ActorRefFactory, String, String, Int, Arr
       creationJobPool
         .remove(creationId)
         .foreach(_ =>
-          sendState(FailedCreationJob(
-            creationId,
-            invocationNamespace,
-            action,
-            revision,
-            ContainerCreationError.TimeoutError,
-            s"[$action] timeout waiting for the ack of $creationId after $timeout")))
+          sendState(
+            FailedCreationJob(
+              creationId,
+              invocationNamespace,
+              action,
+              revision,
+              ContainerCreationError.TimeoutError,
+              s"[$action] timeout waiting for the ack of $creationId after $timeout")))
       dataManagementService ! UnregisterData(
         inProgressContainer(invocationNamespace, action, revision, schedulerInstanceId, creationId))
     }
@@ -212,13 +217,12 @@ class CreationJobManager(feedFactory: (ActorRefFactory, String, String, Int, Arr
         ackFeed ! MessageFeed.Processed
         Future.successful(())
       }
-      .recoverWith {
-        case t =>
-          // Iff everything above failed, we have a terminal error at hand. Either the message failed
-          // to deserialize, or something threw an error where it is not expected to throw.
-          ackFeed ! MessageFeed.Processed
-          logging.error(this, s"terminal failure while processing container creation ack message: $t")
-          Future.successful(())
+      .recoverWith { case t =>
+        // Iff everything above failed, we have a terminal error at hand. Either the message failed
+        // to deserialize, or something threw an error where it is not expected to throw.
+        ackFeed ! MessageFeed.Processed
+        logging.error(this, s"terminal failure while processing container creation ack message: $t")
+        Future.successful(())
       }
   }
 }
@@ -227,9 +231,10 @@ object CreationJobManager {
   private val baseTimeout = loadConfigOrThrow[FiniteDuration](ConfigKeys.schedulerInProgressJobRetention)
   private val blackboxMultiple = loadConfigOrThrow[Int](ConfigKeys.schedulerBlackboxMultiple)
 
-  def props(feedFactory: (ActorRefFactory, String, String, Int, Array[Byte] => Future[Unit]) => ActorRef,
-            schedulerInstanceId: SchedulerInstanceId,
-            dataManagementService: ActorRef)(implicit actorSystem: ActorSystem, logging: Logging) =
+  def props(
+    feedFactory: (ActorRefFactory, String, String, Int, Array[Byte] => Future[Unit]) => ActorRef,
+    schedulerInstanceId: SchedulerInstanceId,
+    dataManagementService: ActorRef)(implicit actorSystem: ActorSystem, logging: Logging) =
     Props(
       new CreationJobManager(feedFactory, schedulerInstanceId, dataManagementService, baseTimeout, blackboxMultiple))
 }

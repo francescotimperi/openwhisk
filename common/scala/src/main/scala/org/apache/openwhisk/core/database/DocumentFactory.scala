@@ -96,25 +96,29 @@ trait DocumentFactory[W <: DocumentRevisionProvider] extends MultipleReadersSing
    * @param old an optional old document in case of update
    * @return Future[DocInfo] with completion to DocInfo containing the save document id and revision
    */
-  def put[Wsuper >: W](db: ArtifactStore[Wsuper], doc: W, old: Option[W])(
-    implicit transid: TransactionId,
+  def put[Wsuper >: W](db: ArtifactStore[Wsuper], doc: W, old: Option[W])(implicit
+    transid: TransactionId,
     notifier: Option[CacheChangeNotification]): Future[DocInfo] = {
     implicit val logger = db.logging
     implicit val ec = db.executionContext
-    cacheUpdate(doc, CacheKey(doc), db.put(doc) map { newDocInfo =>
-      doc.revision[W](newDocInfo.rev)
-      doc.docinfo
-    })
+    cacheUpdate(
+      doc,
+      CacheKey(doc),
+      db.put(doc) map { newDocInfo =>
+        doc.revision[W](newDocInfo.rev)
+        doc.docinfo
+      })
   }
 
-  def putAndAttach[Wsuper >: W](db: ArtifactStore[Wsuper],
-                                doc: W,
-                                update: (W, Attached) => W,
-                                contentType: ContentType,
-                                bytes: InputStream,
-                                oldAttachment: Option[Attached],
-                                postProcess: Option[W => W] = None)(
-    implicit transid: TransactionId,
+  def putAndAttach[Wsuper >: W](
+    db: ArtifactStore[Wsuper],
+    doc: W,
+    update: (W, Attached) => W,
+    contentType: ContentType,
+    bytes: InputStream,
+    oldAttachment: Option[Attached],
+    postProcess: Option[W => W] = None)(implicit
+    transid: TransactionId,
     notifier: Option[CacheChangeNotification]): Future[DocInfo] = {
     implicit val logger = db.logging
     implicit val ec = db.executionContext
@@ -123,18 +127,20 @@ trait DocumentFactory[W <: DocumentRevisionProvider] extends MultipleReadersSing
     val src = StreamConverters.fromInputStream(() => bytes)
 
     val p = Promise[W]
-    cacheUpdate(p.future, key, db.putAndAttach[W](doc, update, contentType, src, oldAttachment) map {
-      case (newDocInfo, attached) =>
+    cacheUpdate(
+      p.future,
+      key,
+      db.putAndAttach[W](doc, update, contentType, src, oldAttachment) map { case (newDocInfo, attached) =>
         val newDoc = update(doc, attached)
         val cacheDoc = postProcess map { _(newDoc) } getOrElse newDoc
         cacheDoc.revision[W](newDocInfo.rev)
         p.success(cacheDoc)
         newDocInfo
-    })
+      })
   }
 
-  def del[Wsuper >: W](db: ArtifactStore[Wsuper], doc: DocInfo)(
-    implicit transid: TransactionId,
+  def del[Wsuper >: W](db: ArtifactStore[Wsuper], doc: DocInfo)(implicit
+    transid: TransactionId,
     notifier: Option[CacheChangeNotification]): Future[Boolean] = {
     implicit val logger = db.logging
     implicit val ec = db.executionContext
@@ -214,8 +220,8 @@ trait DocumentFactory[W <: DocumentRevisionProvider] extends MultipleReadersSing
     }
   }
 
-  def deleteAttachments[Wsuper >: W](db: ArtifactStore[Wsuper], doc: DocInfo)(
-    implicit transid: TransactionId): Future[Boolean] = {
+  def deleteAttachments[Wsuper >: W](db: ArtifactStore[Wsuper], doc: DocInfo)(implicit
+    transid: TransactionId): Future[Boolean] = {
     implicit val ec = db.executionContext
     db.deleteAttachments(doc)
   }

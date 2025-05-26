@@ -37,8 +37,8 @@ import scala.concurrent.ExecutionContext
 /**
  * Implements web server to handle certain REST API calls.
  */
-class FPCInvokerServer(val invoker: InvokerCore, systemUsername: String, systemPassword: String)(
-  implicit val ec: ExecutionContext,
+class FPCInvokerServer(val invoker: InvokerCore, systemUsername: String, systemPassword: String)(implicit
+  val ec: ExecutionContext,
   val actorSystem: ActorSystem,
   val logger: Logging)
     extends BasicRasService

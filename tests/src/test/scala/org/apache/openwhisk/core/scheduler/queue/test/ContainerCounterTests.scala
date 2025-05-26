@@ -253,10 +253,13 @@ class ContainerCounterTests
     val watcher = system.actorOf(WatcherService.props(mockEtcdClient))
 
     val ns = NamespaceContainerCount(namespace, mockEtcdClient, watcher)
-    retry(() => {
-      ns.inProgressContainerNumByNamespace shouldBe 0
-      ns.existingContainerNumByNamespace shouldBe 0
-    }, 10, Some(100.milliseconds))
+    retry(
+      () => {
+        ns.inProgressContainerNumByNamespace shouldBe 0
+        ns.existingContainerNumByNamespace shouldBe 0
+      },
+      10,
+      Some(100.milliseconds))
 
     val invoker = "invoker0"
     (0 to 100).foreach(i => {
@@ -272,10 +275,13 @@ class ContainerCounterTests
         "test-value")
     })
 
-    retry(() => {
-      ns.inProgressContainerNumByNamespace shouldBe 101
-      ns.existingContainerNumByNamespace shouldBe 101
-    }, 50, Some(100.milliseconds))
+    retry(
+      () => {
+        ns.inProgressContainerNumByNamespace shouldBe 101
+        ns.existingContainerNumByNamespace shouldBe 101
+      },
+      50,
+      Some(100.milliseconds))
   }
 
   class MockEtcdClient(client: Client, isLeader: Boolean, leaseNotFound: Boolean = false, failedCount: Int = 0)

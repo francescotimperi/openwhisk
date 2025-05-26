@@ -83,8 +83,9 @@ class Conf(arguments: Seq[String]) extends ScallopConf(Conf.expandAllMode(argume
     required = false)
 
   val kafkaDockerPort = opt[Int](
-    descr = s"Kafka port for use by docker based services. If not specified then $preferredKafkaDockerPort or some random free port " +
-      s"(if $preferredKafkaDockerPort is busy) would be used",
+    descr =
+      s"Kafka port for use by docker based services. If not specified then $preferredKafkaDockerPort or some random free port " +
+        s"(if $preferredKafkaDockerPort is busy) would be used",
     noshort = true,
     required = false)
 
@@ -111,15 +112,14 @@ class Conf(arguments: Seq[String]) extends ScallopConf(Conf.expandAllMode(argume
 
   val noBrowser = opt[Boolean](descr = "Disable Launching Browser", noshort = true)
 
-  val devUserEventsPort = opt[Int](
-    descr = "Specify the port for the user-event service. This mode can be used for local " +
+  val devUserEventsPort = opt[Int](descr =
+    "Specify the port for the user-event service. This mode can be used for local " +
       "development of user-event service by configuring Prometheus to connect to existing running service instance")
 
   val enableBootstrap = opt[Boolean](
-    descr =
-      "Enable bootstrap of default users and actions like those needed for Api Gateway or Playground UI. " +
-        "By default bootstrap is done by default when using Memory store or default CouchDB support. " +
-        "When using other stores enable this flag to get bootstrap done",
+    descr = "Enable bootstrap of default users and actions like those needed for Api Gateway or Playground UI. " +
+      "By default bootstrap is done by default when using Memory store or default CouchDB support. " +
+      "When using other stores enable this flag to get bootstrap done",
     noshort = true)
 
   mainOptions = Seq(manifest, configFile, apiGw, couchdb, userEvents, kafka, kafkaUi)
@@ -339,12 +339,11 @@ object StandaloneOpenWhisk extends SLF4JLogging {
 
   private def bootstrapUsers()(implicit actorSystem: ActorSystem, logging: Logging): Unit = {
     implicit val userTid: TransactionId = TransactionId(systemPrefix + "userBootstrap")
-    getUsers().foreach {
-      case (subject, key) =>
-        val conf = new org.apache.openwhisk.core.cli.Conf(Seq("user", "create", "--auth", key, subject))
-        val admin = WhiskAdmin(conf)
-        Await.ready(admin.executeCommand(), 60.seconds)
-        logging.info(this, s"Created user [$subject]")
+    getUsers().foreach { case (subject, key) =>
+      val conf = new org.apache.openwhisk.core.cli.Conf(Seq("user", "create", "--auth", key, subject))
+      val admin = WhiskAdmin(conf)
+      Await.ready(admin.executeCommand(), 60.seconds)
+      logging.info(this, s"Created user [$subject]")
     }
   }
 
@@ -407,9 +406,10 @@ object StandaloneOpenWhisk extends SLF4JLogging {
       new ColoredAkkaLogging(adapter)
   }
 
-  private def prepareDocker(conf: Conf)(implicit logging: Logging,
-                                        as: ActorSystem,
-                                        ec: ExecutionContext): (StandaloneDockerClient, StandaloneDockerSupport) = {
+  private def prepareDocker(conf: Conf)(implicit
+    logging: Logging,
+    as: ActorSystem,
+    ec: ExecutionContext): (StandaloneDockerClient, StandaloneDockerSupport) = {
     //In dev mode disable the pull
     val pullDisabled = conf.devMode()
     val dockerClient = new StandaloneDockerClient(pullDisabled)
@@ -421,7 +421,8 @@ object StandaloneOpenWhisk extends SLF4JLogging {
   }
 
   private def startApiGateway(conf: Conf, dockerClient: StandaloneDockerClient, dockerSupport: StandaloneDockerSupport)(
-    implicit logging: Logging,
+    implicit
+    logging: Logging,
     as: ActorSystem,
     ec: ExecutionContext): (Int, Seq[ServiceContainer]) = {
     implicit val tid: TransactionId = TransactionId(systemPrefix + "apiMgmt")
@@ -474,8 +475,8 @@ object StandaloneOpenWhisk extends SLF4JLogging {
     m.map { case (name, key) => (name.replace('-', '.'), key) }
   }
 
-  private def startCouchDb(dataDir: File, dockerClient: StandaloneDockerClient)(
-    implicit logging: Logging,
+  private def startCouchDb(dataDir: File, dockerClient: StandaloneDockerClient)(implicit
+    logging: Logging,
     as: ActorSystem,
     ec: ExecutionContext): ServiceContainer = {
     implicit val tid: TransactionId = TransactionId(systemPrefix + "couchDB")
@@ -492,8 +493,8 @@ object StandaloneOpenWhisk extends SLF4JLogging {
     Await.result(g, 5.minutes)
   }
 
-  private def startKafka(workDir: File, dockerClient: StandaloneDockerClient, conf: Conf, kafkaUi: Boolean)(
-    implicit logging: Logging,
+  private def startKafka(workDir: File, dockerClient: StandaloneDockerClient, conf: Conf, kafkaUi: Boolean)(implicit
+    logging: Logging,
     as: ActorSystem,
     ec: ExecutionContext): (Int, Seq[ServiceContainer]) = {
     implicit val tid: TransactionId = TransactionId(systemPrefix + "kafka")
@@ -524,14 +525,16 @@ object StandaloneOpenWhisk extends SLF4JLogging {
     (kafkaDockerPort, services)
   }
 
-  private def startUserEvents(owPort: Int,
-                              kafkaDockerPort: Int,
-                              existingUserEventSvcPort: Option[Int],
-                              workDir: File,
-                              dataDir: File,
-                              dockerClient: StandaloneDockerClient)(implicit logging: Logging,
-                                                                    as: ActorSystem,
-                                                                    ec: ExecutionContext): Seq[ServiceContainer] = {
+  private def startUserEvents(
+    owPort: Int,
+    kafkaDockerPort: Int,
+    existingUserEventSvcPort: Option[Int],
+    workDir: File,
+    dataDir: File,
+    dockerClient: StandaloneDockerClient)(implicit
+    logging: Logging,
+    as: ActorSystem,
+    ec: ExecutionContext): Seq[ServiceContainer] = {
     implicit val tid: TransactionId = TransactionId(systemPrefix + "userevents")
     val k = new UserEventLauncher(dockerClient, owPort, kafkaDockerPort, existingUserEventSvcPort, workDir, dataDir)
 
@@ -553,8 +556,10 @@ object StandaloneOpenWhisk extends SLF4JLogging {
     setSysProp("whisk.docker.standalone.container-factory.pull-standard-images", "false")
   }
 
-  private def createPgLauncher(owPort: Int,
-                               conf: Conf)(implicit logging: Logging, as: ActorSystem, ec: ExecutionContext) = {
+  private def createPgLauncher(owPort: Int, conf: Conf)(implicit
+    logging: Logging,
+    as: ActorSystem,
+    ec: ExecutionContext) = {
     implicit val tid: TransactionId = TransactionId(systemPrefix + "playground")
     val pgPort = getPort(conf.uiPort.toOption, preferredPgPort)
     new PlaygroundLauncher(

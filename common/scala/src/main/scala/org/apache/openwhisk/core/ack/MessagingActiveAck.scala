@@ -26,26 +26,26 @@ import pureconfig._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-class MessagingActiveAck(producer: MessageProducer, instance: InstanceId, eventSender: Option[EventSender])(
-  implicit logging: Logging,
+class MessagingActiveAck(producer: MessageProducer, instance: InstanceId, eventSender: Option[EventSender])(implicit
+  logging: Logging,
   ec: ExecutionContext)
     extends ActiveAck {
 
   private val topicPrefix = loadConfigOrThrow[String](ConfigKeys.kafkaTopicsPrefix)
 
-  override def apply(tid: TransactionId,
-                     activationResult: WhiskActivation,
-                     blockingInvoke: Boolean,
-                     controllerInstance: ControllerInstanceId,
-                     userId: UUID,
-                     acknowledgement: AcknowledgementMessage): Future[Any] = {
+  override def apply(
+    tid: TransactionId,
+    activationResult: WhiskActivation,
+    blockingInvoke: Boolean,
+    controllerInstance: ControllerInstanceId,
+    userId: UUID,
+    acknowledgement: AcknowledgementMessage): Future[Any] = {
     implicit val transid: TransactionId = tid
 
     def send(msg: AcknowledgementMessage, recovery: Boolean = false) = {
-      producer.send(topic = topicPrefix + "completed" + controllerInstance.asString, msg).andThen {
-        case Success(_) =>
-          val info = if (recovery) s"recovery ${msg.messageType}" else msg.messageType
-          logging.info(this, s"posted $info of activation ${acknowledgement.activationId}")
+      producer.send(topic = topicPrefix + "completed" + controllerInstance.asString, msg).andThen { case Success(_) =>
+        val info = if (recovery) s"recovery ${msg.messageType}" else msg.messageType
+        logging.info(this, s"posted $info of activation ${acknowledgement.activationId}")
       }
     }
 

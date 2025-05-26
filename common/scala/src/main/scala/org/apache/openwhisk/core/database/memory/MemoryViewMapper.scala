@@ -70,7 +70,7 @@ trait MemoryViewMapper {
         JsHelpers.getFieldPath(js, name) match {
           case Some(JsNumber(n)) => n.longValue
           case _                 => 0L
-      }
+        }
     val order = implicitly[Ordering[Long]]
     val ordering = if (descending) order.reverse else order
     s.sortBy(f)(ordering)
@@ -82,12 +82,13 @@ private object ActivationViewMapper extends MemoryViewMapper {
   private val NS_WITH_PATH = ActivationHandler.NS_PATH
   private val START = "start"
 
-  override def filter(ddoc: String,
-                      view: String,
-                      startKey: List[Any],
-                      endKey: List[Any],
-                      d: JsObject,
-                      c: JsObject): Boolean = {
+  override def filter(
+    ddoc: String,
+    view: String,
+    startKey: List[Any],
+    endKey: List[Any],
+    d: JsObject,
+    c: JsObject): Boolean = {
     checkKeys(startKey, endKey)
     val nsValue = startKey.head.asInstanceOf[String]
     view match {
@@ -128,12 +129,13 @@ private object WhisksViewMapper extends MemoryViewMapper {
   private val PUBLISH = "publish"
   private val BINDING = "binding"
 
-  override def filter(ddoc: String,
-                      view: String,
-                      startKey: List[Any],
-                      endKey: List[Any],
-                      d: JsObject,
-                      c: JsObject): Boolean = {
+  override def filter(
+    ddoc: String,
+    view: String,
+    startKey: List[Any],
+    endKey: List[Any],
+    d: JsObject,
+    c: JsObject): Boolean = {
     checkKeys(startKey, endKey)
     val entityType = WhisksHandler.getEntityTypeForDesignDoc(ddoc, view)
 
@@ -191,12 +193,13 @@ private object SubjectViewMapper extends MemoryViewMapper {
   private val KEY = "key"
   private val NS_NAME = "name"
 
-  override def filter(ddoc: String,
-                      view: String,
-                      startKey: List[Any],
-                      endKey: List[Any],
-                      d: JsObject,
-                      c: JsObject): Boolean = {
+  override def filter(
+    ddoc: String,
+    view: String,
+    startKey: List[Any],
+    endKey: List[Any],
+    d: JsObject,
+    c: JsObject): Boolean = {
     require(startKey == endKey, s"startKey: $startKey and endKey: $endKey must be same for $ddoc/$view")
     (ddoc, view) match {
       case (s, "identities") if s.startsWith("subjects") =>
@@ -222,11 +225,12 @@ private object SubjectViewMapper extends MemoryViewMapper {
     }
   }
 
-  private def filterForMatchingSubjectOrNamespace(ddoc: String,
-                                                  view: String,
-                                                  startKey: List[Any],
-                                                  endKey: List[Any],
-                                                  d: JsObject) = {
+  private def filterForMatchingSubjectOrNamespace(
+    ddoc: String,
+    view: String,
+    startKey: List[Any],
+    endKey: List[Any],
+    d: JsObject) = {
     val notBlocked = !isTrue(d, BLOCKED)
     startKey match {
       case (ns: String) :: Nil => notBlocked && (equal(d, SUBJECT, ns) || matchingNamespace(d, equal(_, NS_NAME, ns)))

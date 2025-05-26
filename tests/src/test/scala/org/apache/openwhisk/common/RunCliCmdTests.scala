@@ -35,11 +35,12 @@ class RunCliCmdTests extends FlatSpec with RunCliCmd with BeforeAndAfterEach {
 
   override def baseCommand = Buffer.empty
 
-  override def runCmd(expectedExitCode: Int,
-                      dir: File,
-                      env: Map[String, String],
-                      fileStdin: Option[File],
-                      params: Seq[String]): RunResult = {
+  override def runCmd(
+    expectedExitCode: Int,
+    dir: File,
+    env: Map[String, String],
+    fileStdin: Option[File],
+    params: Seq[String]): RunResult = {
     cmdCount += 1
     rr.getOrElse(defaultRR)
   }

@@ -39,10 +39,11 @@ object Attachments {
 
   case class Inline[T](value: T) extends Attachment[T]
 
-  case class Attached(attachmentName: String,
-                      attachmentType: ContentType,
-                      length: Option[Long] = None,
-                      digest: Option[String] = None)
+  case class Attached(
+    attachmentName: String,
+    attachmentType: ContentType,
+    length: Option[Long] = None,
+    digest: Option[String] = None)
       extends Attachment[Nothing]
 
   // Attachments are considered free because the name/content type are system determined
@@ -89,8 +90,8 @@ object Attachments {
     def read(js: JsValue): Attachment[T] =
       Try {
         Inline(sub.read(js))
-      } recover {
-        case _: DeserializationException => Attached.serdes.read(js)
+      } recover { case _: DeserializationException =>
+        Attached.serdes.read(js)
       } getOrElse {
         throw new DeserializationException("Could not deserialize as attachment record: " + js)
       }

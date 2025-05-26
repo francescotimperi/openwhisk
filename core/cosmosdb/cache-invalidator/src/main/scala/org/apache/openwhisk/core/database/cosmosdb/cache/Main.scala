@@ -37,17 +37,14 @@ object Main {
     start
       .map(_ => log.info(this, s"Started the server at http://localhost:$port"))
     finish
-      .andThen {
-        case _ =>
-          Kamon.stopModules().andThen {
-            case _ =>
-              system.terminate().andThen {
-                case _ =>
-                  //it is possible that the cosmos sdk reactor system does not cleanly shut down, so we will explicitly terminate jvm here.
-                  log.info(this, "Exiting")
-                  sys.exit(0)
-              }
+      .andThen { case _ =>
+        Kamon.stopModules().andThen { case _ =>
+          system.terminate().andThen { case _ =>
+            //it is possible that the cosmos sdk reactor system does not cleanly shut down, so we will explicitly terminate jvm here.
+            log.info(this, "Exiting")
+            sys.exit(0)
           }
+        }
       }
   }
 }

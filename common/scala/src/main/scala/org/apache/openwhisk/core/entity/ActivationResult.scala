@@ -24,9 +24,10 @@ import spray.json.DefaultJsonProtocol
 import org.apache.openwhisk.common.Logging
 import org.apache.openwhisk.http.Messages._
 
-protected[core] case class ActivationResponse private (statusCode: Int,
-                                                       result: Option[JsValue],
-                                                       size: Option[Int] = None) {
+protected[core] case class ActivationResponse private (
+  statusCode: Int,
+  result: Option[JsValue],
+  size: Option[Int] = None) {
 
   def toJsonObject = ActivationResponse.serdes.write(this).asJsObject
 
@@ -129,11 +130,12 @@ protected[core] object ActivationResponse extends DefaultJsonProtocol {
    * @param entity the entity response as string
    * @param truncated either None to indicate complete entity or Some(actual length, max allowed)
    */
-  protected[core] case class ContainerResponse(statusCode: Int,
-                                               entity: String,
-                                               truncated: Option[(ByteSize, ByteSize)]) {
+  protected[core] case class ContainerResponse(
+    statusCode: Int,
+    entity: String,
+    truncated: Option[(ByteSize, ByteSize)]) {
 
-    /** true iff status code is OK (HTTP 200 status code), anything else is considered an error. **/
+    /** true iff status code is OK (HTTP 200 status code), anything else is considered an error. * */
     val okStatus = statusCode == OK.intValue
     val ok = okStatus && truncated.isEmpty
 
@@ -159,8 +161,9 @@ protected[core] object ActivationResponse extends DefaultJsonProtocol {
    * @param response an either a container error or container response (HTTP Status Code, HTTP response bytes as String)
    * @return appropriate ActivationResponse representing initialization error
    */
-  protected[core] def processInitResponseContent(response: Either[ContainerConnectionError, ContainerResponse],
-                                                 logger: Logging): ActivationResponse = {
+  protected[core] def processInitResponseContent(
+    response: Either[ContainerConnectionError, ContainerResponse],
+    logger: Logging): ActivationResponse = {
     require(response.isLeft || !response.exists(_.ok), s"should not interpret init response when status code is OK")
     response match {
       case Right(ContainerResponse(code, str, truncated)) =>
@@ -196,8 +199,9 @@ protected[core] object ActivationResponse extends DefaultJsonProtocol {
    * @param response an Option (HTTP Status Code, HTTP response bytes as String)
    * @return appropriate ActivationResponse representing run result
    */
-  protected[core] def processRunResponseContent(response: Either[ContainerConnectionError, ContainerResponse],
-                                                logger: Logging): ActivationResponse = {
+  protected[core] def processRunResponseContent(
+    response: Either[ContainerConnectionError, ContainerResponse],
+    logger: Logging): ActivationResponse = {
     response match {
       case Right(res @ ContainerResponse(_, str, truncated)) =>
         truncated match {

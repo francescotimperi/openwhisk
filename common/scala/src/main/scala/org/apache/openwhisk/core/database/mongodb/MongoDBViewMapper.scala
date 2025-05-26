@@ -201,10 +201,11 @@ private object SubjectViewMapper extends MongoDBViewMapper {
     }
   }
 
-  private def filterForMatchingSubjectOrNamespace(ddoc: String,
-                                                  view: String,
-                                                  startKey: List[Any],
-                                                  endKey: List[Any]): Bson = {
+  private def filterForMatchingSubjectOrNamespace(
+    ddoc: String,
+    view: String,
+    startKey: List[Any],
+    endKey: List[Any]): Bson = {
     val notBlocked = notEqual(BLOCKED, true)
     startKey match {
       case (ns: String) :: Nil                    => and(notBlocked, or(equal(SUBJECT, ns), equal(NS_NAME, ns)))

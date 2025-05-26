@@ -112,26 +112,29 @@ class ContainerMessageConsumerTests
         maxPollInterval: FiniteDuration)(implicit logging: Logging, actorSystem: ActorSystem): MessageConsumer =
         consumer
 
-      override def getProducer(config: WhiskConfig, maxRequestSize: Option[ByteSize])(
-        implicit logging: Logging,
+      override def getProducer(config: WhiskConfig, maxRequestSize: Option[ByteSize])(implicit
+        logging: Logging,
         actorSystem: ActorSystem): MessageProducer = consumer.getProducer()
 
-      override def ensureTopic(config: WhiskConfig,
-                               topic: String,
-                               topicConfig: String,
-                               maxMessageBytes: Option[ByteSize])(implicit logging: Logging): Try[Unit] = Try {}
+      override def ensureTopic(
+        config: WhiskConfig,
+        topic: String,
+        topicConfig: String,
+        maxMessageBytes: Option[ByteSize])(implicit logging: Logging): Try[Unit] = Try {}
     }
   }
 
-  def sendAckToScheduler(producer: MessageProducer)(schedulerInstanceId: SchedulerInstanceId,
-                                                    ackMessage: ContainerCreationAckMessage): Future[ResultMetadata] = {
+  def sendAckToScheduler(producer: MessageProducer)(
+    schedulerInstanceId: SchedulerInstanceId,
+    ackMessage: ContainerCreationAckMessage): Future[ResultMetadata] = {
     val topic = s"creationAck${schedulerInstanceId.asString}"
     producer.send(topic, ackMessage)
   }
 
-  private def createAckMsg(creationMessage: ContainerCreationMessage,
-                           error: Option[ContainerCreationError],
-                           reason: Option[String]) = {
+  private def createAckMsg(
+    creationMessage: ContainerCreationMessage,
+    error: Option[ContainerCreationError],
+    reason: Option[String]) = {
     ContainerCreationAckMessage(
       creationMessage.transid,
       creationMessage.creationId,
@@ -194,8 +197,8 @@ class ContainerMessageConsumerTests
 
     mockConsumer.send(msg)
 
-    pool.expectMsgPF() {
-      case CreationContainer(_, _) => true
+    pool.expectMsgPF() { case CreationContainer(_, _) =>
+      true
     }
   }
 
@@ -251,12 +254,15 @@ class ContainerMessageConsumerTests
     creationConsumer.send(creationMessage)
 
     within(5.seconds) {
-      utilRetry({
-        val buffer = ackConsumer.peek(50.millisecond)
-        buffer.size shouldBe 1
-        buffer.head._1 shouldBe ackTopic
-        new String(buffer.head._4, StandardCharsets.UTF_8) shouldBe ackMessage.serialize
-      }, 10, Some(500.millisecond))
+      utilRetry(
+        {
+          val buffer = ackConsumer.peek(50.millisecond)
+          buffer.size shouldBe 1
+          buffer.head._1 shouldBe ackTopic
+          new String(buffer.head._4, StandardCharsets.UTF_8) shouldBe ackMessage.serialize
+        },
+        10,
+        Some(500.millisecond))
       pool.expectNoMessage(2.seconds)
     }
 
@@ -268,12 +274,15 @@ class ContainerMessageConsumerTests
     creationConsumer.send(actualCreationMessage)
 
     within(5.seconds) {
-      utilRetry({
-        val buffer2 = ackConsumer.peek(50.millisecond)
-        buffer2.size shouldBe 1
-        buffer2.head._1 shouldBe ackTopic
-        new String(buffer2.head._4, StandardCharsets.UTF_8) shouldBe fetchErrorAckMessage.serialize
-      }, 10, Some(500.millisecond))
+      utilRetry(
+        {
+          val buffer2 = ackConsumer.peek(50.millisecond)
+          buffer2.size shouldBe 1
+          buffer2.head._1 shouldBe ackTopic
+          new String(buffer2.head._4, StandardCharsets.UTF_8) shouldBe fetchErrorAckMessage.serialize
+        },
+        10,
+        Some(500.millisecond))
       pool.expectNoMessage(2.seconds)
     }
   }

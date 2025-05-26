@@ -131,9 +131,13 @@ object ActivationHandler extends SimpleHandler {
       case Some(JsString(namespace)) => JsString(namespace + PATHSEP + pathFilter(js))
       case _                         => JsNull
     }
-    val deleteLogs = annotationValue(js, "kind", { v =>
-      v.convertTo[String] != "sequence"
-    }, true)
+    val deleteLogs = annotationValue(
+      js,
+      "kind",
+      { v =>
+        v.convertTo[String] != "sequence"
+      },
+      true)
     dropNull((NS_PATH, path), ("deleteLogs", JsBoolean(deleteLogs)))
   }
 
@@ -171,10 +175,14 @@ object ActivationHandler extends SimpleHandler {
 
   protected[database] def pathFilter(js: JsObject): String = {
     val name = js.fields("name").convertTo[String]
-    annotationValue(js, "path", { v =>
-      val p = v.convertTo[String].split(PATHSEP)
-      if (p.length == 3) p(1) + PATHSEP + name else name
-    }, name)
+    annotationValue(
+      js,
+      "path",
+      { v =>
+        val p = v.convertTo[String].split(PATHSEP)
+        if (p.length == 3) p(1) + PATHSEP + name else name
+      },
+      name)
   }
 
   /**
@@ -191,8 +199,8 @@ object ActivationHandler extends SimpleHandler {
       case Some(JsArray(e)) =>
         e.view
           .map(_.asJsObject.getFields("key", "value"))
-          .collectFirst {
-            case Seq(JsString(`key`), v: JsValue) => vtr(v) //match annotation with given key
+          .collectFirst { case Seq(JsString(`key`), v: JsValue) =>
+            vtr(v) //match annotation with given key
           }
           .getOrElse(default)
       case _ => default
@@ -363,8 +371,8 @@ object SubjectHandler extends DocumentHandler {
     }
   }
 
-  private def computeSubjectView(startKey: List[Any], js: JsObject, provider: DocumentProvider)(
-    implicit transid: TransactionId,
+  private def computeSubjectView(startKey: List[Any], js: JsObject, provider: DocumentProvider)(implicit
+    transid: TransactionId,
     ec: ExecutionContext) = {
     val subjectOpt = findMatchingSubject(startKey, js)
     val result = subjectOpt match {
@@ -456,9 +464,10 @@ object SubjectHandler extends DocumentHandler {
     }
   }
 
-  case class SubjectView(namespace: String,
-                         uuid: String,
-                         key: String,
-                         blocked: Boolean = false,
-                         matchInNamespace: Boolean = false)
+  case class SubjectView(
+    namespace: String,
+    uuid: String,
+    key: String,
+    blocked: Boolean = false,
+    matchInNamespace: Boolean = false)
 }

@@ -37,8 +37,8 @@ protected[core] class LocalEntitlementProvider(
   private val matrix = LocalEntitlementProvider.matrix
 
   /** Grants subject right to resource by adding them to the entitlement matrix. */
-  protected[core] override def grant(user: Identity, right: Privilege, resource: Resource)(
-    implicit transid: TransactionId) = Future {
+  protected[core] override def grant(user: Identity, right: Privilege, resource: Resource)(implicit
+    transid: TransactionId) = Future {
     val subject = user.subject
     synchronized {
       val key = (subject, resource.id)
@@ -49,8 +49,8 @@ protected[core] class LocalEntitlementProvider(
   }
 
   /** Revokes subject right to resource by removing them from the entitlement matrix. */
-  protected[core] override def revoke(user: Identity, right: Privilege, resource: Resource)(
-    implicit transid: TransactionId) = Future {
+  protected[core] override def revoke(user: Identity, right: Privilege, resource: Resource)(implicit
+    transid: TransactionId) = Future {
     val subject = user.subject
     synchronized {
       val key = (subject, resource.id)
@@ -61,8 +61,8 @@ protected[core] class LocalEntitlementProvider(
   }
 
   /** Checks if subject has explicit grant for a resource. */
-  protected override def entitled(user: Identity, right: Privilege, resource: Resource)(
-    implicit transid: TransactionId) = Future.successful {
+  protected override def entitled(user: Identity, right: Privilege, resource: Resource)(implicit
+    transid: TransactionId) = Future.successful {
     val subject = user.subject
     lazy val one = matrix.get((subject, resource.id)) map { _ contains right } getOrElse false
     lazy val any = matrix.get((subject, resource.parent)) map { _ contains right } getOrElse false
@@ -74,8 +74,8 @@ private object LocalEntitlementProvider extends EntitlementSpiProvider {
 
   /** Poor mans entitlement matrix. Must persist to datastore eventually. */
   private val matrix = TrieMap[(Subject, String), Set[Privilege]]()
-  override def instance(config: WhiskConfig, loadBalancer: LoadBalancer, instance: ControllerInstanceId)(
-    implicit actorSystem: ActorSystem,
+  override def instance(config: WhiskConfig, loadBalancer: LoadBalancer, instance: ControllerInstanceId)(implicit
+    actorSystem: ActorSystem,
     logging: Logging) =
     new LocalEntitlementProvider(config: WhiskConfig, loadBalancer: LoadBalancer, instance)
 }

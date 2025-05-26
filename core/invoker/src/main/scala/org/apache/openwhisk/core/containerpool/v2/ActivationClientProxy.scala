@@ -42,10 +42,11 @@ case object ClientClosed
 // Event received by the actor
 case object StartClient
 case class RequestActivation(lastDuration: Option[Long] = None, newScheduler: Option[SchedulerEndpoints] = None)
-case class RescheduleActivation(invocationNamespace: String,
-                                fqn: FullyQualifiedEntityName,
-                                rev: DocRevision,
-                                msg: ActivationMessage)
+case class RescheduleActivation(
+  invocationNamespace: String,
+  fqn: FullyQualifiedEntityName,
+  rev: DocRevision,
+  msg: ActivationMessage)
 case object RetryRequestActivation
 case object ContainerWarmed
 case object CloseClientProxy
@@ -71,7 +72,8 @@ class ActivationClientProxy(
   rpcPort: Int,
   containerId: ContainerId,
   activationClientFactory: (String, FullyQualifiedEntityName, String, Int, Boolean) => Future[ActivationServiceClient])(
-  implicit actorSystem: ActorSystem,
+  implicit
+  actorSystem: ActorSystem,
   logging: Logging)
     extends FSM[ActivationClientProxyState, ActivationClientProxyData]
     with Stash {
@@ -132,10 +134,9 @@ class ActivationClientProxy(
       client.activationClient
         .rescheduleActivation(
           RescheduleRequest(e.invocationNamespace, e.fqn.serialize, e.rev.serialize, e.msg.serialize))
-        .recover {
-          case t =>
-            logging.error(this, s"[${containerId.asString}] Failed to reschedule activation (error: $t)")
-            RescheduleResponse()
+        .recover { case t =>
+          logging.error(this, s"[${containerId.asString}] Failed to reschedule activation (error: $t)")
+          RescheduleResponse()
         }
         .foreach(res => {
           context.parent ! res
@@ -168,10 +169,9 @@ class ActivationClientProxy(
         case _: ActionMismatch =>
           val errorMsg = s"[${containerId.asString}] action version does not match: $action"
           logging.error(this, errorMsg)
-          c.activationClient.close().andThen {
-            case _ =>
-              context.parent ! FailureMessage(new RuntimeException(errorMsg))
-              self ! ClientClosed
+          c.activationClient.close().andThen { case _ =>
+            context.parent ! FailureMessage(new RuntimeException(errorMsg))
+            self ! ClientClosed
           }
 
           goto(ClientProxyRemoving)
@@ -332,11 +332,10 @@ class ActivationClientProxy(
             warmed,
             None,
             false))
-        .andThen {
-          case _ =>
-            client.activationClient.close().andThen {
-              case _ => self ! ClientClosed
-            }
+        .andThen { case _ =>
+          client.activationClient.close().andThen { case _ =>
+            self ! ClientClosed
+          }
         }
     }.recover {
       // If the fetchActivation is executed when the client is closed, the andThen statement is not executed.
@@ -350,11 +349,12 @@ class ActivationClientProxy(
    *
    * @return ActivationMessage or MemoryQueueError
    */
-  private def requestActivationMessage(invocationNamespace: String,
-                                       fqn: FullyQualifiedEntityName,
-                                       rev: DocRevision,
-                                       client: ActivationServiceClient,
-                                       lastDuration: Option[Long] = None) = {
+  private def requestActivationMessage(
+    invocationNamespace: String,
+    fqn: FullyQualifiedEntityName,
+    rev: DocRevision,
+    client: ActivationServiceClient,
+    lastDuration: Option[Long] = None) = {
     Try {
       client
         .fetchActivation(
@@ -377,34 +377,32 @@ class ActivationClientProxy(
                 Future.successful(msg)
             }
         }
-    }.recover {
-        case _: ClientClosedException =>
-          logging.debug(this, s"grpc client is closed for $fqn in the Try closure")
-          Future.successful(ClientClosed)
-      }
-      .getOrElse(Future.failed(new RuntimeException(s"error to get $fqn activation from grpc server")))
+    }.recover { case _: ClientClosedException =>
+      logging.debug(this, s"grpc client is closed for $fqn in the Try closure")
+      Future.successful(ClientClosed)
+    }.getOrElse(Future.failed(new RuntimeException(s"error to get $fqn activation from grpc server")))
   }
 
-  private def createActivationClient(invocationNamespace: String,
-                                     fqn: FullyQualifiedEntityName,
-                                     schedulerHost: String,
-                                     rpcPort: Int,
-                                     tryOtherScheduler: Boolean,
-                                     retry: Int = 5): Future[ActivationClient] = {
+  private def createActivationClient(
+    invocationNamespace: String,
+    fqn: FullyQualifiedEntityName,
+    schedulerHost: String,
+    rpcPort: Int,
+    tryOtherScheduler: Boolean,
+    retry: Int = 5): Future[ActivationClient] = {
     activationClientFactory(invocationNamespace, fqn, schedulerHost, rpcPort, tryOtherScheduler)
       .map { client =>
         ActivationClient(client, schedulerHost, rpcPort)
       }
-      .andThen {
-        case Success(_) => logging.debug(this, "The gRPC client created successfully")
+      .andThen { case Success(_) =>
+        logging.debug(this, "The gRPC client created successfully")
       }
-      .recoverWith {
-        case _: Throwable =>
-          if (retry < 5)
-            createActivationClient(invocationNamespace, action, schedulerHost, rpcPort, tryOtherScheduler, retry - 1)
-          else {
-            Future.failed(new Exception("The number of client creation retries has been exceeded."))
-          }
+      .recoverWith { case _: Throwable =>
+        if (retry < 5)
+          createActivationClient(invocationNamespace, action, schedulerHost, rpcPort, tryOtherScheduler, retry - 1)
+        else {
+          Future.failed(new Exception("The number of client creation retries has been exceeded."))
+        }
       }
   }
 }
@@ -413,18 +411,19 @@ object ActivationClientProxy {
 
   val hostResolveError = "Unable to resolve host"
 
-  def props(invocationNamespace: String,
-            action: FullyQualifiedEntityName,
-            rev: DocRevision,
-            schedulerHost: String,
-            rpcPort: Int,
-            containerId: ContainerId,
-            activationClientFactory: (
-              String,
-              FullyQualifiedEntityName,
-              String,
-              Int,
-              Boolean) => Future[ActivationServiceClient])(implicit actorSystem: ActorSystem, logging: Logging) = {
+  def props(
+    invocationNamespace: String,
+    action: FullyQualifiedEntityName,
+    rev: DocRevision,
+    schedulerHost: String,
+    rpcPort: Int,
+    containerId: ContainerId,
+    activationClientFactory: (
+      String,
+      FullyQualifiedEntityName,
+      String,
+      Int,
+      Boolean) => Future[ActivationServiceClient])(implicit actorSystem: ActorSystem, logging: Logging) = {
     Props(
       new ActivationClientProxy(
         invocationNamespace,

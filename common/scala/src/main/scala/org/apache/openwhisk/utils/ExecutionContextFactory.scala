@@ -37,10 +37,9 @@ object ExecutionContextFactory {
    * akka.pattern.after has a memory drag issue: it opaquely
    * schedules an actor which consequently results in drag for the
    * timeout duration
-   *
    */
-  def expire[T](duration: FiniteDuration, using: Scheduler)(value: => Future[T])(
-    implicit ec: ExecutionContext): CancellableFuture[T] = {
+  def expire[T](duration: FiniteDuration, using: Scheduler)(value: => Future[T])(implicit
+    ec: ExecutionContext): CancellableFuture[T] = {
     val p = Promise[T]()
     val cancellable = using.scheduleOnce(duration) {
       p completeWith {
@@ -54,10 +53,9 @@ object ExecutionContextFactory {
   /**
    * Return the first of the two given futures to complete; if f1
    * finishes first, we will cancel f2
-   *
    */
-  def firstCompletedOf2[T](f1: Future[T], f2Cancellable: CancellableFuture[T])(
-    implicit executor: ExecutionContext): Future[T] = {
+  def firstCompletedOf2[T](f1: Future[T], f2Cancellable: CancellableFuture[T])(implicit
+    executor: ExecutionContext): Future[T] = {
     val p = Promise[T]()
     val (f2Killswitch, f2) = f2Cancellable
 
@@ -76,8 +74,8 @@ object ExecutionContextFactory {
       firstCompletedOf2(f, expire(timeout, system.scheduler)(Future.failed(msg)))
     }
 
-    def withAlternativeAfterTimeout(timeout: FiniteDuration, alt: => Future[T])(
-      implicit system: ActorSystem): Future[T] = {
+    def withAlternativeAfterTimeout(timeout: FiniteDuration, alt: => Future[T])(implicit
+      system: ActorSystem): Future[T] = {
       implicit val ec = system.dispatcher
       firstCompletedOf2(f, expire(timeout, system.scheduler)(alt))
     }

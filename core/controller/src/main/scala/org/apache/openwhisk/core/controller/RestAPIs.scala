@@ -237,14 +237,14 @@ class RestAPIVersion(config: WhiskConfig, apiPath: String, apiVersion: String)(
 
   class NamespacesApi(val apiPath: String, val apiVersion: String) extends WhiskNamespacesApi
 
-  class LimitsApi(val apiPath: String, val apiVersion: String)(
-    implicit override val entitlementProvider: EntitlementProvider,
+  class LimitsApi(val apiPath: String, val apiVersion: String)(implicit
+    override val entitlementProvider: EntitlementProvider,
     override val executionContext: ExecutionContext,
     override val whiskConfig: WhiskConfig)
       extends WhiskLimitsApi
 
-  class ActionsApi(val apiPath: String, val apiVersion: String)(
-    implicit override val actorSystem: ActorSystem,
+  class ActionsApi(val apiPath: String, val apiVersion: String)(implicit
+    override val actorSystem: ActorSystem,
     override val activeAckTopicIndex: ControllerInstanceId,
     override val entityStore: EntityStore,
     override val activationStore: ActivationStore,
@@ -261,16 +261,16 @@ class RestAPIVersion(config: WhiskConfig, apiPath: String, apiVersion: String)(
     assert(whiskConfig.actionSequenceLimit.toInt > 0)
   }
 
-  class ActivationsApi(val apiPath: String, val apiVersion: String)(
-    implicit override val activationStore: ActivationStore,
+  class ActivationsApi(val apiPath: String, val apiVersion: String)(implicit
+    override val activationStore: ActivationStore,
     override val logStore: LogStore,
     override val entitlementProvider: EntitlementProvider,
     override val executionContext: ExecutionContext,
     override val logging: Logging)
       extends WhiskActivationsApi
 
-  class PackagesApi(val apiPath: String, val apiVersion: String)(
-    implicit override val entityStore: EntityStore,
+  class PackagesApi(val apiPath: String, val apiVersion: String)(implicit
+    override val entityStore: EntityStore,
     override val entitlementProvider: EntitlementProvider,
     override val activationIdFactory: ActivationIdGenerator,
     override val loadBalancer: LoadBalancer,
@@ -281,8 +281,8 @@ class RestAPIVersion(config: WhiskConfig, apiPath: String, apiVersion: String)(
       extends WhiskPackagesApi
       with WhiskServices
 
-  class RulesApi(val apiPath: String, val apiVersion: String)(
-    implicit override val actorSystem: ActorSystem,
+  class RulesApi(val apiPath: String, val apiVersion: String)(implicit
+    override val actorSystem: ActorSystem,
     override val entityStore: EntityStore,
     override val entitlementProvider: EntitlementProvider,
     override val activationIdFactory: ActivationIdGenerator,
@@ -308,8 +308,9 @@ class RestAPIVersion(config: WhiskConfig, apiPath: String, apiVersion: String)(
       extends WhiskTriggersApi
       with WhiskServices
 
-  protected[controller] class WebActionsApi(override val webInvokePathSegments: Seq[String],
-                                            override val webApiDirectives: WebApiDirectives)(
+  protected[controller] class WebActionsApi(
+    override val webInvokePathSegments: Seq[String],
+    override val webApiDirectives: WebApiDirectives)(
     implicit override val authStore: AuthStore,
     implicit val entityStore: EntityStore,
     override val activeAckTopicIndex: ControllerInstanceId,
@@ -335,9 +336,10 @@ trait AuthenticationDirectiveProvider extends Spi {
    *
    * @return authentication directive used to verify the user credentials
    */
-  def authenticate(implicit transid: TransactionId,
-                   authStore: AuthStore,
-                   logging: Logging): AuthenticationDirective[Identity]
+  def authenticate(implicit
+    transid: TransactionId,
+    authStore: AuthStore,
+    logging: Logging): AuthenticationDirective[Identity]
 
   /**
    * Retrieves an Identity based on a given namespace name.

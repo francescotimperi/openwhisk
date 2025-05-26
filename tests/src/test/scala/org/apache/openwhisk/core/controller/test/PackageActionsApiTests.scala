@@ -44,7 +44,6 @@ import org.apache.openwhisk.http.Messages
  * These tests exercise a fresh instance of the service object in memory -- these
  * tests do NOT communication with a whisk deployment.
  *
- *
  * @Idioglossia
  * "using Specification DSL to write unit tests, as in should, must, not, be"
  * "using Specs2RouteTest DSL to chain HTTP requests for unit testing, as in ~>"
@@ -204,7 +203,8 @@ class PackageActionsApiTests extends ControllerTestCommon with WhiskActionsApi {
     val provider = WhiskPackage(EntityPath(Subject().asString), aname(), publish = true)
     val content = WhiskActionPut(Some(jsDefault("??")))
     put(entityStore, provider)
-    Put(s"/${provider.namespace}/${collection.path}/${provider.name}/${aname()}", content) ~> Route.seal(routes(creds)) ~> check {
+    Put(s"/${provider.namespace}/${collection.path}/${provider.name}/${aname()}", content) ~> Route.seal(
+      routes(creds)) ~> check {
       status should be(Forbidden)
     }
   }
@@ -219,7 +219,8 @@ class PackageActionsApiTests extends ControllerTestCommon with WhiskActionsApi {
 
     // it should "reject delete action in package owned by different subject" in {
     val auser = WhiskAuthHelpers.newIdentity()
-    Delete(s"/${provider.namespace}/${collection.path}/${provider.name}/${action.name}") ~> Route.seal(routes(auser)) ~> check {
+    Delete(s"/${provider.namespace}/${collection.path}/${provider.name}/${action.name}") ~> Route.seal(
+      routes(auser)) ~> check {
       status should be(Forbidden)
     }
 
@@ -279,7 +280,8 @@ class PackageActionsApiTests extends ControllerTestCommon with WhiskActionsApi {
     val action = WhiskAction(provider.fullPath, aname(), jsDefault("??"))
     put(entityStore, provider)
     put(entityStore, action)
-    Delete(s"/${provider.namespace}/${collection.path}/${provider.name}/${action.name}") ~> Route.seal(routes(creds)) ~> check {
+    Delete(s"/${provider.namespace}/${collection.path}/${provider.name}/${action.name}") ~> Route.seal(
+      routes(creds)) ~> check {
       status should be(Forbidden)
     }
   }
@@ -455,7 +457,8 @@ class PackageActionsApiTests extends ControllerTestCommon with WhiskActionsApi {
     val content = JsObject("xxx" -> "yyy".toJson)
     put(entityStore, provider)
     put(entityStore, action)
-    Post(s"/$namespace/${collection.path}/${provider.name}/${action.name}", content) ~> Route.seal(routes(auser)) ~> check {
+    Post(s"/$namespace/${collection.path}/${provider.name}/${action.name}", content) ~> Route.seal(
+      routes(auser)) ~> check {
       status should be(Accepted)
       val response = responseAs[JsObject]
       response.fields("activationId") should not be None
@@ -508,7 +511,8 @@ class PackageActionsApiTests extends ControllerTestCommon with WhiskActionsApi {
     val content = JsObject("xxx" -> "yyy".toJson)
     put(entityStore, provider)
     put(entityStore, action)
-    Post(s"/$namespace/${collection.path}/${provider.name}/${action.name}", content) ~> Route.seal(routes(auser)) ~> check {
+    Post(s"/$namespace/${collection.path}/${provider.name}/${action.name}", content) ~> Route.seal(
+      routes(auser)) ~> check {
       status should be(Forbidden)
     }
   }
@@ -589,7 +593,8 @@ class PackageActionsApiTests extends ControllerTestCommon with WhiskActionsApi {
     }
 
     val auser = WhiskAuthHelpers.newIdentity()
-    Get(s"/${provider.namespace}/${collection.path}/${provider.name}/${entity.name}") ~> Route.seal(routes(auser)) ~> check {
+    Get(s"/${provider.namespace}/${collection.path}/${provider.name}/${entity.name}") ~> Route.seal(
+      routes(auser)) ~> check {
       status should be(Forbidden)
       responseAs[ErrorResponse].error shouldBe Messages.notAuthorizedtoAccessResource(s"$namespace/${provider.name}")
     }

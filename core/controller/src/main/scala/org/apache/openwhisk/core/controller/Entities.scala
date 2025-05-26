@@ -44,8 +44,8 @@ protected[controller] trait ValidateRequestSize extends Directives {
   protected def validateSize(check: => Option[SizeError])(implicit tid: TransactionId, jsonPrinter: JsonPrinter) =
     new Directive0 {
       override def tapply(f: Unit => Route) = {
-        check map {
-          case e: SizeError => terminate(PayloadTooLarge, Messages.entityTooBig(e))
+        check map { case e: SizeError =>
+          terminate(PayloadTooLarge, Messages.entityTooBig(e))
         } getOrElse f(None)
       }
     }
@@ -84,28 +84,28 @@ trait WhiskCollectionAPI
   services: WhiskServices =>
 
   /** Creates an entity, or updates an existing one, in namespace. Terminates HTTP request. */
-  protected def create(user: Identity, entityName: FullyQualifiedEntityName)(
-    implicit transid: TransactionId): RequestContext => Future[RouteResult]
+  protected def create(user: Identity, entityName: FullyQualifiedEntityName)(implicit
+    transid: TransactionId): RequestContext => Future[RouteResult]
 
   /** Activates entity. Examples include invoking an action, firing a trigger, enabling/disabling a rule. */
-  protected def activate(user: Identity, entityName: FullyQualifiedEntityName, env: Option[Parameters])(
-    implicit transid: TransactionId): RequestContext => Future[RouteResult]
+  protected def activate(user: Identity, entityName: FullyQualifiedEntityName, env: Option[Parameters])(implicit
+    transid: TransactionId): RequestContext => Future[RouteResult]
 
   /** Removes entity from namespace. Terminates HTTP request. */
-  protected def remove(user: Identity, entityName: FullyQualifiedEntityName)(
-    implicit transid: TransactionId): RequestContext => Future[RouteResult]
+  protected def remove(user: Identity, entityName: FullyQualifiedEntityName)(implicit
+    transid: TransactionId): RequestContext => Future[RouteResult]
 
   /** Gets entity from namespace. Terminates HTTP request. */
-  protected def fetch(user: Identity, entityName: FullyQualifiedEntityName, env: Option[Parameters])(
-    implicit transid: TransactionId): RequestContext => Future[RouteResult]
+  protected def fetch(user: Identity, entityName: FullyQualifiedEntityName, env: Option[Parameters])(implicit
+    transid: TransactionId): RequestContext => Future[RouteResult]
 
   /** Gets all entities from namespace. If necessary filter only entities that are shared. Terminates HTTP request. */
-  protected def list(user: Identity, path: EntityPath)(
-    implicit transid: TransactionId): RequestContext => Future[RouteResult]
+  protected def list(user: Identity, path: EntityPath)(implicit
+    transid: TransactionId): RequestContext => Future[RouteResult]
 
   /** Dispatches resource to the proper handler depending on context. */
-  protected override def dispatchOp(user: Identity, op: Privilege, resource: Resource)(
-    implicit transid: TransactionId) = {
+  protected override def dispatchOp(user: Identity, op: Privilege, resource: Resource)(implicit
+    transid: TransactionId) = {
     resource.entity match {
       case Some(EntityName(name)) =>
         op match {

@@ -29,9 +29,11 @@ trait S3Aws extends FlatSpec {
 
   def cloudFrontConfig: String = ""
 
-  def makeS3Store[D <: DocumentSerializer: ClassTag]()(implicit actorSystem: ActorSystem,
-                                                       logging: Logging): AttachmentStore = {
-    val config = ConfigFactory.parseString(s"""
+  def makeS3Store[D <: DocumentSerializer: ClassTag]()(implicit
+    actorSystem: ActorSystem,
+    logging: Logging): AttachmentStore = {
+    val config = ConfigFactory
+      .parseString(s"""
        |whisk {
        |   s3 {
        |      alpakka {
@@ -51,7 +53,9 @@ trait S3Aws extends FlatSpec {
        |      $cloudFrontConfig
        |    }
        |}
-      """.stripMargin).withFallback(ConfigFactory.load()).resolve()
+      """.stripMargin)
+      .withFallback(ConfigFactory.load())
+      .resolve()
     S3AttachmentStoreProvider.makeStore[D](config)
   }
 

@@ -195,8 +195,8 @@ class DockerContainerTests
 
   it should "remove the container if inspect fails" in {
     implicit val docker = new TestDockerClient {
-      override def inspectIPAddress(id: ContainerId,
-                                    network: String)(implicit transid: TransactionId): Future[ContainerAddress] = {
+      override def inspectIPAddress(id: ContainerId, network: String)(implicit
+        transid: TransactionId): Future[ContainerAddress] = {
         inspects += ((id, network))
         Future.failed(new RuntimeException())
       }
@@ -215,8 +215,8 @@ class DockerContainerTests
 
   it should "provide a proper error if run fails for blackbox containers" in {
     implicit val docker = new TestDockerClient {
-      override def run(image: String,
-                       args: Seq[String] = Seq.empty[String])(implicit transid: TransactionId): Future[ContainerId] = {
+      override def run(image: String, args: Seq[String] = Seq.empty[String])(implicit
+        transid: TransactionId): Future[ContainerId] = {
         runs += ((image, args))
         Future.failed(ProcessUnsuccessfulException(ExitStatus(1), "", ""))
       }
@@ -235,8 +235,8 @@ class DockerContainerTests
 
   it should "remove the container if run fails with a broken container" in {
     implicit val docker = new TestDockerClient {
-      override def run(image: String,
-                       args: Seq[String] = Seq.empty[String])(implicit transid: TransactionId): Future[ContainerId] = {
+      override def run(image: String, args: Seq[String] = Seq.empty[String])(implicit
+        transid: TransactionId): Future[ContainerId] = {
         runs += ((image, args))
         Future.failed(BrokenDockerContainer(containerId, "Broken container"))
       }
@@ -255,8 +255,8 @@ class DockerContainerTests
 
   it should "provide a proper error if inspect fails for blackbox containers" in {
     implicit val docker = new TestDockerClient {
-      override def inspectIPAddress(id: ContainerId,
-                                    network: String)(implicit transid: TransactionId): Future[ContainerAddress] = {
+      override def inspectIPAddress(id: ContainerId, network: String)(implicit
+        transid: TransactionId): Future[ContainerAddress] = {
         inspects += ((id, network))
         Future.failed(new RuntimeException())
       }
@@ -523,9 +523,10 @@ class DockerContainerTests
     val rawLog = toRawLog(Seq(expectedLogEntry), appendSentinel = true)
 
     implicit val docker = new TestDockerClient {
-      override def rawContainerLogs(containerId: ContainerId,
-                                    fromPos: Long,
-                                    pollInterval: Option[FiniteDuration]): Source[ByteString, Any] = {
+      override def rawContainerLogs(
+        containerId: ContainerId,
+        fromPos: Long,
+        pollInterval: Option[FiniteDuration]): Source[ByteString, Any] = {
         rawContainerLogsInvocations += ((containerId, fromPos, pollInterval))
         Source.single(rawLog)
       }
@@ -551,9 +552,10 @@ class DockerContainerTests
     val rawLog = toRawLog(Seq(expectedLogEntry), appendSentinel = false)
 
     implicit val docker = new TestDockerClient {
-      override def rawContainerLogs(containerId: ContainerId,
-                                    fromPos: Long,
-                                    pollInterval: Option[FiniteDuration]): Source[ByteString, Any] = {
+      override def rawContainerLogs(
+        containerId: ContainerId,
+        fromPos: Long,
+        pollInterval: Option[FiniteDuration]): Source[ByteString, Any] = {
         rawContainerLogsInvocations += ((containerId, fromPos, pollInterval))
         Source.single(rawLog)
       }
@@ -576,9 +578,10 @@ class DockerContainerTests
 
   it should "fail log reading if error occurs during file reading" in {
     implicit val docker = new TestDockerClient {
-      override def rawContainerLogs(containerId: ContainerId,
-                                    fromPos: Long,
-                                    pollInterval: Option[FiniteDuration]): Source[ByteString, Any] = {
+      override def rawContainerLogs(
+        containerId: ContainerId,
+        fromPos: Long,
+        pollInterval: Option[FiniteDuration]): Source[ByteString, Any] = {
         rawContainerLogsInvocations += ((containerId, fromPos, pollInterval))
         Source.failed(new IOException)
       }
@@ -602,9 +605,10 @@ class DockerContainerTests
     val returnValues = mutable.Queue(firstRawLog, secondRawLog)
 
     implicit val docker = new TestDockerClient {
-      override def rawContainerLogs(containerId: ContainerId,
-                                    fromPos: Long,
-                                    pollInterval: Option[FiniteDuration]): Source[ByteString, Any] = {
+      override def rawContainerLogs(
+        containerId: ContainerId,
+        fromPos: Long,
+        pollInterval: Option[FiniteDuration]): Source[ByteString, Any] = {
         rawContainerLogsInvocations += ((containerId, fromPos, pollInterval))
         Source.single(returnValues.dequeue())
       }
@@ -634,9 +638,10 @@ class DockerContainerTests
     val rawLog = toRawLog(expectedLog, appendSentinel = false)
 
     implicit val docker = new TestDockerClient {
-      override def rawContainerLogs(containerId: ContainerId,
-                                    fromPos: Long,
-                                    pollInterval: Option[FiniteDuration]): Source[ByteString, Any] = {
+      override def rawContainerLogs(
+        containerId: ContainerId,
+        fromPos: Long,
+        pollInterval: Option[FiniteDuration]): Source[ByteString, Any] = {
         rawContainerLogsInvocations += ((containerId, fromPos, pollInterval))
         // "Fakes" an infinite source with only 1 entry
         Source.tick(0.milliseconds, 10.seconds, rawLog)
@@ -680,9 +685,10 @@ class DockerContainerTests
     val returnValues = mutable.Queue(firstRawLog, secondRawLog, thirdRawLog)
 
     implicit val docker = new TestDockerClient {
-      override def rawContainerLogs(containerId: ContainerId,
-                                    fromPos: Long,
-                                    pollInterval: Option[FiniteDuration]): Source[ByteString, Any] = {
+      override def rawContainerLogs(
+        containerId: ContainerId,
+        fromPos: Long,
+        pollInterval: Option[FiniteDuration]): Source[ByteString, Any] = {
         rawContainerLogsInvocations += ((containerId, fromPos, pollInterval))
         Source.single(returnValues.dequeue())
       }
@@ -722,9 +728,10 @@ class DockerContainerTests
     val rawLog = toRawLog(Seq(expectedLogEntry, expectedLogEntry), appendSentinel = false).dropRight(10)
 
     implicit val docker = new TestDockerClient {
-      override def rawContainerLogs(containerId: ContainerId,
-                                    fromPos: Long,
-                                    pollInterval: Option[FiniteDuration]): Source[ByteString, Any] = {
+      override def rawContainerLogs(
+        containerId: ContainerId,
+        fromPos: Long,
+        pollInterval: Option[FiniteDuration]): Source[ByteString, Any] = {
         rawContainerLogsInvocations += ((containerId, fromPos, pollInterval))
         Source.single(rawLog)
       }
@@ -750,9 +757,10 @@ class DockerContainerTests
     val rawLog = toRawLog(Seq(expectedLogEntry, expectedLogEntry), appendSentinel = false)
 
     implicit val docker = new TestDockerClient {
-      override def rawContainerLogs(containerId: ContainerId,
-                                    fromPos: Long,
-                                    pollInterval: Option[FiniteDuration]): Source[ByteString, Any] = {
+      override def rawContainerLogs(
+        containerId: ContainerId,
+        fromPos: Long,
+        pollInterval: Option[FiniteDuration]): Source[ByteString, Any] = {
         rawContainerLogsInvocations += ((containerId, fromPos, pollInterval))
         Source.single(rawLog)
       }
@@ -784,9 +792,10 @@ class DockerContainerTests
     val rawLog = toRawLog(Seq(expectedLogEntry), appendSentinel = true)
 
     implicit val docker = new TestDockerClient {
-      override def rawContainerLogs(containerId: ContainerId,
-                                    fromPos: Long,
-                                    pollInterval: Option[FiniteDuration]): Source[ByteString, Any] = {
+      override def rawContainerLogs(
+        containerId: ContainerId,
+        fromPos: Long,
+        pollInterval: Option[FiniteDuration]): Source[ByteString, Any] = {
         rawContainerLogsInvocations += ((containerId, fromPos, pollInterval))
         Source.single(rawLog)
       }
@@ -829,14 +838,14 @@ class DockerContainerTests
 
     def clientVersion: String = "mock-test-client"
 
-    def run(image: String, args: Seq[String] = Seq.empty[String])(
-      implicit transid: TransactionId): Future[ContainerId] = {
+    def run(image: String, args: Seq[String] = Seq.empty[String])(implicit
+      transid: TransactionId): Future[ContainerId] = {
       runs += ((image, args))
       Future.successful(ContainerId("testId"))
     }
 
-    def inspectIPAddress(id: ContainerId, network: String)(
-      implicit transid: TransactionId): Future[ContainerAddress] = {
+    def inspectIPAddress(id: ContainerId, network: String)(implicit
+      transid: TransactionId): Future[ContainerAddress] = {
       inspects += ((id, network))
       Future.successful(ContainerAddress("testIp"))
     }
@@ -856,8 +865,8 @@ class DockerContainerTests
       Future.successful(())
     }
 
-    def ps(filters: Seq[(String, String)] = Seq.empty, all: Boolean = false)(
-      implicit transid: TransactionId): Future[Seq[ContainerId]] = ???
+    def ps(filters: Seq[(String, String)] = Seq.empty, all: Boolean = false)(implicit
+      transid: TransactionId): Future[Seq[ContainerId]] = ???
 
     def pull(image: String)(implicit transid: TransactionId): Future[Unit] = {
       pulls += image
@@ -866,9 +875,10 @@ class DockerContainerTests
 
     override def isOomKilled(id: ContainerId)(implicit transid: TransactionId): Future[Boolean] = ???
 
-    override def rawContainerLogs(containerId: ContainerId,
-                                  fromPos: Long,
-                                  pollInterval: Option[FiniteDuration]): Source[ByteString, Any] = {
+    override def rawContainerLogs(
+      containerId: ContainerId,
+      fromPos: Long,
+      pollInterval: Option[FiniteDuration]): Source[ByteString, Any] = {
       rawContainerLogsInvocations += ((containerId, fromPos, pollInterval))
       Source.single(ByteString.empty)
     }
