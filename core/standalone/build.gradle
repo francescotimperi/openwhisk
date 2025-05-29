@@ -197,3 +197,7 @@ task copyRuntimeLibs(type:Copy) {
     from configurations.runtimeClasspath
     into "$buildDir/dependency-libs"
 }
+
+tasks.named("copyBootJarToBin") {
+    dependsOn tasks.named("jar")
+}
