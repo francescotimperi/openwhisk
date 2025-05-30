@@ -88,9 +88,9 @@ class WskUnicodeTests extends TestHelpers with WskTestHelpers with JsHelpers wit
         totalWait = activationPollDuration) { activation =>
         val response = activation.response
         response.result.get.asJsObject.fields.get("error") shouldBe empty
-        response.result.get.asJsObject.fields.get("winter") should be(Some(JsString("? ? ?")))
+        response.result.get.asJsObject.fields.get("winter") should be(Some(JsString("? ☃ ?")))
 
-        activation.logs.toList.flatten.mkString(" ") should include("? ? ?")
+        activation.logs.toList.flatten.mkString(" ") should include("? ☃ ?")
       }
     }
   }
