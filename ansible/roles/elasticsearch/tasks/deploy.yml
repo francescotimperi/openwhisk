@@ -38,7 +38,7 @@
   become: "{{ db.elasticsearch.dir.become }}"
 
 # create volume directory if it's a directory path(not a named volume)
-- name: ensure elasticserach volume directory is created with permissions
+- name: ensure elastic search volume directory is created with permissions
   file:
     path: "{{ volume_name }}"
     state: directory
@@ -74,8 +74,8 @@
       - "{{ http_port }}:9200"
       - "{{ transport_port }}:{{ transport_port }}"
     volumes:
-      - "{{ db.elasticsearch.confdir }}/{{ elasticsearch_name }}/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml"
-      - "{{ db.elasticsearch.confdir }}/{{ elasticsearch_name }}/log4j2.properties:/usr/share/elasticsearch/config/log4j2.properties"
+      - "{{ db.elasticsearch.confdir }}/{{ elasticsearch_name }}/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro"
+      - "{{ db.elasticsearch.confdir }}/{{ elasticsearch_name }}/log4j2.properties:/usr/share/elasticsearch/config/log4j2.properties:ro"      
       - "{{ volume_name }}:/usr/share/elasticsearch/data"
     pull: "{{ docker.pull_elasticsearch | default(true) }}"
     ulimits:
