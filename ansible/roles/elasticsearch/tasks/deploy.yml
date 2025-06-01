@@ -75,7 +75,7 @@
       - "{{ transport_port }}:{{ transport_port }}"
     volumes:
       - "{{ db.elasticsearch.confdir }}/{{ elasticsearch_name }}/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro"
-      - "{{ db.elasticsearch.confdir }}/{{ elasticsearch_name }}/log4j2.properties:/usr/share/elasticsearch/config/log4j2.properties:ro"      
+      - "{{ db.elasticsearch.confdir }}/{{ elasticsearch_name }}/log4j2.properties:/usr/share/elasticsearch/config/log4j2.properties:ro"  
       - "{{ volume_name }}:/usr/share/elasticsearch/data"
     pull: "{{ docker.pull_elasticsearch | default(true) }}"
     ulimits:
