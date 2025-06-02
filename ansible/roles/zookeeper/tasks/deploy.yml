@@ -17,15 +17,15 @@
 ---
 # This role will install Kafka with Zookeeper in group 'kafka' in the environment inventory
 
-- name: set zookeeper image
+- name: Set ZooKeeper image for ARM64 (Apple M1/M2, ARM servers)
   set_fact:
     zookeeper_image: "{{ zookeeper.image.arm64 }}"
-  when: ansible_facts['os_family'] == "Darwin" and ansible_facts['architecture'] == "arm64"
+  when: ansible_facts['architecture'] in ['arm64', 'aarch64']
 
-- name: set zookeeper image
+- name: Set ZooKeeper image for AMD64 (Intel/AMD)
   set_fact:
     zookeeper_image: "{{ zookeeper.image.amd64 }}"
-  when: ansible_facts['os_family'] != "Darwin" or ansible_facts['architecture'] != "arm64"
+  when: ansible_facts['architecture'] == 'x86_64'
 
 - name: (re)start zookeeper
   docker_container:
