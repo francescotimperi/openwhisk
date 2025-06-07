@@ -237,32 +237,52 @@ case class Binding(namespace: EntityName, name: EntityName) {
 
 object Binding extends ArgNormalizer[Binding] with DefaultJsonProtocol {
 
-  override protected[core] val serdes = jsonFormat2(Binding.apply)
+  override protected[core] val serdes: RootJsonFormat[Binding] = new RootJsonFormat[Binding] {
+    override def write(b: Binding): JsValue =
+      JsObject("namespace" -> JsString(b.namespace.name), "name" -> JsString(b.name.name))
+
+    override def read(value: JsValue): Binding = {
+      value.asJsObject.getFields("namespace", "name") match {
+        case Seq(JsString(ns), JsString(n)) =>
+          Binding(EntityName(ns), EntityName(n))
+        case _ =>
+          deserializationError("Binding expected")
+      }
+    }
+  }
 
   protected[entity] val optionalBindingDeserializer = new JsonReader[Option[Binding]] {
-    override def read(js: JsValue) = {
+    override def read(js: JsValue): Option[Binding] =
       if (js == JsObject.empty) None else Some(serdes.read(js))
-    }
-
   }
 
   protected[entity] val optionalBindingSerializer = new JsonWriter[Option[Binding]] {
-    override def write(b: Option[Binding]) = b match {
+    override def write(b: Option[Binding]): JsValue = b match {
       case None    => JsObject.empty
-      case Some(n) => Binding.serdes.write(n)
+      case Some(n) => serdes.write(n)
     }
   }
 }
 
 object WhiskPackagePut extends DefaultJsonProtocol {
-  implicit val serdes = {
-    implicit val bindingSerdes = Binding.serdes
-    implicit val optionalBindingSerdes = new OptionFormat[Binding] {
-      override def read(js: JsValue) = Binding.optionalBindingDeserializer.read(js)
-      override def write(n: Option[Binding]) = Binding.optionalBindingSerializer.write(n)
+
+  // Explicit serializer for Option[Binding]
+  implicit val optionalBindingFormat: JsonFormat[Option[Binding]] = new JsonFormat[Option[Binding]] {
+    override def write(b: Option[Binding]): JsValue = b match {
+      case Some(binding) => Binding.serdes.write(binding)
+      case None          => JsNull
     }
-    jsonFormat5(WhiskPackagePut.apply)
+
+    override def read(json: JsValue): Option[Binding] = json match {
+      case JsNull         => None
+      case JsObject(obj) if obj.isEmpty => None
+      case jsValue        => Some(Binding.serdes.read(jsValue))
+    }
   }
+
+  // Use explicit val to reduce complexity and avoid anonymous functions
+  implicit val whiskPackagePutFormat: RootJsonFormat[WhiskPackagePut] =
+    jsonFormat5(WhiskPackagePut.apply)
 }
 
 object WhiskPackageAction extends DefaultJsonProtocol {
