@@ -61,9 +61,10 @@ dependencies {
 
     api "com.lightbend.akka:akka-stream-alpakka-file_${gradle.scala.depVersion}:2.0.2"
 
-    api "ch.qos.logback:logback-classic:1.2.11"
-    api "org.slf4j:jcl-over-slf4j:1.7.25"
-    api "org.slf4j:log4j-over-slf4j:1.7.25"
+    api "ch.qos.logback:logback-classic:1.4.11"
+    api "org.slf4j:jcl-over-slf4j:2.0.5"
+    api "org.slf4j:log4j-over-slf4j:2.0.5"
+    api "org.slf4j:slf4j-api:2.0.5"
     api "commons-codec:commons-codec:1.9"
     api "commons-io:commons-io:2.11.0"
     api "commons-collections:commons-collections:3.2.2"
@@ -75,22 +76,27 @@ dependencies {
     api "io.fabric8:kubernetes-client:${gradle.kube_client.version}"
 
     //metrics
-    api ("io.kamon:kamon-core_${gradle.scala.depVersion}:2.1.12") {
+    api ("io.kamon:kamon-core_${gradle.scala.depVersion}:2.5.0") {
         exclude group: 'com.lihaoyi'
     }
-    api "io.kamon:kamon-statsd_${gradle.scala.depVersion}:2.1.12"
-    api ("io.kamon:kamon-system-metrics_${gradle.scala.depVersion}:2.1.12") {
+    api "io.kamon:kamon-statsd_${gradle.scala.depVersion}:2.5.0"
+    api ("io.kamon:kamon-system-metrics_${gradle.scala.depVersion}:2.5.0") {
         exclude group: 'io.kamon', module: 'sigar-loader'
         exclude group: 'net.java.dev.jna'
     }
-    api "io.kamon:kamon-prometheus_${gradle.scala.depVersion}:2.1.12"
-    api "io.kamon:kamon-datadog_${gradle.scala.depVersion}:2.1.12"
-    // for apple silicon proper support
+    api "io.kamon:kamon-prometheus_${gradle.scala.depVersion}:2.5.0"
+    api "io.kamon:kamon-datadog_${gradle.scala.depVersion}:2.5.0"
+
     api "net.java.dev.jna:jna:5.13.0"
-    api 'com.github.oshi:oshi-core:6.4.0'
+    api "net.java.dev.jna:jna-platform:5.13.0"
+
+    api ("com.github.oshi:oshi-core:6.4.0") {
+        exclude group: "org.apache.logging.log4j"
+    }
 
     // for etcd
     api "com.ibm.etcd:etcd-java:0.0.13"
+    
 
     //tracing support
     api "io.opentracing:opentracing-api:0.31.0"
@@ -155,6 +161,7 @@ dependencies {
 configurations {
     api {
         exclude group: 'commons-logging'
-        exclude group: 'log4j'
+        exclude group: 'log4j'        
+        exclude group: "org.apache.logging.log4j"
     }
 }

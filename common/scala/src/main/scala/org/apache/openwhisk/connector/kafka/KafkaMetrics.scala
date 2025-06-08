@@ -38,7 +38,7 @@ object KafkaMetrics {
   private case class MetricName(name: String, group: String, description: String, tags: Map[String, String])
 
   private object MetricName extends DefaultJsonProtocol {
-    implicit val serdes = jsonFormat4(MetricName.apply)
+    implicit val serdes: RootJsonFormat[MetricName] = jsonFormat4(MetricName.apply)
     def apply(m: JMetricName): MetricName = new MetricName(m.name(), m.group(), m.description(), m.tags().asScala.toMap)
   }
 

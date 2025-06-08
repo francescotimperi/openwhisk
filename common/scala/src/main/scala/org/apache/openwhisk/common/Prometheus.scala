@@ -28,7 +28,7 @@ class KamonPrometheus extends AutoCloseable {
   private val reporter = new PrometheusReporter
   private val v4: ContentType = ContentType.apply(
     MediaType.textWithFixedCharset("plain", HttpCharsets.`UTF-8`).withParams(Map("version" -> "0.0.4")))
-  Kamon.registerModule("prometheus", reporter)
+  Kamon.addReporter("prometheus", reporter)
 
   def route: Route = path("metrics") {
     get {

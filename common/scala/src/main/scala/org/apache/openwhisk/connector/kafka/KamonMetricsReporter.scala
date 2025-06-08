@@ -34,6 +34,7 @@ import scala.collection.concurrent.TrieMap
 import scala.concurrent.duration.FiniteDuration
 import scala.util.{Success, Try}
 import scala.collection.JavaConverters._
+import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 
 class KamonMetricsReporter extends MetricsReporter {
   import KamonMetricsReporter._
@@ -41,6 +42,8 @@ class KamonMetricsReporter extends MetricsReporter {
   private val metricConfig = loadConfigOrThrow[KafkaMetricConfig](s"${ConfigKeys.kafka}.metrics")
   @volatile
   private var updater: Option[ScheduledFuture[_]] = None
+  private val executor: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor()
+
 
   override def init(metrics: util.List[KafkaMetric]): Unit = metrics.forEach(add)
 
@@ -51,12 +54,15 @@ class KamonMetricsReporter extends MetricsReporter {
 
   override def metricRemoval(metric: KafkaMetric): Unit = remove(metric)
 
-  override def close(): Unit = updater.foreach(_.cancel(false))
-
   override def configure(configs: util.Map[String, _]): Unit = {
     val interval = metricConfig.reportInterval.toSeconds
-    val f = Kamon.scheduler().scheduleAtFixedRate(() => updateAll(), interval, interval, TimeUnit.SECONDS)
+    val f = executor.scheduleAtFixedRate(() => updateAll(), interval, interval, TimeUnit.SECONDS)
     updater = Some(f)
+  }
+
+  override def close(): Unit = {
+    updater.foreach(_.cancel(false))
+    executor.shutdown() // clean up the scheduler
   }
 
   private def add(metric: KafkaMetric): Unit = {
