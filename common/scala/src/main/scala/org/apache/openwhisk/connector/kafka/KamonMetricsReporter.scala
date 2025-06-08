@@ -44,7 +44,6 @@ class KamonMetricsReporter extends MetricsReporter {
   private var updater: Option[ScheduledFuture[_]] = None
   private val executor: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor()
 
-
   override def init(metrics: util.List[KafkaMetric]): Unit = metrics.forEach(add)
 
   override def metricChange(metric: KafkaMetric): Unit = {

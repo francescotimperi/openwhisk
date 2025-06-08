@@ -274,9 +274,9 @@ object WhiskPackagePut extends DefaultJsonProtocol {
     }
 
     override def read(json: JsValue): Option[Binding] = json match {
-      case JsNull         => None
+      case JsNull                       => None
       case JsObject(obj) if obj.isEmpty => None
-      case jsValue        => Some(Binding.serdes.read(jsValue))
+      case jsValue                      => Some(Binding.serdes.read(jsValue))
     }
   }
 
