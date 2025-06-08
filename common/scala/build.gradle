@@ -81,9 +81,13 @@ dependencies {
     api "io.kamon:kamon-statsd_${gradle.scala.depVersion}:2.1.12"
     api ("io.kamon:kamon-system-metrics_${gradle.scala.depVersion}:2.1.12") {
         exclude group: 'io.kamon', module: 'sigar-loader'
+        exclude group: 'net.java.dev.jna'
     }
     api "io.kamon:kamon-prometheus_${gradle.scala.depVersion}:2.1.12"
     api "io.kamon:kamon-datadog_${gradle.scala.depVersion}:2.1.12"
+    // for apple silicon proper support
+    api "net.java.dev.jna:jna:5.13.0"
+    api 'com.github.oshi:oshi-core:6.4.0'
 
     // for etcd
     api "com.ibm.etcd:etcd-java:0.0.13"
