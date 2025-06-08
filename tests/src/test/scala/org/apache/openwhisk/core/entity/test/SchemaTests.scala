@@ -410,7 +410,8 @@ class SchemaTests extends FlatSpec with BeforeAndAfter with ExecHelpers with Mat
     //WhiskPackagePut.serdes.read(JsObject("binding" -> JsNull)) shouldBe WhiskPackagePut()
     WhiskPackagePut.whiskPackagePutFormat.read(JsObject("binding" -> JsObject.empty)) shouldBe WhiskPackagePut()
     //WhiskPackagePut.serdes.read(JsObject("binding" -> "a/b".toJson)) shouldBe WhiskPackagePut(binding = Some(Binding(EntityPath("a"), EntityName("b"))))
-    a[DeserializationException] should be thrownBy WhiskPackagePut.whiskPackagePutFormat.read(JsObject("binding" -> JsNull))
+    a[DeserializationException] should be thrownBy WhiskPackagePut.whiskPackagePutFormat.read(
+      JsObject("binding" -> JsNull))
   }
 
   behavior of "WhiskPackage"
