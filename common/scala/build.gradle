@@ -80,6 +80,7 @@ dependencies {
         exclude group: 'com.lihaoyi'
     }
     api "io.kamon:kamon-statsd_${gradle.scala.depVersion}:2.5.0"
+    api "io.kamon:kamon-bundle_${gradle.scala.depVersion}:2.5.0"
     api ("io.kamon:kamon-system-metrics_${gradle.scala.depVersion}:2.5.0") {
         exclude group: 'io.kamon', module: 'sigar-loader'
         exclude group: 'net.java.dev.jna'

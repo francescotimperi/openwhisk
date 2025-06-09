@@ -45,7 +45,7 @@ class KamonRecorderTests extends KafkaSpecBase with BeforeAndAfterEach with Kamo
         |    optimistic-tick-alignment = no
         |  }
         |}""".stripMargin).withFallback(ConfigFactory.load())
-    Kamon.registerModule("test", TestReporter)
+    Kamon.addReporter("test", TestReporter)
     Kamon.reconfigure(newConfig)
     reporter = TestReporter
   }
